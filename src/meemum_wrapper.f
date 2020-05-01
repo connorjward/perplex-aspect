@@ -5,6 +5,8 @@
        use iso_c_binding, only: c_double
        implicit none
 
+       include "perplex_parameters.h"
+
        contains
 
        subroutine c_init() bind(c)
@@ -16,43 +18,13 @@
        end subroutine
        
        subroutine init()
-         include "perplex_parameters.h"
-
-         ! meemum.f : program meemum
+         ! wrapper for meemm (meemum.f)
          integer iam
          common/ cst4 /iam
 
-         ! resub.f : subroutine iniptp
-         logical first, err 
-
-         ! rlib.f : subroutine input1
-         character*100 prject,tfname
-         common/ cst228 /prject,tfname
-
-         ! initial work
-
-         ! prevent input1 crashing
-         prject = "my_project"
-
-         ! now start the wrapper
-         ! meemum.f : program meemm
-
          iam = 2
          call vrsion (6)
-
-         ! resub.f : subroutine iniptp
-
-         first = .true.
-
-         ! prevent prompt for project name
-         outprt = .true.
-
-         call input1 (first,err)
-         call input2 (first)
-         call setau1 
-         call input9 (first)
-         if (lopt(50)) call outsei
-         call initlp
+         call iniprp_wrapper
        end subroutine
        
        subroutine minimize()
@@ -108,17 +80,14 @@
          common/ cst4 /iam
 
 c----------------------------------------------------------------------- 
-         ! avoid bulk usage prompt
+         ! *** avoid bulk usage prompt ***
          bulk = .true.
 
-c                                 iwt is set by input, it is only used below to determine
-c                                 whether to convert weight compositions to molar. the 
-c                                 computations are done solely in molar units. 
-      amount = 'molar '
+         amount = 'molar '
 
-      if (iwt.eq.1) amount = 'weight'
+         if (iwt.eq.1) amount = 'weight'
 
-      if (lopt(28)) open (666,file='times.txt')
+         if (lopt(28)) open (666,file='times.txt')
 c                                 computational loop
       do 
 c                                 read potential variable values    
@@ -178,8 +147,32 @@ c                                 print summary to LUN 6
 1070  format (/,'Enter (zeroes to quit) ',7(a,1x))
        end subroutine
        
-       subroutine print_stuff
-         call calpr0(6)
+       subroutine iniprp_wrapper
+         ! resub.f : subroutine iniprp
+         logical first, err 
+
+         ! rlib.f : subroutine input1
+         character*100 prject,tfname
+         common/ cst228 /prject,tfname
+
+         ! ---------------------
+         ! ----- PREP WORK -----
+         ! ---------------------
+
+         ! prevent input1 crashing
+         prject = "my_project"
+         ! resub.f : subroutine iniprp
+         first = .true.
+
+         ! *** prevent prompt for project name ***
+         outprt = .true.
+
+         call input1 (first,err)
+         call input2 (first)
+         call setau1 
+         call input9 (first)
+         if (lopt(50)) call outsei
+         call initlp
        end subroutine
        
        end module
