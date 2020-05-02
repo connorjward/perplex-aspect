@@ -1,144 +1,134 @@
       module meemum_wrapper_mod
 
-      use, intrinsic :: iso_c_binding
-      use, intrinsic :: iso_fortran_env
+        use, intrinsic :: iso_c_binding
+        use, intrinsic :: iso_fortran_env
 
-      implicit none
+        implicit none
 
-      include "perplex_parameters.h"
+        include "perplex_parameters.h"
 
       contains
 
-      subroutine update_components(c_components) bind(c)
-        ! should really make k5 into a better named variable...
-        real(c_double), dimension(k5), intent(out) :: c_components
+        function get_n_components() bind(c) result(n)
+          integer(c_int) :: n
 
-        integer :: i
+          n = k5
+        end function
 
-        ! where is this from? file reference
-        double precision a,b,c
-        common / cst313 / a(k5,k1), b(k5), c(k1)
+        subroutine get_component_name(comp_id, comp_name) bind(c)
+          integer(c_int), intent(in) :: comp_id
+          character(c_char), dimension(*), intent(out) :: comp_name
 
-        do i = 1, k5
-          c_components(i) = b(i)
-        end do
-      end subroutine
+          ! component names (from where?)
+          character*5 cname
+          common / csta4 / cname(k5)
 
+          integer :: i
 
-      function get_component_amount(component) bind(c) result(amount)
-        integer, intent(in) :: component
-        real(real64) :: amount
+          do i = 1, 5
+          comp_name(i:i) = cname(comp_id)(i:i)
+          end do
+        end subroutine
 
-        double precision a,b,c
-        common/ cst313 /a(k5,k1),b(k5),c(k1)
+        subroutine get_component_amount(comp_id, comp_amount) bind(c)
+          integer(c_int), intent(in) :: comp_id
+          real(c_double), intent(out) :: comp_amount
 
-        amount = b(component)
-      end function
+          integer :: i
 
-      subroutine c_init() bind(c)
-        call init()
-      end subroutine
+          ! where is this from? file reference
+          double precision a,b,c
+          common / cst313 / a(k5,k1), b(k5), c(k1)
 
-      subroutine c_minimize() bind(c)
-        integer :: i
-        double precision :: temperature, pressure
-        double precision, dimension(k5) :: component_amounts
+          comp_amount = b(comp_id)
+        end subroutine
 
-        temperature = 100
-        pressure = 120
+        subroutine init() bind(c)
+          ! part 1 of wrapper for meemm (meemum.f)
+          integer iam
+          common/ cst4 /iam
 
-        do i = 1, jbulk
-          component_amounts(i) = i
-        end do
+          iam = 2
+          call vrsion (6)
+          call iniprp_wrapper
+        end subroutine
 
-        call minimize(temperature, pressure, component_amounts)
-      end subroutine
+        subroutine minimize(temperature, pressure, component_amounts)
+     *      bind(c)
+          ! part 2 of wrapper for meemm (meemum.f)
+          integer i, ier
 
-      subroutine init()
-        ! part 1 of wrapper for meemm (meemum.f)
-        integer iam
-        common/ cst4 /iam
+          logical bulk, bad
 
-        iam = 2
-        call vrsion (6)
-        call iniprp_wrapper
-      end subroutine
-       
-      subroutine minimize(temperature, pressure, component_amounts)
-        ! part 2 of wrapper for meemm (meemum.f)
-        integer i, ier
+          character amount*6, yes*1
 
-        logical bulk, bad
+          double precision num
 
-        character amount*6, yes*1
+          integer iwt
+          common/ cst209 /iwt
 
-        double precision num
+          integer npt,jdv
+          logical fulrnk
+          double precision cptot,ctotal
+          common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
 
-        integer iwt
-        common/ cst209 /iwt
+          double precision atwt
+          common/ cst45 /atwt(k0) 
 
-        integer npt,jdv
-        logical fulrnk
-        double precision cptot,ctotal
-        common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
+          double precision v,tr,pr,r,ps
+          common/ cst5  /v(l2),tr,pr,r,ps
 
-        double precision atwt
-        common/ cst45 /atwt(k0) 
+          integer ipot,jv,iv
+          common / cst24 /ipot,jv(l2),iv(l2)
 
-        double precision v,tr,pr,r,ps
-        common/ cst5  /v(l2),tr,pr,r,ps
+          character*8 vname,xname
+          common/ csta2  /xname(k5),vname(l2)
 
-        integer ipot,jv,iv
-        common / cst24 /ipot,jv(l2),iv(l2)
+          character*5 cname
+          common/ csta4 /cname(k5)
 
-        character*8 vname,xname
-        common/ csta2  /xname(k5),vname(l2)
+          double precision a,b,c
+          common/ cst313 /a(k5,k1),b(k5),c(k1)
 
-        character*5 cname
-        common/ csta4 /cname(k5)
+          integer icomp,istct,iphct,icp
+          common/ cst6  /icomp,istct,iphct,icp
 
-        double precision a,b,c
-        common/ cst313 /a(k5,k1),b(k5),c(k1)
+          integer io3,io4,io9
+          common / cst41 /io3,io4,io9
 
-        integer icomp,istct,iphct,icp
-        common/ cst6  /icomp,istct,iphct,icp
+          logical gflu,aflu,fluid,shear,lflu,volume,rxn
+          common/ cxt20 /gflu,aflu,fluid(k5),shear,lflu,volume,rxn
 
-        integer io3,io4,io9
-        common / cst41 /io3,io4,io9
+          double precision goodc, badc
+          common/ cst20 /goodc(3),badc(3)
 
-        logical gflu,aflu,fluid,shear,lflu,volume,rxn
-        common/ cxt20 /gflu,aflu,fluid(k5),shear,lflu,volume,rxn
+          integer iam
+          common/ cst4 /iam
 
-        double precision goodc, badc
-        common/ cst20 /goodc(3),badc(3)
-
-        integer iam
-        common/ cst4 /iam
-
-        ! arguments
-        double precision :: pressure, temperature
-        double precision, dimension(k5) :: component_amounts
+          ! arguments
+          double precision :: pressure, temperature
+          double precision, dimension(k5) :: component_amounts
 
 c----------------------------------------------------------------------- 
 
-        !
-        ! set potential (P, T) values
-        pressure = 100
-        temperature = 120
+          !
+          ! set potential (P, T) values
+          pressure = 100
+          temperature = 120
 
-        v(1) = temperature
-        v(2) = pressure
+          v(1) = temperature
+          v(2) = pressure
 
-          
-        ! load composition
-        do i = 1, jbulk
-          cblk(i) = component_amounts(i)
-        end do
 
-        ! convert to moles if needed
-        if (iwt.eq.1) then 
+          ! load composition
           do i = 1, jbulk
-          cblk(i) = cblk(i)/atwt(i)
+          cblk(i) = component_amounts(i)
+          end do
+
+          ! convert to moles if needed
+          if (iwt.eq.1) then 
+            do i = 1, jbulk
+            cblk(i) = cblk(i)/atwt(i)
           end do 
         end if
 
