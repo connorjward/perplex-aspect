@@ -1,127 +1,150 @@
-! requires molar masses
+      module meemum_wrapper_mod
 
-       module meemum_wrapper
+      use, intrinsic :: iso_c_binding
+      use, intrinsic :: iso_fortran_env
 
-       use iso_c_binding, only: c_double
-       implicit none
+      implicit none
 
-       include "perplex_parameters.h"
+      include "perplex_parameters.h"
 
-       contains
+      contains
 
-       subroutine c_init() bind(c)
-         call init()
-       end subroutine
+      subroutine update_components(c_components) bind(c)
+        ! should really make k5 into a better named variable...
+        real(c_double), dimension(k5), intent(out) :: c_components
 
-       subroutine c_minimize() bind(c)
-         call minimize()
-       end subroutine
+        integer :: i
+
+        ! where is this from? file reference
+        double precision a,b,c
+        common / cst313 / a(k5,k1), b(k5), c(k1)
+
+        do i = 1, k5
+          c_components(i) = b(i)
+        end do
+      end subroutine
+
+
+      function get_component_amount(component) bind(c) result(amount)
+        integer, intent(in) :: component
+        real(real64) :: amount
+
+        double precision a,b,c
+        common/ cst313 /a(k5,k1),b(k5),c(k1)
+
+        amount = b(component)
+      end function
+
+      subroutine c_init() bind(c)
+        call init()
+      end subroutine
+
+      subroutine c_minimize() bind(c)
+        integer :: i
+        double precision :: temperature, pressure
+        double precision, dimension(k5) :: component_amounts
+
+        temperature = 100
+        pressure = 120
+
+        do i = 1, jbulk
+          component_amounts(i) = i
+        end do
+
+        call minimize(temperature, pressure, component_amounts)
+      end subroutine
+
+      subroutine init()
+        ! part 1 of wrapper for meemm (meemum.f)
+        integer iam
+        common/ cst4 /iam
+
+        iam = 2
+        call vrsion (6)
+        call iniprp_wrapper
+      end subroutine
        
-       subroutine init()
-         ! wrapper for meemm (meemum.f)
-         integer iam
-         common/ cst4 /iam
+      subroutine minimize(temperature, pressure, component_amounts)
+        ! part 2 of wrapper for meemm (meemum.f)
+        integer i, ier
 
-         iam = 2
-         call vrsion (6)
-         call iniprp_wrapper
-       end subroutine
-       
-       subroutine minimize()
-         include "../perplex/perplex_parameters.h"
+        logical bulk, bad
 
-         integer i, ier
+        character amount*6, yes*1
 
-         logical bulk, bad
+        double precision num
 
-         character amount*6, yes*1
+        integer iwt
+        common/ cst209 /iwt
 
-         double precision num
+        integer npt,jdv
+        logical fulrnk
+        double precision cptot,ctotal
+        common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
 
-         integer iwt
-         common/ cst209 /iwt
+        double precision atwt
+        common/ cst45 /atwt(k0) 
 
-         integer npt,jdv
-         logical fulrnk
-         double precision cptot,ctotal
-         common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
+        double precision v,tr,pr,r,ps
+        common/ cst5  /v(l2),tr,pr,r,ps
 
-         double precision atwt
-         common/ cst45 /atwt(k0) 
+        integer ipot,jv,iv
+        common / cst24 /ipot,jv(l2),iv(l2)
 
-         double precision v,tr,pr,r,ps
-         common/ cst5  /v(l2),tr,pr,r,ps
+        character*8 vname,xname
+        common/ csta2  /xname(k5),vname(l2)
 
-         integer ipot,jv,iv
-         common / cst24 /ipot,jv(l2),iv(l2)
+        character*5 cname
+        common/ csta4 /cname(k5)
 
-         character*8 vname,xname
-         common/ csta2  /xname(k5),vname(l2)
+        double precision a,b,c
+        common/ cst313 /a(k5,k1),b(k5),c(k1)
 
-         character*5 cname
-         common/ csta4 /cname(k5)
+        integer icomp,istct,iphct,icp
+        common/ cst6  /icomp,istct,iphct,icp
 
-         double precision a,b,c
-         common/ cst313 /a(k5,k1),b(k5),c(k1)
+        integer io3,io4,io9
+        common / cst41 /io3,io4,io9
 
-         integer icomp,istct,iphct,icp
-         common/ cst6  /icomp,istct,iphct,icp
+        logical gflu,aflu,fluid,shear,lflu,volume,rxn
+        common/ cxt20 /gflu,aflu,fluid(k5),shear,lflu,volume,rxn
 
-         integer io3,io4,io9
-         common / cst41 /io3,io4,io9
+        double precision goodc, badc
+        common/ cst20 /goodc(3),badc(3)
 
-         logical gflu,aflu,fluid,shear,lflu,volume,rxn
-         common/ cxt20 /gflu,aflu,fluid(k5),shear,lflu,volume,rxn
+        integer iam
+        common/ cst4 /iam
 
-         double precision goodc, badc
-         common/ cst20 /goodc(3),badc(3)
-
-         integer iam
-         common/ cst4 /iam
+        ! arguments
+        double precision :: pressure, temperature
+        double precision, dimension(k5) :: component_amounts
 
 c----------------------------------------------------------------------- 
-         ! *** avoid bulk usage prompt ***
-         bulk = .true.
 
-         amount = 'molar '
+        !
+        ! set potential (P, T) values
+        pressure = 100
+        temperature = 120
 
-         if (iwt.eq.1) amount = 'weight'
+        v(1) = temperature
+        v(2) = pressure
 
-         if (lopt(28)) open (666,file='times.txt')
-c                                 computational loop
-      do 
-c                                 read potential variable values    
-c                                 v(1) is P(bar), v(2) is T(K) the pointer jv used 
-c                                 for general problems but can be eliminated for calculations 
-c                                 simply as a f(P,T)       
-         write (*,1070) (vname(jv(i)), i = 1, ipot)
-         read (*,*,iostat=ier) (v(jv(i)), i = 1, ipot)
-         if (ier.ne.0) cycle
-         if (v(jv(1)).eq.0d0) exit 
           
-         if (bulk) then 
-c                                 load the composition into b, the component names are  
-c                                 in cname, if iwt = 1 the composition is in mass fractions
-c                                 otherwise in molar units. 
-            do 
-               write (*,1060) amount
-               write (*,'(12(a,1x))') (cname(i),i=1,jbulk)
-               read (*,*,iostat=ier) (cblk(i),i=2,jbulk)
-               if (ier.eq.0) exit
-            end do  
-         
-            if (iwt.eq.1) then 
-c                                 convert mass to molar 
-               do i = 1, jbulk
-                  cblk(i) = cblk(i)/atwt(i)
-               end do 
+        ! load composition
+        do i = 1, jbulk
+          cblk(i) = component_amounts(i)
+        end do
 
-            end if
+        ! convert to moles if needed
+        if (iwt.eq.1) then 
+          do i = 1, jbulk
+          cblk(i) = cblk(i)/atwt(i)
+          end do 
+        end if
 
-         end if 
 c                                 meemum does the minimization and outputs
 c                                 the results to the print file.
-         call meemum (bad)
+        call meemum_wrapper
 
          if (.not.bad) then
 c                                 print summary to LUN 6
@@ -137,17 +160,12 @@ c                                 print summary to LUN 6
             if (num.gt.1d-1) call warn (53,num,i,'MEEMUM')
 
          end if 
-
-      end do
-
-1000  format (/,'Interactively enter bulk compositions (y/n)?',/,
-     *          'If you answer no, MEEMUM uses the bulk composition',
-     *         ' specified in the input file.',/)
-1060  format (/,'Enter ',a,' amounts of the components:')
-1070  format (/,'Enter (zeroes to quit) ',7(a,1x))
        end subroutine
        
-       subroutine iniprp_wrapper
+       subroutine iniprp_wrapper()
+         ! wrapper for iniprp (resub.f)
+
+         ! ----- VARIABLES -----
          ! resub.f : subroutine iniprp
          logical first, err 
 
@@ -155,13 +173,12 @@ c                                 print summary to LUN 6
          character*100 prject,tfname
          common/ cst228 /prject,tfname
 
-         ! ---------------------
          ! ----- PREP WORK -----
-         ! ---------------------
 
          ! prevent input1 crashing
          prject = "my_project"
-         ! resub.f : subroutine iniprp
+
+         ! ----- WRAPPER -----
          first = .true.
 
          ! *** prevent prompt for project name ***
@@ -174,5 +191,73 @@ c                                 print summary to LUN 6
          if (lopt(50)) call outsei
          call initlp
        end subroutine
+
+       subroutine meemum_wrapper()
+         ! wrapper for meemum (resub.f)
+
+         ! ----- VARIABLES -----
+
+      integer i, idead
+
+      logical nodata, bad
+
+      integer itri(4),jtri(4),ijpt
+
+      double precision wt(3), cum
+
+      double precision v,tr,pr,r,ps
+      common/ cst5  /v(l2),tr,pr,r,ps
+
+      integer ipot,jv,iv
+      common / cst24 /ipot,jv(l2),iv(l2)
+
+      character*8 vname,xname
+      common/ csta2  /xname(k5),vname(l2)
+
+      character*5 cname
+      common/ csta4 /cname(k5)
+
+      double precision a,b,c
+      common/ cst313 /a(k5,k1),b(k5),c(k1)
+
+      logical gflu,aflu,fluid,shear,lflu,volume,rxn
+      common/ cxt20 /gflu,aflu,fluid(k5),shear,lflu,volume,rxn
+
+      integer npt,jdv
+      logical fulrnk
+      double precision cptot,ctotal
+      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
+
+      integer icomp,istct,iphct,icp
+      common/ cst6  /icomp,istct,iphct,icp
+         ! ----- PREP WORK -----
+
+         ! ----- WRAPPER -----
+      ! normalize vector
+      ctotal = 0d0
+      do i = 1, icp
+          ctotal = ctotal + cblk(i)
+      end do 
+
+      do i = 1, icp
+         b(i) = cblk(i)/ctotal
+      end do
+      call incdp0
+
+      call lpopt0 (idead)
+
+      if (idead.eq.0) then
+c                                 compute derivative properties
+         call getloc (itri,jtri,ijpt,wt,nodata)
+
+         bad = .false.
+
+      else 
+
+         bad = .true.
+
+      end if
+       end subroutine
+
        
        end module
