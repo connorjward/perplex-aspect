@@ -1,5 +1,3 @@
-PERPLEX_DIR=/home/connor/Documents/uni/project/code/perplex
-
 test : meemum_wrapper.o test.o
 	g++ -o test meemum_wrapper.o test.o \
 		${PERPLEX_DIR}/resub.o ${PERPLEX_DIR}/*lib.o \
