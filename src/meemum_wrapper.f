@@ -43,6 +43,53 @@
           comp_amount = b(comp_id)
         end subroutine
 
+        function get_density() bind(c) result(rho)
+          real(c_double) :: rho
+          double precision props,psys,psys1,pgeo,pgeo1
+          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
+     >    pgeo1(i8)
+          
+          rho = psys(10)
+        end function
+
+        function get_expansivity() bind(c) result(alpha)
+          real(c_double) :: alpha
+          double precision props,psys,psys1,pgeo,pgeo1
+          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
+     >    pgeo1(i8)
+
+          alpha = psys(13)
+        end function
+
+        function get_heat_capacity() bind(c) result(Cp)
+          real(c_double) :: Cp
+          double precision props,psys,psys1,pgeo,pgeo1
+          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),
+     >    pgeo(i8),pgeo1(i8)
+
+          Cp = psys(12) / psys(1) * 1d5 / psys(10)
+        end function
+
+        function get_melt_frac() bind(c) result(melt_frac)
+          real(c_double) :: melt_frac
+          double precision props,psys,psys1,pgeo,pgeo1
+          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
+     >    pgeo1(i8)
+
+          ! melt_frac = props(17,imelt)*props(16,imelt) / psys(17)
+          melt_frac = 0.1
+        end function
+
+        function get_entropy() bind(c) result(S)
+          real(c_double) :: S
+
+          double precision props,psys,psys1,pgeo,pgeo1
+          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
+     >    pgeo1(i8)
+
+          S = psys(15)/psys(1)*1d5/psys(10)
+        end function
+
         subroutine init() bind(c)
           ! part 1 of wrapper for meemm (meemum.f)
           integer iam
@@ -53,8 +100,8 @@
           call iniprp_wrapper
         end subroutine
 
-        subroutine minimize(temperature, pressure, component_amounts)
-     *      bind(c)
+        subroutine minimize(temperature, pressure)
+     >      bind(c)
           ! part 2 of wrapper for meemm (meemum.f)
           integer i, ier
 
@@ -106,24 +153,16 @@
           common/ cst4 /iam
 
           ! arguments
-          double precision :: pressure, temperature
-          double precision, dimension(k5) :: component_amounts
+          real(c_double) :: temperature, pressure
 
 c----------------------------------------------------------------------- 
 
-          !
           ! set potential (P, T) values
-          pressure = 100
-          temperature = 120
+          v(2) = temperature
+          v(1) = pressure
 
-          v(1) = temperature
-          v(2) = pressure
-
-
-          ! load composition
-          do i = 1, jbulk
-          cblk(i) = component_amounts(i)
-          end do
+          print *, temperature
+          print *, pressure
 
           ! convert to moles if needed
           if (iwt.eq.1) then 
