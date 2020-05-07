@@ -52,6 +52,29 @@
           rho = psys(10)
         end function
 
+        function get_n_phases() bind(c) result(n)
+          integer(c_int) :: n
+
+          ! meemum_trimmed_subprogram.f
+          integer kkp,np,ncpd,ntot
+          double precision cp3,amt
+          common/ cxt15 /cp3(k0,k19),amt(k19),kkp(k19),np,ncpd,ntot
+
+          n = ntot
+        end function
+
+        function get_phase_amount(phase_id) bind(c) result(amount)
+          integer(c_int), intent(in) :: phase_id
+          real(c_double) :: amount
+
+          ! meemum_trimmed_subprogram
+          double precision props,psys,psys1,pgeo,pgeo1
+          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
+     >    pgeo1(i8)
+
+          amount = props(16, phase_id) 
+        end function
+
         function get_expansivity() bind(c) result(alpha)
           real(c_double) :: alpha
           double precision props,psys,psys1,pgeo,pgeo1
@@ -88,6 +111,26 @@
      >    pgeo1(i8)
 
           S = psys(15)/psys(1)*1d5/psys(10)
+        end function
+
+        function has_melt() bind(c)
+          logical(c_bool) :: has_melt
+
+          logical gflu,aflu,fluid,shear,lflu,volume,rxn
+          common/ cxt20 /gflu,aflu,fluid(k5),shear,lflu,volume,rxn
+
+          has_melt = aflu
+        end function
+
+        function is_melt(phase_id) bind(c)
+          integer(c_int), intent(in) :: phase_id
+          logical(c_bool) :: is_melt
+
+          logical gflu,aflu,fluid,shear,lflu,volume,rxn
+          common / cxt20 / gflu, aflu, fluid(k5), shear, lflu, volume,
+     >    rxn
+
+          is_melt = fluid(phase_id)
         end function
 
         subroutine init() bind(c)

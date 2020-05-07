@@ -1,16 +1,18 @@
 #include <iostream>
+#include <fstream>
 #include <unistd.h>
 #include "meemum_wrapper.hpp"
 
 // constants
-constexpr double MIN_P {1.0};
-constexpr double MAX_P {2.0};
-constexpr double DP {0.01};
-constexpr double T0 {500.0};
-constexpr double g_L {1.0};
+constexpr double T0 { 1500 };
+constexpr double P0 { 50000 };
+constexpr double END_P { 0 };
+constexpr double DP { 10000 };
+
+constexpr double g_L { 100 };
 
 // globals
-double g_T, g_p;
+double g_T { T0 }, g_p { P0 };
 
 double bisect(double (*)(double), double, double, double, unsigned);
 double compare_melt_frac(double);
@@ -18,24 +20,22 @@ double calc_dT(double);
 double calc_melt_change(double);
 
 int main() {
+    std::ofstream myfile;
+    myfile.open("mydata.csv");
+    myfile << "p,T,S,melt_amount" << std::endl;
+
     meemum::init();
-    g_T = T0;
     // needed for extra information eg heat capacity
-    double tmpP = 1.0;
-    double tmpT = 500.0;
-    meemum::minimize(&tmpT, &tmpP);
+    meemum::minimize(&g_T, &g_p);
 
-    for ( g_p = MIN_P; g_p < MAX_P; g_p += DP ) {
-	// save composition information
-	std::cout << "some stuff here" << std::endl;
 
+    for ( g_p = P0 ; g_p > END_P; g_p -= DP ) {
 	// use bisection to find correct dT
 	double min_melt_change = 0.0;
 	double max_melt_change = calc_melt_change(min_melt_change);
-	std::cout << max_melt_change << std::endl;
-	sleep(1);
 	const double tol = 0.01;
 
+	//double melt_frac { 0.0 };
 	double melt_frac = bisect(&compare_melt_frac, min_melt_change, max_melt_change, tol, 100);
 
 	double dT = calc_dT(melt_frac);
@@ -43,8 +43,13 @@ int main() {
 	// update T
 	g_T += dT;
 
-	std::cout << g_p << std::endl;
+        meemum::minimize(&g_T, &g_p);
+
+	// save composition information
+	myfile << g_p << "," << g_T << "," 
+	    << meemum::get_entropy() << "," << melt_frac << std::endl;
     }
+    myfile.close();
 }
 
 double bisect(double (*f)(double), double a, double b, double tol, unsigned int max_iter) {
@@ -76,7 +81,13 @@ double calc_dT(double melt_frac) {
     const double Cp = meemum::get_heat_capacity();
     const double rho = meemum::get_density();
 
-    const double dT = -alpha * g_T * DP / Cp / rho - g_L/Cp*melt_frac;
+//  std::cout << alpha << std::endl;
+//  std::cout << Cp << std::endl;
+//  std::cout << rho << std::endl;
+    const double dT = -alpha * g_T * DP *1e5 / Cp / rho - g_L/Cp*melt_frac;
+//  std::cout << dT << std::endl;
+//  exit(0);
+
     return dT;
 }
 
@@ -85,7 +96,11 @@ double calc_melt_change(double melt_change) {
     double T = g_T + dT;
     double p = g_p;
     meemum::minimize(&T, &p);
-    const double melt_frac_after = meemum::get_melt_frac();
+    double melt_frac_after { 0.0 };
+    for (int i = 0; i < meemum::get_n_phases(); i++) {
+	if (meemum::is_melt(&i))
+	    melt_frac_after += meemum::get_phase_amount(&i);
+    }
 
     return melt_frac_after - melt_change;
 }
