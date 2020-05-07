@@ -16,7 +16,7 @@ namespace meemum {
 	bool has_melt();
 	bool is_melt(int *);
 
-	void init();
+	void init(char *);
 	void minimize(double *, double *);
     }
 }

@@ -133,10 +133,32 @@
           is_melt = fluid(phase_id)
         end function
 
-        subroutine init() bind(c)
+        subroutine init(filename) bind(c)
+          character(c_char), dimension(*), intent(in) :: filename
+
+          integer :: i
+
+         ! rlib.f : subroutine input1
+         character*100 prject,tfname
+         common/ cst228 /prject,tfname
           ! part 1 of wrapper for meemm (meemum.f)
           integer iam
           common/ cst4 /iam
+
+         ! ----- PREP WORK -----
+
+         ! prevent input1 crashing
+         do i = 1, 100
+           if (filename(i) == c_null_char) then
+             exit
+           end if
+           prject(i:i) = filename(i)
+         end do
+
+         ! debug
+         print *, prject
+         call abort
+
 
           iam = 2
           call vrsion (6)
@@ -241,14 +263,6 @@ c                                 print summary to LUN 6
          ! resub.f : subroutine iniprp
          logical first, err 
 
-         ! rlib.f : subroutine input1
-         character*100 prject,tfname
-         common/ cst228 /prject,tfname
-
-         ! ----- PREP WORK -----
-
-         ! prevent input1 crashing
-         prject = "my_project"
 
          ! ----- WRAPPER -----
          first = .true.

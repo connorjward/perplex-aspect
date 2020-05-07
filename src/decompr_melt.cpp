@@ -24,7 +24,9 @@ int main() {
     myfile.open("mydata.csv");
     myfile << "p,T,S,melt_amount" << std::endl;
 
-    meemum::init();
+    char filenametest[] {"TESTFILENAME"};
+
+    meemum::init(filenametest);
     // needed for extra information eg heat capacity
     meemum::minimize(&g_T, &g_p);
 
