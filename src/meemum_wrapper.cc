@@ -2,10 +2,14 @@
 #include "meemum_wrapper.h"
 
 extern "C" {
-    void meemum_init(const char *);
-    void meemum_minimize(double *, double *);
+    void meemum_init(const char*);
+    void meemum_minimize(const double*, const double*);
 
-    int meemum_n_phases();
+    void meemum_load_phase_name(size_t*, char*);
+    double meemum_phase_weight_frac(size_t*);
+    double meemum_phase_vol_frac(size_t*);
+    double meemum_phase_mol_frac(size_t*);
+    double meemum_phase_mol(size_t*);
 
     double meemum_density();
     double meemum_entropy();
@@ -21,8 +25,18 @@ void MeemumWrapper::minimize(double T, double p) {
     meemum_minimize(&T, &p); 
 }
 
-size_t MeemumWrapper::n_phases() {
-    return size_t(meemum_n_phases());
+struct Phase MeemumWrapper::phase(size_t phase_id) {
+    char* name { new char[14] };
+    meemum_load_phase_name(&phase_id, name);
+
+    const double wt = meemum_phase_weight_frac(&phase_id);
+    const double vol = meemum_phase_vol_frac(&phase_id);
+    const double mol_frac = meemum_phase_mol_frac(&phase_id);
+    const double mol = meemum_phase_mol(&phase_id);
+
+    struct Phase phase { name, wt, vol, mol_frac, mol };
+
+    return phase;
 }
 
 double MeemumWrapper::density() {

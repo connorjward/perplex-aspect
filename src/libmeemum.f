@@ -124,7 +124,71 @@ c                                 print summary to LUN 6
 
          end if 
        end subroutine
+ 
 
+        subroutine load_phase_name(phase_id, phase_name)
+     >      bind(c, name="meemum_load_phase_name")
+          integer(c_size_t), intent(in) :: phase_id
+          character(c_char), dimension(*), intent(out) :: phase_name
+
+          ! meemum_trimmed_subprogram.f
+          character pname*14
+          common/ cxt21a /pname(k5)
+
+          integer :: i
+
+          do i = 1, 14
+            phase_name(i:i) = pname(phase_id)(i:i)
+          end do
+        end subroutine
+
+        function phase_weight_frac(phase_id) result(frac)
+     >      bind(c, name="meemum_phase_weight_frac")
+          integer(c_size_t), intent(in) :: phase_id
+          real(c_double) :: frac
+
+          ! olib.f
+          double precision props,psys,psys1,pgeo,pgeo1
+      common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),pgeo1(i8)
+
+          frac = props(17, phase_id) * props(16, phase_id) / psys(17)
+        end function
+
+        function phase_vol_frac(phase_id) result(frac)
+     >      bind(c, name="meemum_phase_vol_frac")
+          integer(c_size_t), intent(in) :: phase_id
+          real(c_double) :: frac
+
+          ! olib.f
+          double precision props,psys,psys1,pgeo,pgeo1
+      common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),pgeo1(i8)
+
+          frac = props(1, phase_id) * props(16, phase_id ) / psys(1)
+        end function
+
+        function phase_mol_frac(phase_id) result(frac)
+     >      bind(c, name="meemum_phase_mol_frac")
+          integer(c_size_t), intent(in) :: phase_id
+          real(c_double) :: frac
+
+          ! olib.f
+          double precision props,psys,psys1,pgeo,pgeo1
+      common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),pgeo1(i8)
+
+          frac = props(16, phase_id) / psys(16)
+        end function
+
+        function phase_mol(phase_id) result(frac)
+     >      bind(c, name="meemum_phase_mol")
+          integer(c_size_t), intent(in) :: phase_id
+          real(c_double) :: frac
+
+          ! olib.f
+          double precision props,psys,psys1,pgeo,pgeo1
+      common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),pgeo1(i8)
+
+          frac = props(16, phase_id)
+        end function
 
         function density() bind(c, name="meemum_density") result(rho)
           real(c_double) :: rho

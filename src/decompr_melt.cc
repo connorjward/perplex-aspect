@@ -36,6 +36,15 @@ int main(int argc, char* argv[]) {
     for (p = p0 ; p < pN; p += dp) {
 	// save composition information
         g_meemum.minimize(T, p);
+
+	// testing
+	struct Phase phase { g_meemum.phase(1) };
+	std::cout 
+	    << "Name: " << phase.name << std::endl
+	    << "Mol: " << phase.mol << std::endl;
+	exit(0);
+	// end testing
+
 	myfile << p << "," << T << "," 
 	    << g_meemum.entropy() << std::endl;
 
@@ -54,7 +63,6 @@ int main(int argc, char* argv[]) {
 
 double calc_dT(const double T0, const double p0, const double dp) {
     g_meemum.minimize(T0, p0);
-    // determine new temperature step
     const double S0 = g_meemum.entropy();
 
     double dT1 = 0;
