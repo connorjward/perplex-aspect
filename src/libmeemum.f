@@ -9,138 +9,15 @@
 
       contains
 
-        function get_n_components() bind(c) result(n)
-          integer(c_int) :: n
-
-          n = k5
-        end function
-
-        subroutine get_component_name(comp_id, comp_name) bind(c)
-          integer(c_int), intent(in) :: comp_id
-          character(c_char), dimension(*), intent(out) :: comp_name
-
-          ! component names (from where?)
-          character*5 cname
-          common / csta4 / cname(k5)
-
-          integer :: i
-
-          do i = 1, 5
-          comp_name(i:i) = cname(comp_id)(i:i)
-          end do
-        end subroutine
-
-        subroutine get_component_amount(comp_id, comp_amount) bind(c)
-          integer(c_int), intent(in) :: comp_id
-          real(c_double), intent(out) :: comp_amount
-
-          integer :: i
-
-          ! where is this from? file reference
-          double precision a,b,c
-          common / cst313 / a(k5,k1), b(k5), c(k1)
-
-          comp_amount = b(comp_id)
-        end subroutine
-
-        function get_density() bind(c) result(rho)
-          real(c_double) :: rho
-          double precision props,psys,psys1,pgeo,pgeo1
-          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
-     >    pgeo1(i8)
-          
-          rho = psys(10)
-        end function
-
-        function get_n_phases() bind(c) result(n)
-          integer(c_int) :: n
-
-          ! meemum_trimmed_subprogram.f
-          integer kkp,np,ncpd,ntot
-          double precision cp3,amt
-          common/ cxt15 /cp3(k0,k19),amt(k19),kkp(k19),np,ncpd,ntot
-
-          n = ntot
-        end function
-
-        function get_phase_amount(phase_id) bind(c) result(amount)
-          integer(c_int), intent(in) :: phase_id
-          real(c_double) :: amount
-
-          ! meemum_trimmed_subprogram
-          double precision props,psys,psys1,pgeo,pgeo1
-          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
-     >    pgeo1(i8)
-
-          amount = props(16, phase_id) 
-        end function
-
-        function get_expansivity() bind(c) result(alpha)
-          real(c_double) :: alpha
-          double precision props,psys,psys1,pgeo,pgeo1
-          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
-     >    pgeo1(i8)
-
-          alpha = psys(13)
-        end function
-
-        function get_heat_capacity() bind(c) result(Cp)
-          real(c_double) :: Cp
-          double precision props,psys,psys1,pgeo,pgeo1
-          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),
-     >    pgeo(i8),pgeo1(i8)
-
-          Cp = psys(12) / psys(1) * 1d5 / psys(10)
-        end function
-
-        function get_melt_frac() bind(c) result(melt_frac)
-          real(c_double) :: melt_frac
-          double precision props,psys,psys1,pgeo,pgeo1
-          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
-     >    pgeo1(i8)
-
-          ! melt_frac = props(17,imelt)*props(16,imelt) / psys(17)
-          melt_frac = 0.1
-        end function
-
-        function get_entropy() bind(c) result(S)
-          real(c_double) :: S
-
-          double precision props,psys,psys1,pgeo,pgeo1
-          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
-     >    pgeo1(i8)
-
-          S = psys(15)/psys(1)*1d5/psys(10)
-        end function
-
-        function has_melt() bind(c)
-          logical(c_bool) :: has_melt
-
-          logical gflu,aflu,fluid,shear,lflu,volume,rxn
-          common/ cxt20 /gflu,aflu,fluid(k5),shear,lflu,volume,rxn
-
-          has_melt = aflu
-        end function
-
-        function is_melt(phase_id) bind(c)
-          integer(c_int), intent(in) :: phase_id
-          logical(c_bool) :: is_melt
-
-          logical gflu,aflu,fluid,shear,lflu,volume,rxn
-          common / cxt20 / gflu, aflu, fluid(k5), shear, lflu, volume,
-     >    rxn
-
-          is_melt = fluid(phase_id)
-        end function
-
-        subroutine init(filename) bind(c)
+        subroutine init(filename) bind(c, name="meemum_init")
           character(c_char), dimension(*), intent(in) :: filename
 
           integer :: i
 
-         ! rlib.f : subroutine input1
-         character*100 prject,tfname
-         common/ cst228 /prject,tfname
+          ! rlib.f : subroutine input1
+          character*100 prject,tfname
+          common/ cst228 /prject,tfname
+
           ! part 1 of wrapper for meemm (meemum.f)
           integer iam
           common/ cst4 /iam
@@ -166,7 +43,7 @@
         end subroutine
 
         subroutine minimize(temperature, pressure)
-     >      bind(c)
+     >      bind(c, name="meemum_minimize")
           ! part 2 of wrapper for meemm (meemum.f)
           integer i, ier
 
@@ -255,6 +132,140 @@ c                                 print summary to LUN 6
 
          end if 
        end subroutine
+
+
+        function density() bind(c, name="meemum_density") result(rho)
+          real(c_double) :: rho
+
+          double precision props,psys,psys1,pgeo,pgeo1
+          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
+     >    pgeo1(i8)
+          
+          rho = psys(10)
+        end function
+
+        function n_phases() bind(c, name="meemum_n_phases") result(n)
+          integer(c_int) :: n
+
+          ! meemum_trimmed_subprogram.f
+          integer kkp,np,ncpd,ntot
+          double precision cp3,amt
+          common/ cxt15 /cp3(k0,k19),amt(k19),kkp(k19),np,ncpd,ntot
+
+          n = ntot
+        end function
+
+        function get_phase_amount(phase_id) bind(c) result(amount)
+          integer(c_int), intent(in) :: phase_id
+          real(c_double) :: amount
+
+          ! meemum_trimmed_subprogram
+          double precision props,psys,psys1,pgeo,pgeo1
+          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
+     >    pgeo1(i8)
+
+          amount = props(16, phase_id) 
+        end function
+
+        function expansivity() bind(c, name="meemum_expansivity") 
+     >      result(alpha)
+          real(c_double) :: alpha
+
+          ! meemum_trimmed_subprogram
+          double precision props,psys,psys1,pgeo,pgeo1
+          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
+     >    pgeo1(i8)
+
+          alpha = psys(13)
+        end function
+
+        function heat_capacity() result(Cp)
+     >      bind(c, name="meemum_heat_capacity") 
+          real(c_double) :: Cp
+
+          ! meemum_trimmed_subprogram
+          double precision props,psys,psys1,pgeo,pgeo1
+          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),
+     >    pgeo(i8),pgeo1(i8)
+
+          Cp = psys(12) / psys(1) * 1d5 / psys(10)
+        end function
+
+        function get_melt_frac() bind(c) result(melt_frac)
+          real(c_double) :: melt_frac
+          double precision props,psys,psys1,pgeo,pgeo1
+          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
+     >    pgeo1(i8)
+
+          ! melt_frac = props(17,imelt)*props(16,imelt) / psys(17)
+          melt_frac = 0.1
+        end function
+
+        function entropy() bind(c, name="meemum_entropy") result(S)
+          real(c_double) :: S
+
+          double precision props,psys,psys1,pgeo,pgeo1
+          common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
+     >    pgeo1(i8)
+
+          S = psys(15)/psys(1)*1d5/psys(10)
+        end function
+
+        function has_melt() bind(c)
+          logical(c_bool) :: has_melt
+
+          logical gflu,aflu,fluid,shear,lflu,volume,rxn
+          common/ cxt20 /gflu,aflu,fluid(k5),shear,lflu,volume,rxn
+
+          has_melt = aflu
+        end function
+
+        function is_melt(phase_id) bind(c)
+          integer(c_int), intent(in) :: phase_id
+          logical(c_bool) :: is_melt
+
+          logical gflu,aflu,fluid,shear,lflu,volume,rxn
+          common / cxt20 / gflu, aflu, fluid(k5), shear, lflu, volume,
+     >    rxn
+
+          is_melt = fluid(phase_id)
+        end function
+
+        function get_n_components() bind(c) result(n)
+          integer(c_int) :: n
+
+          n = k5
+        end function
+
+        subroutine get_component_name(comp_id, comp_name) bind(c)
+          integer(c_int), intent(in) :: comp_id
+          character(c_char), dimension(*), intent(out) :: comp_name
+
+          ! component names (from where?)
+          character*5 cname
+          common / csta4 / cname(k5)
+
+          integer :: i
+
+          do i = 1, 5
+          comp_name(i:i) = cname(comp_id)(i:i)
+          end do
+        end subroutine
+
+        subroutine get_component_amount(comp_id, comp_amount) bind(c)
+          integer(c_int), intent(in) :: comp_id
+          real(c_double), intent(out) :: comp_amount
+
+          integer :: i
+
+          ! where is this from? file reference
+          double precision a,b,c
+          common / cst313 / a(k5,k1), b(k5), c(k1)
+
+          comp_amount = b(comp_id)
+        end subroutine
+
+        ! PRIVATE FUNCTIONS
        
        subroutine iniprp_wrapper()
          ! wrapper for iniprp (resub.f)

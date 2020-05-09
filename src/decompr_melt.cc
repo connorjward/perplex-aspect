@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
-#include "meemum_wrapper.hpp"
+#include "meemum_wrapper.h"
 
 // constants
 constexpr double T0 { 1500 };
@@ -13,6 +13,7 @@ constexpr double g_L { 100 };
 
 // globals
 double g_T { T0 }, g_p { P0 };
+MeemumWrapper g_meemum;
 
 double bisect(double (*)(double), double, double, double, unsigned);
 double compare_melt_frac(double);
@@ -26,9 +27,9 @@ int main() {
 
     char filenametest[] {"TESTFILENAME"};
 
-    meemum::init(filenametest);
+    g_meemum.init(filenametest);
     // needed for extra information eg heat capacity
-    meemum::minimize(&g_T, &g_p);
+    g_meemum.minimize(g_T, g_p);
 
 
     for ( g_p = P0 ; g_p > END_P; g_p -= DP ) {
@@ -45,11 +46,11 @@ int main() {
 	// update T
 	g_T += dT;
 
-        meemum::minimize(&g_T, &g_p);
+        g_meemum.minimize(g_T, g_p);
 
 	// save composition information
 	myfile << g_p << "," << g_T << "," 
-	    << meemum::get_entropy() << "," << melt_frac << std::endl;
+	    << g_meemum.entropy() << "," << melt_frac << std::endl;
     }
     myfile.close();
 }
@@ -79,9 +80,9 @@ double bisect(double (*f)(double), double a, double b, double tol, unsigned int 
 double calc_dT(double melt_frac) {
     // include latent heat
     // these should be constants...
-    const double alpha = meemum::get_expansivity();
-    const double Cp = meemum::get_heat_capacity();
-    const double rho = meemum::get_density();
+    const double alpha = g_meemum.expansivity();
+    const double Cp = g_meemum.heat_capacity();
+    const double rho = g_meemum.density();
 
 //  std::cout << alpha << std::endl;
 //  std::cout << Cp << std::endl;
@@ -97,12 +98,12 @@ double calc_melt_change(double melt_change) {
     double dT = calc_dT(melt_change);
     double T = g_T + dT;
     double p = g_p;
-    meemum::minimize(&T, &p);
+    g_meemum.minimize(T, p);
     double melt_frac_after { 0.0 };
-    for (int i = 0; i < meemum::get_n_phases(); i++) {
-	if (meemum::is_melt(&i))
-	    melt_frac_after += meemum::get_phase_amount(&i);
-    }
+//   for (int i = 0; i < g_meemum.n_phases(); i++) {
+//       if (g_meemum.is_melt(&i))
+//           melt_frac_after += g_meemum.phase_amount(&i);
+//   }
 
     return melt_frac_after - melt_change;
 }
