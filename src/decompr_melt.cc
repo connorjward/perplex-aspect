@@ -4,9 +4,9 @@
 #include "meemum_wrapper.h"
 
 // constants
-constexpr double T0 { 1500 };
+constexpr double T0 { 1400 };
 constexpr double P0 { 50000 };
-constexpr double END_P { 0 };
+constexpr double END_P { 30000 };
 constexpr double DP { 10000 };
 
 constexpr double g_L { 100 };
@@ -17,7 +17,7 @@ MeemumWrapper g_meemum;
 
 double bisect(double (*)(double), double, double, double, unsigned);
 double compare_melt_frac(double);
-double calc_dT(double);
+double calc_dT();
 double calc_melt_change(double);
 
 int main(int argc, char* argv[]) {
@@ -33,6 +33,15 @@ int main(int argc, char* argv[]) {
 	myfile << g_p << "," << g_T << "," 
 	    << g_meemum.entropy() << std::endl;
 
+
+	double dT = calc_dT();
+	g_T +=dT;
+
+    }
+    myfile.close();
+}
+
+double calc_dT() {
 	// determine new temperature step
 	double S0 = g_meemum.entropy();
 
@@ -60,45 +69,6 @@ int main(int argc, char* argv[]) {
 
 	    dS1 = dS2;
 	}
-
-	g_T += dT2;
-
-    }
-    myfile.close();
-}
-
-double calc_dT(double melt_frac) {
-    // include latent heat
-    // these should be constants...
-    const double alpha = g_meemum.expansivity();
-    const double Cp = g_meemum.heat_capacity();
-    const double rho = g_meemum.density();
-
-//  std::cout << alpha << std::endl;
-//  std::cout << Cp << std::endl;
-//  std::cout << rho << std::endl;
-    const double dT = -alpha * g_T * DP *1e5 / Cp / rho - g_L/Cp*melt_frac;
-//  std::cout << dT << std::endl;
-//  exit(0);
-
-    return dT;
-}
-
-double calc_melt_change(double melt_change) {
-    double dT = calc_dT(melt_change);
-    double T = g_T + dT;
-    double p = g_p;
-    g_meemum.minimize(T, p);
-    double melt_frac_after { 0.0 };
-//   for (int i = 0; i < g_meemum.n_phases(); i++) {
-//       if (g_meemum.is_melt(&i))
-//           melt_frac_after += g_meemum.phase_amount(&i);
-//   }
-
-    return melt_frac_after - melt_change;
-}
-
-double compare_melt_frac(const double melt_change_before) {
-    return calc_melt_change(melt_change_before) - melt_change_before;
+    return dT2;
 }
 
