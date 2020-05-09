@@ -2,7 +2,7 @@
 #include "meemum_wrapper.h"
 
 extern "C" {
-    void meemum_init(char *);
+    void meemum_init(const char *);
     void meemum_minimize(double *, double *);
 
     int meemum_n_phases();
@@ -13,7 +13,7 @@ extern "C" {
     double meemum_heat_capacity();
 }
 
-void MeemumWrapper::init(char* filename) { 
+void MeemumWrapper::init(const char* filename) { 
     meemum_init(filename);
 }
 
