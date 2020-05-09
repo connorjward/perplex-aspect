@@ -32,11 +32,6 @@
            prject(i:i) = filename(i)
          end do
 
-         ! debug
-         print *, prject
-         call abort
-
-
           iam = 2
           call vrsion (6)
           call iniprp_wrapper
@@ -44,6 +39,9 @@
 
         subroutine minimize(temperature, pressure)
      >      bind(c, name="meemum_minimize")
+          ! arguments
+          real(c_double) :: temperature, pressure
+
           ! part 2 of wrapper for meemm (meemum.f)
           integer i, ier
 
@@ -94,17 +92,11 @@
           integer iam
           common/ cst4 /iam
 
-          ! arguments
-          real(c_double) :: temperature, pressure
-
 c----------------------------------------------------------------------- 
 
           ! set potential (P, T) values
           v(2) = temperature
           v(1) = pressure
-
-          print *, temperature
-          print *, pressure
 
           ! convert to moles if needed
           if (iwt.eq.1) then 
