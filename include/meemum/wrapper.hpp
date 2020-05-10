@@ -22,4 +22,5 @@ class MeemumWrapper {
     public:
 	MeemumWrapper(const char *);
 	MinimizeResult* minimize(double, double);
+	char** solution_models();
 };

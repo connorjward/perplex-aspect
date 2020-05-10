@@ -20,25 +20,24 @@ int main(int argc, char* argv[]) {
 
     const double dp = (pN - p0) / (n_steps - 1);
 
-
-
     std::ofstream myfile;
     myfile.open("mydata.csv");
     myfile << "p,T,S" << std::endl;
-    myfile << std::setprecision(8) << std::fixed;
 
     MeemumWrapper g_meemum { project_name };
     double T = T0;
     double p = p0;
+    
+    char** models = g_meemum.solution_models();
+    for (size_t i = 0; i < 3; i++) {
+	std::cout << models[i] << std::endl;
+    }
+    exit(0);
 
     for (p = p0 ; p < pN; p += dp) {
 	// save composition information
         MinimizeResult *res = g_meemum.minimize(T, p);
 
-	myfile << p << "," << T << "," 
-	    << res->entropy << std::endl;
-
-	exit(0);
 
 	double dT = calc_dT(T, p, dp);
 	T +=dT;
@@ -53,6 +52,14 @@ int main(int argc, char* argv[]) {
 
     myfile.close();
 }
+
+//void write(const double T, const double p, const MinimizeResult* res, std::ofstream f) {
+//    myfile 
+//	<< p << "," 
+//	<< T << "," 
+//	<< res->entropy << "," 
+//	<< res->
+//}
 
 double calc_dT(const double T0, const double p0, const double dp) {
 //    g_meemum.minimize(T0, p0);

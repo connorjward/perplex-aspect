@@ -124,7 +124,54 @@ c                                 print summary to LUN 6
 
          end if 
        end subroutine
- 
+
+       subroutine load_abbr_soln_name(soln_id, soln_name)
+     >     bind(c, name="meemum_load_abbr_soln_name")
+          integer(c_size_t), intent(in) ::soln_id
+          character(c_char), dimension(*), intent(out) :: soln_name
+
+         ! source: rlib.f
+         character fname*10, aname*6, lname*22
+         common/ csta7 /fname(h9),aname(h9),lname(h9)
+
+         integer :: i, strlen
+
+         strlen = len(trim(aname(soln_id)))
+
+         do i = 1, strlen
+           soln_name(i) = aname(soln_id)(i:i)
+         end do
+         soln_name(strlen+1) = c_null_char
+        end subroutine
+
+        function n_soln_models() bind(c) result(n)
+          integer(c_size_t) :: n
+
+          ! source: perplex_parameters.h
+          integer isoct
+          common / cst79 / isoct
+
+          n = isoct
+        end function
+
+       subroutine load_full_soln_name(soln_id, soln_name)
+     >     bind(c, name="meemum_load_full_soln_name")
+          integer(c_size_t), intent(in) ::soln_id
+          character(c_char), dimension(*), intent(out) :: soln_name
+
+         ! source: rlib.f
+         character fname*10, aname*6, lname*22
+         common/ csta7 /fname(h9),aname(h9),lname(h9)
+         integer :: i, strlen
+
+         strlen = len(trim(lname(soln_id)))
+
+         do i = 1, strlen
+           soln_name(i) = lname(soln_id)(i:i)
+         end do
+         soln_name(strlen+1) = c_null_char
+
+        end subroutine
 
         subroutine load_phase_name(phase_id, phase_name)
      >      bind(c, name="meemum_load_phase_name")
