@@ -123,6 +123,28 @@ c                                 print summary to LUN 6
          end if 
        end subroutine
 
+        !------------------------------------------TESTING
+       function abbr_soln_name(soln_id) result(name) bind(c)
+          integer(c_size_t), intent(in) :: soln_id
+          type(c_ptr) :: name
+
+         ! source: rlib.f
+         character fname*10, aname*6, lname*22
+         common/ csta7 /fname(h9),aname(h9),lname(h9)
+
+         character(c_char), dimension(7), target :: outstr
+         integer :: i, strlen
+
+         strlen = len(trim(aname(soln_id)))
+
+         do i = 1, strlen
+           outstr(i) = aname(soln_id)(i:i)
+         end do
+         outstr(strlen+1) = c_null_char
+         name = c_loc(outstr)
+        end function
+        !------------------------------------------TESTING
+
        subroutine load_abbr_soln_name(soln_id, soln_name)
      >     bind(c)
           integer(c_size_t), intent(in) ::soln_id
@@ -141,7 +163,6 @@ c                                 print summary to LUN 6
          end do
          soln_name(strlen+1) = c_null_char
         end subroutine
-
         function n_soln_models() bind(c) result(n)
           integer(c_size_t) :: n
 

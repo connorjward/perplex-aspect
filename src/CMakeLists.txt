@@ -15,3 +15,7 @@ target_include_directories(decompr-melt
 
 target_link_libraries(decompr-melt libmeemum)
 
+# testing
+add_executable(misc misc.cpp)
+
+target_link_libraries(misc libmeemum)
