@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <vector>
 
 struct Phase {
     const char *name;
@@ -22,5 +23,5 @@ class MeemumWrapper {
     public:
 	MeemumWrapper(const char *);
 	MinimizeResult* minimize(double, double);
-	char** solution_models();
+	std::vector<char*> solution_models();
 };

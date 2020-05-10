@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <vector>
 #include "meemum/wrapper.hpp"
 
 extern "C" {
@@ -60,15 +61,15 @@ MinimizeResult* MeemumWrapper::minimize(double T, double p) {
     };
 }
 
-char** MeemumWrapper::solution_models() {
-    const size_t n_solns = n_soln_models(); 
+std::vector<char*> MeemumWrapper::solution_models() {
+    std::vector<char*> models; 
 
-    char** models { new char*[n_solns] }; 
-    for (size_t i = 0; i < n_solns; i++) {
+    for (size_t i = 0; i < n_soln_models(); i++) {
 	const size_t id { i + 1 };
 	char* name { new char[20] };
 	meemum_load_abbr_soln_name(&id, name);
-	models[i] = name;
+
+	models.push_back(name);
     }
 
     return models;

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
+#include <vector>
 #include "meemum/wrapper.hpp"
 
 // secant method parameters
@@ -28,8 +29,8 @@ int main(int argc, char* argv[]) {
     double T = T0;
     double p = p0;
     
-    char** models = g_meemum.solution_models();
-    for (size_t i = 0; i < 3; i++) {
+    std::vector<char*> models = g_meemum.solution_models();
+    for (size_t i = 0; i < models.size(); i++) {
 	std::cout << models[i] << std::endl;
     }
     exit(0);
