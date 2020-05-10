@@ -1,61 +1,42 @@
 #include <cstddef>
 #include <vector>
 #include "meemum/wrapper.hpp"
+#include "interface.hpp"
 
-extern "C" {
-    void meemum_init(const char*);
-    void meemum_minimize(const double*, const double*);
-
-    void meemum_load_abbr_soln_name(const size_t*, char*);
-    void meemum_load_full_soln_name(const size_t*, char*);
-    size_t n_soln_models();
-
-    size_t meemum_n_phases();
-    void meemum_load_phase_name(size_t*, char*);
-
-    double meemum_phase_weight_frac(size_t*);
-    double meemum_phase_vol_frac(size_t*);
-    double meemum_phase_mol_frac(size_t*);
-    double meemum_phase_mol(size_t*);
-
-    double meemum_density();
-    double meemum_entropy();
-    double meemum_expansivity();
-    double meemum_heat_capacity();
-}
+using namespace meemum;
 
 MeemumWrapper::MeemumWrapper(const char* filename) { 
-    meemum_init(filename);
+    init(filename);
 }
 
 MinimizeResult* MeemumWrapper::minimize(double T, double p) { 
-    meemum_minimize(&T, &p); 
+    meemum::minimize(&T, &p); 
 
-    size_t n_phases { meemum_n_phases() };
+    size_t n { n_phases() };
 
-    Phase** phases { new Phase*[n_phases] };
+    Phase** phases { new Phase*[n] };
     
-    for (size_t i = 0; i < n_phases; i++) { 
+    for (size_t i = 0; i < n; i++) { 
 	size_t phase { i + 1 };
 
 	char* name { new char[14] };
-	meemum_load_phase_name(&phase, name);
+	load_phase_name(&phase, name);
 
 	phases[i] = new Phase {
 	    name,
 
-	    meemum_phase_weight_frac(&phase),
-	    meemum_phase_vol_frac(&phase),
-	    meemum_phase_mol_frac(&phase),
-	    meemum_phase_mol(&phase),
+	    phase_weight_frac(&phase),
+	    phase_vol_frac(&phase),
+	    phase_mol_frac(&phase),
+	    phase_mol(&phase),
 	};
     }
 
     return new MinimizeResult {
-	meemum_density(),
-	meemum_entropy(),
-	meemum_expansivity(),
-	meemum_heat_capacity(),
+	density(),
+	entropy(),
+	expansivity(),
+	heat_capacity(),
 
 	phases,
     };
@@ -67,7 +48,7 @@ std::vector<char*> MeemumWrapper::solution_models() {
     for (size_t i = 0; i < n_soln_models(); i++) {
 	const size_t id { i + 1 };
 	char* name { new char[20] };
-	meemum_load_abbr_soln_name(&id, name);
+	load_abbr_soln_name(&id, name);
 
 	models.push_back(name);
     }

@@ -9,7 +9,7 @@
 
       contains
 
-        subroutine init(filename) bind(c, name="meemum_init")
+        subroutine init(filename) bind(c)
           character(c_char), dimension(*), intent(in) :: filename
 
           integer :: i
@@ -37,9 +37,7 @@
           call iniprp_wrapper
         end subroutine
 
-        subroutine minimize(temperature, pressure)
-     >      bind(c, name="meemum_minimize")
-          ! arguments
+        subroutine minimize(temperature, pressure) bind(c)
           real(c_double) :: temperature, pressure
 
           ! part 2 of wrapper for meemm (meemum.f)
@@ -126,7 +124,7 @@ c                                 print summary to LUN 6
        end subroutine
 
        subroutine load_abbr_soln_name(soln_id, soln_name)
-     >     bind(c, name="meemum_load_abbr_soln_name")
+     >     bind(c)
           integer(c_size_t), intent(in) ::soln_id
           character(c_char), dimension(*), intent(out) :: soln_name
 
@@ -155,7 +153,7 @@ c                                 print summary to LUN 6
         end function
 
        subroutine load_full_soln_name(soln_id, soln_name)
-     >     bind(c, name="meemum_load_full_soln_name")
+     >     bind(c)
           integer(c_size_t), intent(in) ::soln_id
           character(c_char), dimension(*), intent(out) :: soln_name
 
@@ -174,7 +172,7 @@ c                                 print summary to LUN 6
         end subroutine
 
         subroutine load_phase_name(phase_id, phase_name)
-     >      bind(c, name="meemum_load_phase_name")
+     >      bind(c)
           integer(c_size_t), intent(in) :: phase_id
           character(c_char), dimension(*), intent(out) :: phase_name
 
@@ -195,7 +193,7 @@ c                                 print summary to LUN 6
         end subroutine
 
         function phase_weight_frac(phase_id) result(frac)
-     >      bind(c, name="meemum_phase_weight_frac")
+     >      bind(c)
           integer(c_size_t), intent(in) :: phase_id
           real(c_double) :: frac
 
@@ -207,7 +205,7 @@ c                                 print summary to LUN 6
         end function
 
         function phase_vol_frac(phase_id) result(frac)
-     >      bind(c, name="meemum_phase_vol_frac")
+     >      bind(c)
           integer(c_size_t), intent(in) :: phase_id
           real(c_double) :: frac
 
@@ -219,7 +217,7 @@ c                                 print summary to LUN 6
         end function
 
         function phase_mol_frac(phase_id) result(frac)
-     >      bind(c, name="meemum_phase_mol_frac")
+     >      bind(c)
           integer(c_size_t), intent(in) :: phase_id
           real(c_double) :: frac
 
@@ -231,7 +229,7 @@ c                                 print summary to LUN 6
         end function
 
         function phase_mol(phase_id) result(frac)
-     >      bind(c, name="meemum_phase_mol")
+     >      bind(c)
           integer(c_size_t), intent(in) :: phase_id
           real(c_double) :: frac
 
@@ -242,7 +240,7 @@ c                                 print summary to LUN 6
           frac = props(16, phase_id)
         end function
 
-        function density() bind(c, name="meemum_density") result(rho)
+        function density() bind(c) result(rho)
           real(c_double) :: rho
 
           double precision props,psys,psys1,pgeo,pgeo1
@@ -252,7 +250,7 @@ c                                 print summary to LUN 6
           rho = psys(10)
         end function
 
-        function n_phases() bind(c, name="meemum_n_phases") result(n)
+        function n_phases() bind(c) result(n)
           integer(c_int) :: n
 
           ! meemum_trimmed_subprogram.f
@@ -275,7 +273,7 @@ c                                 print summary to LUN 6
           amount = props(16, phase_id) 
         end function
 
-        function expansivity() bind(c, name="meemum_expansivity") 
+        function expansivity() bind(c) 
      >      result(alpha)
           real(c_double) :: alpha
 
@@ -288,7 +286,7 @@ c                                 print summary to LUN 6
         end function
 
         function heat_capacity() result(Cp)
-     >      bind(c, name="meemum_heat_capacity") 
+     >      bind(c)
           real(c_double) :: Cp
 
           ! meemum_trimmed_subprogram
@@ -309,7 +307,7 @@ c                                 print summary to LUN 6
           melt_frac = 0.1
         end function
 
-        function entropy() bind(c, name="meemum_entropy") result(S)
+        function entropy() bind(c) result(S)
           real(c_double) :: S
 
           double precision props,psys,psys1,pgeo,pgeo1
