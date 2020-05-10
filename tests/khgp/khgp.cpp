@@ -1,25 +1,25 @@
 #include <gtest/gtest.h>
-#include "meemum_wrapper.h"
+#include "meemum/wrapper.hpp"
 
-class MeemumTest1 : public ::testing::Test {
-    char test_file[10] { "test1" };
-    double T { 500 };
-    double p { 10000 };
+MeemumWrapper* wrapper;
 
-    protected:
+class FooEnvironment : public ::testing::Environment {
+
+    public:
 	void SetUp() override {
-	    meemum::init(test_file);
-	    meemum::minimize(&T, &p);	
+	    wrapper = new MeemumWrapper("khgp");
 	}
 };
 
-TEST_F(MeemumTest1, CorrectNPhases) {
-    ASSERT_EQ(meemum::get_n_phases(), 5);
-}
+::testing::Environment* const foo_env =
+    ::testing::AddGlobalTestEnvironment(new FooEnvironment);
 
-TEST_F(MeemumTest1, CorrectDensity) {
-    ASSERT_EQ(meemum::get_density(), 4);
-}
-TEST_F(MeemumTest1, CorrectEntropy) {
-    ASSERT_EQ(meemum::get_entropy(), 4);
+TEST(MeemumWrapperTest, HGP1) {
+    const double T { 1500 };
+    const double p { 25000 };
+
+    MinimizeResult* res = wrapper->minimize(T, p);	
+
+    EXPECT_NEAR(res->density, 3298.4, 0.05);
+    EXPECT_NEAR(res->entropy, 12536, 0.5);
 }
