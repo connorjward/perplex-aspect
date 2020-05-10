@@ -22,4 +22,10 @@ TEST(MeemumWrapperTest, HGP1) {
 
     EXPECT_NEAR(res->density, 3298.4, 0.05);
     EXPECT_NEAR(res->entropy, 12536, 0.5);
+
+    Phase* phase = res->phases[3];
+
+    EXPECT_STREQ(phase->name, "Opx");
+    EXPECT_NEAR(phase->vol_frac, 0.1068, 5e-5);
+    EXPECT_NEAR(phase->mol, 2.62, 5e-3);
 }

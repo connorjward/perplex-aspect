@@ -135,11 +135,16 @@ c                                 print summary to LUN 6
           character pname*14
           common/ cxt21a /pname(k5)
 
-          integer :: i
+          integer :: i, strlen
 
-          do i = 1, 14
+          strlen = len(trim(pname(phase_id)))
+
+          do i = 1, strlen
             phase_name(i:i) = pname(phase_id)(i:i)
           end do
+
+          ! null-terminate C string
+          phase_name(strlen+1) = c_null_char
         end subroutine
 
         function phase_weight_frac(phase_id) result(frac)
