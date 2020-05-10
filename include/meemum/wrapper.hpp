@@ -1,25 +1,25 @@
 #include <cstddef>
 
-const struct Phase {
-    char *name;
+struct Phase {
+    const char *name;
 
-    double weight_frac;
-    double vol_frac;
-    double mol_frac;
-    double mol;
+    const double weight_frac;
+    const double vol_frac;
+    const double mol_frac;
+    const double mol;
 };
 
-const struct MinimizeResult {
-    double density;
-    double entropy;
-    double expansivity;
-    double heat_capacity;
+struct MinimizeResult {
+    const double density;
+    const double entropy;
+    const double expansivity;
+    const double heat_capacity;
 
-    Phase **phases;
+    Phase** phases;
 };
 
 class MeemumWrapper {
     public:
-	void init(const char *);
-	const MinimizeResult* minimize(double, double);
+	MeemumWrapper(const char *);
+	MinimizeResult* minimize(double, double);
 };

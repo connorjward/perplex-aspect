@@ -264,7 +264,7 @@ c                                 print summary to LUN 6
           common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
      >    pgeo1(i8)
 
-          S = psys(15)/psys(1)*1d5/psys(10)
+          S = psys(15)
         end function
 
         function has_melt() bind(c)
