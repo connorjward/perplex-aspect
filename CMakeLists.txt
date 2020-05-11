@@ -5,7 +5,6 @@ enable_language(Fortran)
 # set the project name
 project(PerplexAspect)
 
+enable_testing()
 add_subdirectory(src)
 
-enable_testing()
-add_subdirectory(tests)
