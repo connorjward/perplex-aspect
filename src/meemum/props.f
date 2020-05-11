@@ -21,13 +21,11 @@
 
           integer :: i, strlen
 
-          strlen = len(trim(aname(soln_id)))
+          strlen = len_trim(aname(soln_id))
       
           allocate(soln_name(1:strlen+1))
 
-          do i = 1, strlen
-          soln_name(i) = aname(soln_id)(i:i)
-          end do
+          soln_name = transfer(aname(soln_id), " ", strlen)
           soln_name(strlen+1) = c_null_char
 
           ptr = c_loc(soln_name)
