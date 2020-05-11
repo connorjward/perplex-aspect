@@ -1,10 +1,6 @@
-namespace meemum {
+namespace meemum::props {
     extern "C" {
-	void init(const char*);
-	void minimize(const double*, const double*);
-
-	char* abbr_soln_name(const size_t*); // testing
-	void load_abbr_soln_name(const size_t*, char*);
+	void abbr_soln_name(const size_t*, char*);
 	void load_full_soln_name(const size_t*, char*);
 	size_t n_soln_models();
 

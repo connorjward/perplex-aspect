@@ -1,5 +1,6 @@
 #include <iostream>
-#include "meemum/interface.hpp"
+#include "meemum/calcs.hpp"
+#include "meemum/props.hpp"
 
 int main() {
     const size_t id { 1 };
@@ -7,10 +8,9 @@ int main() {
     meemum::init("khgp");
 
     char* name { new char[20] };
-    meemum::load_abbr_soln_name(&id, name);
 
-    std::cout << "Start" << std::endl;
-    std::cout << name << std::endl;
-    std::cout << meemum::abbr_soln_name(&id) << std::endl;
-    std::cout << "End" << std::endl;
+    for (size_t id = 1; id <= meemum::props::n_soln_models(); id++) {
+	meemum::props::abbr_soln_name(&id, name);
+	std::cout << name << std::endl;
+    }
 }

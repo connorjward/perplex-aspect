@@ -1,4 +1,4 @@
-add_library(libmeemum meemum/interface.f meemum/wrapper.cpp)
+add_library(libmeemum meemum/calcs.f meemum/props.f meemum/wrapper.cpp)
 
 target_include_directories(libmeemum 
 			   PUBLIC ../include
