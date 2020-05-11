@@ -3,14 +3,14 @@
 #include "meemum/props.hpp"
 
 int main() {
-    const size_t id { 1 };
-
     meemum::init("khgp");
 
-    char* name { new char[20] };
+    size_t id = 2;
+    char* name = meemum::props::abbr_soln_name(&id);
+    std::cout << name << std::endl;
 
     for (size_t id = 1; id <= meemum::props::n_soln_models(); id++) {
-	meemum::props::abbr_soln_name(&id, name);
-	std::cout << name << std::endl;
+	std::cout << meemum::props::abbr_soln_name(&id) << std::endl;
     }
+	std::cout << name << std::endl;
 }

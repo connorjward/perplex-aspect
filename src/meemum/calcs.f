@@ -22,15 +22,15 @@
           integer iam
           common/ cst4 /iam
 
-         ! ----- PREP WORK -----
+          ! ----- PREP WORK -----
 
-         ! prevent input1 crashing
-         do i = 1, 100
-           if (filename(i) == c_null_char) then
-             exit
-           end if
-           prject(i:i) = filename(i)
-         end do
+          ! prevent input1 crashing
+          do i = 1, 100
+          if (filename(i) == c_null_char) then
+            exit
+          end if
+          prject(i:i) = filename(i)
+          end do
 
           iam = 2
           call vrsion (6)
@@ -100,31 +100,25 @@ c-----------------------------------------------------------------------
           if (iwt.eq.1) then 
             do i = 1, jbulk
             cblk(i) = cblk(i)/atwt(i)
-          end do 
-        end if
+            end do 
+          end if
 
-c                                 meemum does the minimization and outputs
-c                                 the results to the print file.
-        call meemum_wrapper
+          call meemum_wrapper
 
-         if (.not.bad) then
-c                                 print summary to LUN 6
+          if (.not.bad) then
             call calpr0 (6)
 
             if (io3.eq.0) call calpr0 (n3)
-
          end if 
 
          if (goodc(1)+badc(1).gt.0d0) then
-
-            num = badc(1)/(badc(1)+goodc(1))*1d2
-            if (num.gt.1d-1) call warn (53,num,i,'MEEMUM')
-
+           num = badc(1)/(badc(1)+goodc(1))*1d2
+           if (num.gt.1d-1) call warn (53,num,i,'MEEMUM')
          end if 
        end subroutine
 
-        ! PRIVATE FUNCTIONS
-       
+       ! PRIVATE FUNCTIONS
+
        subroutine iniprp_wrapper()
          ! wrapper for iniprp (resub.f)
 
@@ -152,67 +146,66 @@ c                                 print summary to LUN 6
 
          ! ----- VARIABLES -----
 
-      integer i, idead
+         integer i, idead
 
-      logical nodata, bad
+         logical nodata, bad
 
-      integer itri(4),jtri(4),ijpt
+         integer itri(4),jtri(4),ijpt
 
-      double precision wt(3), cum
+         double precision wt(3), cum
 
-      double precision v,tr,pr,r,ps
-      common/ cst5  /v(l2),tr,pr,r,ps
+         double precision v,tr,pr,r,ps
+         common/ cst5  /v(l2),tr,pr,r,ps
 
-      integer ipot,jv,iv
-      common / cst24 /ipot,jv(l2),iv(l2)
+         integer ipot,jv,iv
+         common / cst24 /ipot,jv(l2),iv(l2)
 
-      character*8 vname,xname
-      common/ csta2  /xname(k5),vname(l2)
+         character*8 vname,xname
+         common/ csta2  /xname(k5),vname(l2)
 
-      character*5 cname
-      common/ csta4 /cname(k5)
+         character*5 cname
+         common/ csta4 /cname(k5)
 
-      double precision a,b,c
-      common/ cst313 /a(k5,k1),b(k5),c(k1)
+         double precision a,b,c
+         common/ cst313 /a(k5,k1),b(k5),c(k1)
 
-      logical gflu,aflu,fluid,shear,lflu,volume,rxn
-      common/ cxt20 /gflu,aflu,fluid(k5),shear,lflu,volume,rxn
+         logical gflu,aflu,fluid,shear,lflu,volume,rxn
+         common/ cxt20 /gflu,aflu,fluid(k5),shear,lflu,volume,rxn
 
-      integer npt,jdv
-      logical fulrnk
-      double precision cptot,ctotal
-      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
+         integer npt,jdv
+         logical fulrnk
+         double precision cptot,ctotal
+         common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
 
-      integer icomp,istct,iphct,icp
-      common/ cst6  /icomp,istct,iphct,icp
+         integer icomp,istct,iphct,icp
+         common/ cst6  /icomp,istct,iphct,icp
          ! ----- PREP WORK -----
 
          ! ----- WRAPPER -----
-      ! normalize vector
-      ctotal = 0d0
-      do i = 1, icp
-          ctotal = ctotal + cblk(i)
-      end do 
+         ! normalize vector
+         ctotal = 0d0
+         do i = 1, icp
+         ctotal = ctotal + cblk(i)
+         end do 
 
-      do i = 1, icp
+         do i = 1, icp
          b(i) = cblk(i)/ctotal
-      end do
-      call incdp0
+         end do
+         call incdp0
 
-      call lpopt0 (idead)
+         call lpopt0 (idead)
 
-      if (idead.eq.0) then
-c                                 compute derivative properties
+         if (idead.eq.0) then
          call getloc (itri,jtri,ijpt,wt,nodata)
 
          bad = .false.
 
-      else 
+        else 
 
-         bad = .true.
+        bad = .true.
 
       end if
-       end subroutine
+      end subroutine
 
-       
-       end module
+
+      end module

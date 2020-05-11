@@ -46,13 +46,13 @@ MinimizeResult* MeemumWrapper::minimize(double T, double p) {
 std::vector<char*> MeemumWrapper::solution_models() {
     std::vector<char*> models; 
 
-    for (size_t i = 0; i < n_soln_models(); i++) {
-	const size_t id { i + 1 };
-	char* name { new char[20] };
-	abbr_soln_name(&id, name);
+    //for (size_t i = 0; i < n_soln_models(); i++) {
+    //    const size_t id { i + 1 };
+    //    char* name { new char[20] };
+    //    abbr_soln_name(&id, name);
 
-	models.push_back(name);
-    }
+    //    models.push_back(name);
+    //}
 
     return models;
 }
