@@ -13,20 +13,17 @@
           integer(c_size_t), intent(in) ::soln_id
           type(c_ptr) :: ptr
 
-          character(c_char), dimension(:), pointer :: soln_name
-
           ! source: rlib.f
           character fname*10, aname*6, lname*22
           common / csta7 / fname(h9), aname(h9), lname(h9)
 
-          integer :: i, strlen
+          character(c_char), dimension(:), pointer :: soln_name
+          character(len=7) :: dummy
 
-          strlen = len_trim(aname(soln_id))
-      
-          allocate(soln_name(1:strlen+1))
+          dummy = trim(aname(soln_id)) // c_null_char
 
-          soln_name = transfer(aname(soln_id), " ", strlen)
-          soln_name(strlen+1) = c_null_char
+          allocate(soln_name(len(dummy)))
+          soln_name = transfer(dummy, soln_name)
 
           ptr = c_loc(soln_name)
         end function
