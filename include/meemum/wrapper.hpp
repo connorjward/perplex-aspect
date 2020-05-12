@@ -11,10 +11,10 @@ struct Phase {
 };
 
 struct MinimizeResult {
-    const double density;
-    const double entropy;
-    const double expansivity;
-    const double heat_capacity;
+    const double sys_density;
+    const double sys_expansivity;
+    const double sys_mol_entropy;
+    const double sys_mol_heat_capacity;
 
     Phase** phases;
 };

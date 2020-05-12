@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
         res = g_meemum.minimize(T, p);
 
 	myfile << p << "," << T << "," 
-	    << res->entropy << std::endl;
+	    << res->sys_mol_entropy << std::endl;
 
 	double dT = calc_dT(g_meemum, T, p, dp);
 	T +=dT;
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     // save composition information
         res = g_meemum.minimize(T, p);
 	myfile << p << "," << T << "," 
-	    << res->entropy << std::endl;
+	    << res->sys_mol_entropy << std::endl;
 
 	// memory cleanup
 	delete res;
@@ -62,22 +62,22 @@ int main(int argc, char* argv[]) {
 
 double calc_dT(MeemumWrapper& g_meemum, const double T0, const double p0, const double dp) {
     MinimizeResult* res = g_meemum.minimize(T0, p0);
-    const double S0 = res->entropy;
+    const double S0 = res->sys_mol_entropy;
 
     double dT1 = 0;
 
-    double alpha = res->expansivity;
-    double Cp = res->heat_capacity;
-    double rho = res->density;
+    double alpha = res->sys_expansivity;
+    double Cp = res->sys_mol_heat_capacity;
+    double rho = res->sys_density;
 
     double dT2 = -alpha * T0 * dp *1e5 / Cp / rho;
 
     res = g_meemum.minimize(T0+dT1, p0+dp);
-    double dS1 = res->entropy - S0;
+    double dS1 = res->sys_mol_entropy - S0;
 
     for (size_t i = 0; i < MAX_ITER; i++) {
 	res = g_meemum.minimize(T0+dT2, p0+dp);
-	double dS2 = res->entropy - S0;
+	double dS2 = res->sys_mol_entropy - S0;
 
 	if (fabs(dS2 / S0) < RTOL)
 	    return dT2;
