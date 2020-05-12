@@ -11,7 +11,7 @@ MeemumWrapper::MeemumWrapper(const char* filename) {
 }
 
 MinimizeResult* MeemumWrapper::minimize(double T, double p) { 
-    meemum::minimize(&T, &p); 
+    meemum::minimize(T, p); 
 
     size_t n { n_phases() };
 

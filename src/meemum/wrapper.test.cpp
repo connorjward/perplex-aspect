@@ -20,8 +20,8 @@ TEST(MeemumWrapperTest, HGP1) {
 
     MinimizeResult* res = wrapper->minimize(T, p);	
 
-    EXPECT_NEAR(res->density, 3298.4, 0.05);
-    EXPECT_NEAR(res->entropy, 12536, 0.5);
+    EXPECT_NEAR(res->sys_density, 3298.4, 0.05);
+    EXPECT_NEAR(res->sys_mol_entropy, 12536, 0.5);
 
     Phase* phase = res->phases[3];
 
