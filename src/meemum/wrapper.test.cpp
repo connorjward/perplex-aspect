@@ -34,29 +34,27 @@ TEST_F(MeemumWrapperTest, CheckPhaseMolFrac) {
     EXPECT_NEAR(res2->phases[2]->mol_frac*100, 73.75, 5e-3);
 }
 
-/*
-TEST(PhasePropsTest, CheckMol) {
+TEST_F(MeemumWrapperTest, CheckPhaseMol) {
     EXPECT_NEAR(res1->phases[3]->mol, 2.62, 5e-3);
     EXPECT_NEAR(res2->phases[2]->mol, 21.5, 0.05);
 }
 
-TEST_F(MeemumWrapperTest, CheckDensity) {
+TEST_F(MeemumWrapperTest, CheckSysDensity) {
     EXPECT_NEAR(res1->sys_density, 3298.4, 0.05);
     EXPECT_NEAR(res2->sys_density, 3356.9, 0.05);
 }
 
-TEST_F(MeemumWrapperTest, CheckExpansivity) {
+TEST_F(MeemumWrapperTest, CheckSysExpansivity) {
     EXPECT_NEAR(res1->sys_expansivity, 0.37240e-4, 5e-9);
     EXPECT_NEAR(res2->sys_expansivity, 0.34630e-4, 5e-9);
 }
 
-TEST(SysPropsTest, CheckMolEntropy) {
+TEST_F(MeemumWrapperTest, CheckSysMolEntropy) {
     EXPECT_NEAR(res1->sys_mol_entropy, 12536, 0.5);
     EXPECT_NEAR(res2->sys_mol_entropy, 11050, 0.5);
 }
 
-TEST(SysPropsTest, CheckMolHeatCapacity) {
+TEST_F(MeemumWrapperTest, CheckSysMolHeatCapacity) {
     EXPECT_NEAR(res1->sys_mol_heat_capacity, 6496.5, 0.05);
     EXPECT_NEAR(res2->sys_mol_heat_capacity, 6281.6, 0.05);
 }
-*/
