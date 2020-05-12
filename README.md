@@ -12,3 +12,9 @@
 
 - out of source build (in build directory)
 - using cmake (which includes script to generate header file)
+
+## Design choices
+
+- list reasons for interface choices...
+- why MeemumWrapper class
+- why Fortran interface not C++ one
