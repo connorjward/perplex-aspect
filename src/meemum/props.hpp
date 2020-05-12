@@ -1,21 +1,19 @@
 namespace meemum::props {
     extern "C" {
-//	void abbr_soln_name(const size_t*, char*);
-  	char* abbr_soln_name(const size_t*);
-	void load_full_soln_name(const size_t*, char*);
 	size_t n_soln_models();
+  	char* abbr_soln_name(size_t);
+	char* full_soln_name(size_t);
 
 	size_t n_phases();
-	void load_phase_name(size_t*, char*);
+	char* phase_name(size_t);
+	double phase_weight_frac(size_t);
+	double phase_vol_frac(size_t);
+	double phase_mol_frac(size_t);
+	double phase_mol(size_t);
 
-	double phase_weight_frac(size_t*);
-	double phase_vol_frac(size_t*);
-	double phase_mol_frac(size_t*);
-	double phase_mol(size_t*);
-
-	double density();
-	double entropy();
-	double expansivity();
-	double heat_capacity();
+	double sys_density();
+	double sys_expansivity();
+	double sys_mol_entropy();
+	double sys_mol_heat_capacity();
     }
 }

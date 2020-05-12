@@ -20,24 +20,23 @@ MinimizeResult* MeemumWrapper::minimize(double T, double p) {
     for (size_t i = 0; i < n; i++) { 
 	size_t phase { i + 1 };
 
-	char* name { new char[14] };
-	load_phase_name(&phase, name);
+	char* name = phase_name(phase);
 
 	phases[i] = new Phase {
 	    name,
 
-	    phase_weight_frac(&phase),
-	    phase_vol_frac(&phase),
-	    phase_mol_frac(&phase),
-	    phase_mol(&phase),
+	    phase_weight_frac(phase),
+	    phase_vol_frac(phase),
+	    phase_mol_frac(phase),
+	    phase_mol(phase),
 	};
     }
 
     return new MinimizeResult {
-	density(),
-	entropy(),
-	expansivity(),
-	heat_capacity(),
+	sys_density(),
+	sys_expansivity(),
+	sys_mol_entropy(),
+	sys_mol_heat_capacity(),
 
 	phases,
     };
@@ -47,7 +46,7 @@ std::vector<char*> MeemumWrapper::solution_models() {
     std::vector<char*> models; 
 
     for (size_t id = 1; id <= n_soln_models(); id++) {
-        models.push_back(abbr_soln_name(&id));
+        models.push_back(abbr_soln_name(id));
     }
 
     return models;
