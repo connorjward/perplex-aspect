@@ -45,6 +45,3 @@ The main difference between this implementation and their is that the initial wr
 Although it is possible to integrate the existing Fortran code directly into C++ it requires interfacing directly with obscurely named COMMON blocks (e.g. `cxt22`) and hard-coding some 400-line parameter file.
 The code I have written presents a much more C\+\+-friendly interface to the user whilst also being easier to maintain and extend since the parameter file issue may be avoided.
 
-A `MeemumWrapper` class is built on top of this interface as this provides the most natural way to encapsulate the Perple_X code.
-
-@todo make into singleton class
