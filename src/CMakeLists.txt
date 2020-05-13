@@ -1,4 +1,4 @@
-add_library(meemum meemum/calcs.f meemum/props.f meemum/wrapper.cpp)
+add_library(meemum meemum/calcs.f meemum/props.f)
 
 # include Perple_X header files
 target_include_directories(meemum PRIVATE $ENV{PERPLEX_DIR})
