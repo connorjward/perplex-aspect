@@ -1,3 +1,5 @@
-build/
+/build/
 
-src/parameters.h
+/src/_parameters.h
+
+__pycache__/
