@@ -1,5 +1,4 @@
-# A description of convection in a 2d box. See the manual for more information.
-
+set Additional shared libraries              = ./../build/src/plugin/libmy_plugin.so
 
 # At the top, we define the number of space dimensions we would like to
 # work in:
@@ -104,12 +103,12 @@ end
 
 
 subsection Material model
-  set Model name = perplex lookup
+  set Model name = my perplex lookup
 
-  subsection PerpleX lookup model
-    # nothing here yet
-    # use defaults
-  end
+# subsection My PerpleX lookup model
+#   # nothing here yet
+#   # use defaults
+# end
 end
 
 

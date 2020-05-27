@@ -22,12 +22,7 @@
 #include "../meemum/meemum.h"
 #include "../meemum/props.h"
 
-#ifdef ASPECT_WITH_PERPLEX
-extern "C" {
-#include <perplex_c.h>
-}
 #include <deal.II/base/multithread_info.h>
-#endif
 
 namespace aspect
 {
@@ -35,21 +30,17 @@ namespace aspect
   {
     template <int dim>
     void
-    PerpleXLookup<dim>::initialize()
+    MyPerpleXLookup<dim>::initialize()
     {
-#ifdef ASPECT_WITH_PERPLEX
       AssertThrow(dealii::MultithreadInfo::is_running_single_threaded(),
                   ExcMessage("The PerpleXLookup MaterialModel only works in single threaded mode (do not use -j)!"));
 
-      ini_phaseq(perplex_file_name.c_str()); // this line initializes meemum
-#else
-      Assert (false, ExcMessage("ASPECT has not been compiled with the PerpleX libraries"));
-#endif
+      meemum::init(perplex_file_name.c_str()); // this line initializes meemum
     }
 
     template <int dim>
     bool
-    PerpleXLookup<dim>::
+    MyPerpleXLookup<dim>::
     is_compressible () const
     {
       return true;
@@ -57,7 +48,7 @@ namespace aspect
 
     template <int dim>
     double
-    PerpleXLookup<dim>::
+    MyPerpleXLookup<dim>::
     reference_viscosity () const
     {
       return eta;
@@ -65,7 +56,7 @@ namespace aspect
 
     template <int dim>
     void
-    PerpleXLookup<dim>::
+    MyPerpleXLookup<dim>::
     evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
              MaterialModel::MaterialModelOutputs<dim> &out) const
     {
@@ -142,7 +133,7 @@ namespace aspect
 
     template <int dim>
     void
-    PerpleXLookup<dim>::declare_parameters (ParameterHandler &prm)
+    MyPerpleXLookup<dim>::declare_parameters (ParameterHandler &prm)
     {
       prm.enter_subsection("Material model");
       {
@@ -186,7 +177,7 @@ namespace aspect
 
     template <int dim>
     void
-    PerpleXLookup<dim>::parse_parameters (ParameterHandler &prm)
+    MyPerpleXLookup<dim>::parse_parameters (ParameterHandler &prm)
     {
       prm.enter_subsection("Material model");
       {
@@ -226,8 +217,8 @@ namespace aspect
 {
   namespace MaterialModel
   {
-    ASPECT_REGISTER_MATERIAL_MODEL(PerpleXLookup,
-                                   "perplex lookup",
+    ASPECT_REGISTER_MATERIAL_MODEL(MyPerpleXLookup,
+                                   "my perplex lookup",
                                    "A material model that has constant values "
                                    "for viscosity and thermal conductivity, and "
                                    "calculates other properties on-the-fly using "

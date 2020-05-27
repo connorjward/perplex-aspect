@@ -60,7 +60,7 @@ namespace aspect
      * @ingroup MaterialModels
      */
     template <int dim>
-    class PerpleXLookup : public Interface<dim>
+    class MyPerpleXLookup : public Interface<dim>
     {
       public:
         /**
