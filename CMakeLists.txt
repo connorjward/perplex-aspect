@@ -7,6 +7,9 @@ project(PerplexAspect)
 # Enable Fortran compilation
 enable_language(Fortran)
 
+# Enable position independent code (for shared libraries)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 ### GOOGLETEST
 # source: https://github.com/google/googletest/tree/master/googletest
 # Download and unpack googletest at configure time
