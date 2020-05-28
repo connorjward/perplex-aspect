@@ -1,7 +1,9 @@
-add_library(meemum meemum/meemum.f meemum/props.f)
+add_library(meemum meemum/meemum.f meemum/props.f meemum/wrapper.cc)
 
 # include Perple_X header files
-target_include_directories(meemum PRIVATE $ENV{PERPLEX_DIR})
+target_include_directories(meemum 
+                           PUBLIC ${PerpleXASPECT_SOURCE_DIR}/include
+                           PRIVATE $ENV{PERPLEX_DIR})
 
 # link with precompiled Perple_X object code
 target_link_libraries(meemum 

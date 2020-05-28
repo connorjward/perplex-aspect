@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.6)
 
 # set the project name
-project(PerplexAspect)
+project(PerpleXASPECT)
 
 # Enable Fortran compilation
 enable_language(Fortran)

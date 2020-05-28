@@ -9,9 +9,29 @@
 
       contains
 
+        subroutine c_set_pressure(pressure) bind(c)
+          real(c_double), intent(in), value :: pressure
+
+          ! source: ?
+          double precision v, tr, pr, r, ps
+          common / cst5  / v(l2), tr, pr, r, ps
+
+          v(1) = pressure
+        end subroutine
+
+        subroutine c_set_temperature(temperature) bind(c)
+          real(c_double), intent(in), value :: temperature
+
+          ! source: ?
+          double precision v, tr, pr, r, ps
+          common / cst5  / v(l2), tr, pr, r, ps
+
+          v(2) = temperature
+        end subroutine
+
         ! part 1 of wrapper for meemm (meemum.f)
         ! read the input file (only needs to be called once)
-        subroutine init(filename) bind(c)
+        subroutine c_init(filename) bind(c)
           character(c_char), dimension(*), intent(in) :: filename
 
           integer :: i
@@ -37,48 +57,10 @@
           call iniprp_wrapper
         end subroutine
 
-        subroutine minimize(p, T, X) bind(c)
-          real(c_double), intent(in), value :: T, p
-          type(c_ptr), intent(in) :: X
-          !type(c_size_t), intent(in), value :: X_len
-
-          real(c_double), dimension(:), pointer :: f_X
-
-          ! source: rlib.f
-          integer icomp,istct,iphct,icp
-          common/ cst6 /icomp,istct,iphct,icp
-
-          integer :: i
-
-          ! associate C array with Fortran pointer
-          !call c_f_pointer(X, f_X, [k5])
-          !call c_f_pointer(X, f_X, [icp])
-          call c_f_pointer(X, f_X, [10])
-
-          print *, cblk
-          print *, f_X
-
-          call abort
-          ! set compositions
-          !cblk = transfer(f_X, 1.0, k5)
-          !cblk = transfer(f_X, 1.0, icp)
-          !cblk = f_X
-          do i = 1, icp
-            cblk(i) = f_X(i)
-          end do
-
-          print *, cblk
-
-          ! perform the minimization
-          call meemm_wrapper(p, T)
-        end subroutine
-
         !> part 2 of wrapper for meemm (meemum.f)
         ! called at each iteration
         ! pretty much imitates meemm
-        subroutine meemm_wrapper(p, T)
-          real(c_double), value :: p, T
-
+        subroutine c_minimize() bind(c)
           integer i
 
           logical bad
@@ -91,18 +73,10 @@
           double precision atwt
           common/ cst45 /atwt(k0) 
 
-          double precision v,tr,pr,r,ps
-          common/ cst5  /v(l2),tr,pr,r,ps
-
           integer io3,io4,io9
           common / cst41 /io3,io4,io9
 
           ! -----------------------------------------
-
-          ! set potential (P, T) values
-          ! maybe put in above subroutine
-          v(1) = p
-          v(2) = T
 
           ! convert to moles if needed
           if (iwt.eq.1) then 
@@ -118,6 +92,13 @@
 
             if (io3.eq.0) call calpr0 (n3)
          end if 
+       end subroutine
+
+       subroutine c_set_composition_component(id, amount) bind(c)
+         integer(c_size_t), intent(in), value :: id
+         real(c_double), intent(in), value :: amount
+
+         cblk(id+1) = amount
        end subroutine
 
        subroutine iniprp_wrapper()
