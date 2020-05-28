@@ -137,7 +137,7 @@ namespace aspect
     {
       prm.enter_subsection("Material model");
       {
-        prm.enter_subsection("PerpleX lookup model");
+        prm.enter_subsection("PerpleX lookup model v2");
         {
 
           prm.declare_entry ("PerpleX input file name", "rock.dat",
@@ -181,7 +181,7 @@ namespace aspect
     {
       prm.enter_subsection("Material model");
       {
-        prm.enter_subsection("PerpleX lookup model");
+        prm.enter_subsection("PerpleX lookup model v2");
         {
           perplex_file_name   = prm.get ("PerpleX input file name");
           eta                 = prm.get_double ("Viscosity");

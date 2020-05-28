@@ -1,4 +1,4 @@
-set Additional shared libraries              = ./../build/src/plugin/libmy_plugin.so
+set Additional shared libraries              = ./libmy_plugin.so
 
 # At the top, we define the number of space dimensions we would like to
 # work in:
@@ -105,10 +105,9 @@ end
 subsection Material model
   set Model name = my perplex lookup
 
-# subsection My PerpleX lookup model
-#   # nothing here yet
-#   # use defaults
-# end
+  subsection PerpleX lookup model v2
+    set PerpleX input file name =  khgp
+  end
 end
 
 
