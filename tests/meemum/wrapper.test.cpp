@@ -1,12 +1,24 @@
 #include <gtest/gtest.h>
-#include "meemum/calcs.hpp"
-#include "meemum/props.hpp"
+#include "meemum/meemum.h"
+#include "meemum/props.h"
 
 class MeemumTest : public ::testing::Test {
     protected:
 	void SetUp() {
+	    const double pressure { 25000 };
+	    const double temperature { 1500 };
+	    const double composition[] = { 0.110000e-01, 0.249000, 38.4610, 
+					   1.77400,
+                                            2.82100,     
+                                            50.5250,     
+                                            5.88200,     
+                                           0.710000E-01 ,
+                                           0.109000     ,
+                                           0.480000E-01 };
+
 	    meemum::init("khgp");
-	    meemum::minimize(1500, 25000);
+	    meemum::minimize(pressure, temperature, composition);
+
 	    //res2 = wrapper.minimize(1200, 30000);
 	}
 };
@@ -35,6 +47,11 @@ TEST_F(MeemumTest, CheckPhaseMol) {
     EXPECT_NEAR(meemum::props::phase_mol(4), 2.62, 5e-3);
     //EXPECT_NEAR(res2->phases[2]->mol, 21.5, 0.05);
 }
+
+//TEST_F(MeemumTest, CheckCompositionAmount) {
+//    //EXPECT_NEAR(meemum::props::composition_amount(4), 2.62, 5e-3);
+//    //EXPECT_NEAR(res2->phases[2]->mol, 21.5, 0.05);
+//}
 
 TEST_F(MeemumTest, CheckSysDensity) {
     EXPECT_NEAR(meemum::props::sys_density(), 3298.4, 0.05);

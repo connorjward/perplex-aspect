@@ -67,7 +67,6 @@ namespace aspect
        * approximation
        */
 
-#ifdef ASPECT_WITH_PERPLEX
       std::vector<double> wtphases(p_size_phases);
       std::vector<double> cphases(p_size_phases * p_size_components);
       std::vector<char> namephases(p_size_phases * p_pname_len);
@@ -122,12 +121,6 @@ namespace aspect
           out.thermal_expansion_coefficients[i] = sysprop[12];
           out.compressibilities[i] = sysprop[13]*1.e5;
         }
-#else
-      (void)in;
-      (void)out;
-      Assert (false, ExcMessage("ASPECT has not been compiled with the PerpleX libraries"));
-#endif
-
     }
 
 

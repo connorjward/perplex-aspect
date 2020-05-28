@@ -37,11 +37,47 @@
           call iniprp_wrapper
         end subroutine
 
+        subroutine minimize(p, T, X) bind(c)
+          real(c_double), intent(in), value :: T, p
+          type(c_ptr), intent(in) :: X
+          !type(c_size_t), intent(in), value :: X_len
+
+          real(c_double), dimension(:), pointer :: f_X
+
+          ! source: rlib.f
+          integer icomp,istct,iphct,icp
+          common/ cst6 /icomp,istct,iphct,icp
+
+          integer :: i
+
+          ! associate C array with Fortran pointer
+          !call c_f_pointer(X, f_X, [k5])
+          !call c_f_pointer(X, f_X, [icp])
+          call c_f_pointer(X, f_X, [10])
+
+          print *, cblk
+          print *, f_X
+
+          call abort
+          ! set compositions
+          !cblk = transfer(f_X, 1.0, k5)
+          !cblk = transfer(f_X, 1.0, icp)
+          !cblk = f_X
+          do i = 1, icp
+            cblk(i) = f_X(i)
+          end do
+
+          print *, cblk
+
+          ! perform the minimization
+          call meemm_wrapper(p, T)
+        end subroutine
+
         !> part 2 of wrapper for meemm (meemum.f)
         ! called at each iteration
         ! pretty much imitates meemm
-        subroutine minimize(T, p) bind(c)
-          real(c_double), value :: T, p
+        subroutine meemm_wrapper(p, T)
+          real(c_double), value :: p, T
 
           integer i
 
@@ -64,6 +100,7 @@
           ! -----------------------------------------
 
           ! set potential (P, T) values
+          ! maybe put in above subroutine
           v(1) = p
           v(2) = T
 

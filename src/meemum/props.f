@@ -125,6 +125,24 @@
           phase_mol = props(16, phase_id)
         end function
 
+!       !> @param  c      Composition index
+!       !! @return amount Number of moles of the composition
+!       function composition_amount(c) bind(c)
+!         integer(c_size_t), intent(in), value :: c
+!         real(c_double) :: composition_amount
+!         
+!         composition_amount = cblk(c) 
+!       end function
+
+!       !> @param c      Composition index
+!       !! @param amount Number of moles of the composition
+!       subroutine composition_amount(c, amount) bind(c)
+!         integer(c_size_t), intent(in), value :: c
+!         real(c_double), intent(in), value :: amount
+
+!         cblk(c) = amount
+!       end subroutine
+
         !> @return sys_density The system density (kg/m3)
         function sys_density() bind(c)
           real(c_double) :: sys_density
