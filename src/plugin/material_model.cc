@@ -19,8 +19,6 @@
 */
 
 #include "material_model.h"
-#include "../meemum/meemum.h"
-#include "../meemum/props.h"
 
 #include <deal.II/base/multithread_info.h>
 
@@ -35,7 +33,7 @@ namespace aspect
       AssertThrow(dealii::MultithreadInfo::is_running_single_threaded(),
                   ExcMessage("The PerpleXLookup MaterialModel only works in single threaded mode (do not use -j)!"));
 
-      meemum::init(perplex_file_name.c_str()); // this line initializes meemum
+      wrapper.init(perplex_file_name.c_str()); // this line initializes meemum
     }
 
     template <int dim>

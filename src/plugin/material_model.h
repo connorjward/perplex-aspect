@@ -22,6 +22,7 @@
 #define _aspect_material_model_perplex_lookup_h
 
 #include <aspect/material_model/interface.h>
+#include <meemum/wrapper.h>
 
 namespace aspect
 {
@@ -100,6 +101,7 @@ namespace aspect
 
 
       private:
+	MeemumWrapper wrapper;
         std::string perplex_file_name;
         double eta;
         double k_value;

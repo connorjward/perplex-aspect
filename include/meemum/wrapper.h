@@ -4,6 +4,6 @@
 
 class MeemumWrapper {
   public:
-    MeemumWrapper(const std::string);
-    void minimize(double, double, std::vector<double>);
+    void init(const std::string);
+    void minimize(double, double, const std::vector<double>);
 };

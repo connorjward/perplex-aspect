@@ -1,17 +1,7 @@
 #include <meemum/wrapper.h>
+#include "ftoc.h"
 
-extern "C" {
-  void c_init(const char*);
-  void c_minimize();
-
-  void c_set_pressure(double);
-  void c_set_temperature(double);
-
-  double c_get_composition_component(size_t);
-  void c_set_composition_component(size_t, double);
-}
-
-MeemumWrapper::MeemumWrapper(const std::string filename) {
+void MeemumWrapper::init(const std::string filename) {
   // TODO: set filename before c_init
   c_init(filename.c_str());
 }
