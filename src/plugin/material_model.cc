@@ -65,10 +65,10 @@ namespace aspect
        * approximation
        */
 
-      std::vector<double> wtphases(p_size_phases);
-      std::vector<double> cphases(p_size_phases * p_size_components);
-      std::vector<char> namephases(p_size_phases * p_pname_len);
-      std::vector<double> sysprop(p_size_sysprops);
+ //    std::vector<double> wtphases(p_size_phases);
+ //    std::vector<double> cphases(p_size_phases * p_size_components);
+ //    std::vector<char> namephases(p_size_phases * p_pname_len);
+ //    std::vector<double> sysprop(p_size_sysprops);
 
       int phaseq_dbg = 0;
 
@@ -87,6 +87,7 @@ namespace aspect
       std::vector<double> comp;
       comp.resize(n_comp);
 
+      // average composition over all quadrature points
       for (unsigned int c=0; c<n_comp; ++c)
         {
           for (unsigned int i=0; i<n_quad; ++i)
@@ -100,25 +101,35 @@ namespace aspect
       // Here is the call to PerpleX/meemum
       int nphases;
 
-      phaseq(average_pressure/1.e5, average_temperature,
-             n_comp, comp.data(), &nphases, wtphases.data(), cphases.data(),
-             sysprop.data(), namephases.data(), phaseq_dbg);
+      //test
+      //const std::vector<double> &compref = comp;
+      //double temp = average_temperature;
+      //double press = average_pressure;
+      //std::cout << typeid(wrapper).name() << std::endl;
 
-      AssertThrow(!isnan(sysprop[9]) && !isnan(sysprop[11]) && !isnan(sysprop[12]) && !isnan(sysprop[13]),
-                  ExcMessage("PerpleX returned NaN for at least one material property at " +
-                             std::to_string(average_pressure) +" bar, " +
-                             std::to_string(average_temperature) + " K. Aborting. " +
-                             "Please adjust the P-T bounds in the parameter file or adjust the PerpleX files."));
+      wrapper.minimize(average_pressure, average_temperature, comp);
+      //wrapper.minimize(press, temp, comp);
+      //wrapper.minimize(average_pressure, average_temperature, compref);
 
-      for (unsigned int i=0; i<n_quad; ++i)
-        {
-          out.viscosities[i] = eta;
-          out.thermal_conductivities[i] = k_value;
-          out.densities[i] = sysprop[9];
-          out.specific_heat[i] = sysprop[11]*(1000./sysprop[16]); // molar Cp * (1000/molar mass) (g)
-          out.thermal_expansion_coefficients[i] = sysprop[12];
-          out.compressibilities[i] = sysprop[13]*1.e5;
-        }
+      //phaseq(average_pressure/1.e5, average_temperature,
+      //       n_comp, comp.data(), &nphases, wtphases.data(), cphases.data(),
+      //       sysprop.data(), namephases.data(), phaseq_dbg);
+
+      //AssertThrow(!isnan(sysprop[9]) && !isnan(sysprop[11]) && !isnan(sysprop[12]) && !isnan(sysprop[13]),
+      //           ExcMessage("PerpleX returned NaN for at least one material property at " +
+      //                      std::to_string(average_pressure) +" bar, " +
+      //                      std::to_string(average_temperature) + " K. Aborting. " +
+      //                      "Please adjust the P-T bounds in the parameter file or adjust the PerpleX files."));
+
+      //for (unsigned int i=0; i<n_quad; ++i)
+      //  {
+      //    out.viscosities[i] = eta;
+      //    out.thermal_conductivities[i] = k_value;
+      //    out.densities[i] = sysprop[9];
+      //    out.specific_heat[i] = sysprop[11]*(1000./sysprop[16]); // molar Cp * (1000/molar mass) (g)
+      //    out.thermal_expansion_coefficients[i] = sysprop[12];
+      //    out.compressibilities[i] = sysprop[13]*1.e5;
+      //  }
     }
 
 

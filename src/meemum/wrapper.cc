@@ -8,7 +8,7 @@ void MeemumWrapper::init(const std::string filename) {
 
 void MeemumWrapper::minimize(const double pressure, 
                              const double temperature,
-			     const std::vector<double> composition) {
+			     const std::vector<double> &composition) const {
   // set the temperature and pressure
   ftoc::set_temperature(temperature);
   ftoc::set_pressure(pressure);
