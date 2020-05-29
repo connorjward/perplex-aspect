@@ -35,6 +35,7 @@ subsection Initial composition model
 end
 
 subsection Material model
+# set Model name                   = simple
   set Model name                   = my perplex lookup
   subsection PerpleX lookup model v2
     set PerpleX input file name	   = khgp
@@ -80,7 +81,8 @@ subsection Mesh refinement
 end
 
 subsection Postprocess
-  set List of postprocessors = depth average
+# set List of postprocessors = depth average
+  set List of postprocessors = heating statistics, material statistics, temperature statistics
 
   subsection Depth average
     set Output format = gnuplot

@@ -4,10 +4,11 @@
 class MeemumTest : public ::testing::Test {
   protected:
     void SetUp() {
-      const std::string filename { "khgp" };
+      const std::string filename("khgp");
       const double pressure { 25000 };
       const double temperature { 1500 };
-      const std::vector<double> composition = { 0.110000e-01, 0.249000, 38.4610, 
+
+      const double cs[] = { 0.110000e-01, 0.249000, 38.4610, 
 	1.77400,
 	2.82100,     
 	50.5250,     
@@ -15,6 +16,7 @@ class MeemumTest : public ::testing::Test {
 	0.710000E-01 ,
 	0.109000     ,
 	0.480000E-01 };
+      std::vector<double> composition(cs, cs + sizeof(cs)/sizeof(double));
 
       wrapper.init(filename);
       wrapper.minimize(pressure, temperature, composition);

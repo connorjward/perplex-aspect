@@ -55,13 +55,13 @@ double MeemumWrapper::phase_mol(const size_t phase) {
   return ftoc::get_phase_mol(phase+1); 
 }
 
-double MeemumWrapper::sys_density() { 
+double MeemumWrapper::sys_density() const { 
   return ftoc::get_sys_density(); 
 }
 
-double MeemumWrapper::sys_expansivity() { return ftoc::get_sys_expansivity(); }
+double MeemumWrapper::sys_expansivity() const { return ftoc::get_sys_expansivity(); }
 
-double MeemumWrapper::sys_mol_entropy() { return ftoc::get_sys_mol_entropy(); }
+double MeemumWrapper::sys_mol_entropy() const { return ftoc::get_sys_mol_entropy(); }
 
-double MeemumWrapper::sys_mol_heat_capacity() { return ftoc::get_sys_mol_heat_capacity(); }
+double MeemumWrapper::sys_mol_heat_capacity() const { return ftoc::get_sys_mol_heat_capacity(); }
 

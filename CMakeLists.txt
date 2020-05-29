@@ -1,18 +1,24 @@
 # set minimum cmake version
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.11)
 
 # set the project name
 project(PerpleXASPECT)
 
-# Enable Fortran compilation
-enable_language(Fortran)
-
-# Enable position independent code (for shared libraries)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
+# include modules
 include(CTest)
 include(FetchContent)
 include(GoogleTest)
+
+# set the C++ standard
+#set(CMAKE_CXX_STANDARD 11)
+#set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# enable Fortran compilation
+enable_language(Fortran)
+
+# enable position independent code (for shared libraries)
+# TODO: make this target dependent?
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(BUILD_TESTING)
   FetchContent_Declare(

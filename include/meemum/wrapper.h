@@ -10,7 +10,7 @@ class MeemumWrapper {
 	          const double temperature, 
 		  const std::vector<double> &composition) const;
 
-    size_t      n_soln_models();
+    size_t n_soln_models();
     std::string abbr_soln_name(size_t);
     std::string full_soln_name(size_t);
 
@@ -21,9 +21,9 @@ class MeemumWrapper {
     double       phase_mol_frac(size_t);
     double       phase_mol(size_t);
 
-    double sys_density();
-    double sys_expansivity();
-    double sys_mol_entropy();
-    double sys_mol_heat_capacity();
+    double sys_density() const;
+    double sys_expansivity() const;
+    double sys_mol_entropy() const;
+    double sys_mol_heat_capacity() const;
 };
 

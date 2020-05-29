@@ -101,15 +101,29 @@ namespace aspect
       // Here is the call to PerpleX/meemum
       int nphases;
 
-      //test
-      //const std::vector<double> &compref = comp;
-      //double temp = average_temperature;
-      //double press = average_pressure;
-      //std::cout << typeid(wrapper).name() << std::endl;
+    //  std::cout << dealii::MultithreadInfo::n_threads() << std::endl;
+     //exit(0);
+     //
+      //std::cout << average_pressure << std::endl;
+      //std::cout << average_temperature << std::endl;
 
-      wrapper.minimize(average_pressure, average_temperature, comp);
-      //wrapper.minimize(press, temp, comp);
-      //wrapper.minimize(average_pressure, average_temperature, compref);
+      //for (auto c : comp)
+      //  std::cout << c << std::endl;
+
+      //exit(0);
+
+      const double pressure { 25000 };
+      const double temperature { 1500 };
+      const std::vector<double> composition = { 0.110000e-01, 0.249000, 38.4610, 
+	1.77400,
+	2.82100,     
+	50.5250,     
+	5.88200,     
+	0.710000E-01 ,
+	0.109000     ,
+	0.480000E-01 };
+      //wrapper.minimize(average_pressure, average_temperature, comp);
+      wrapper.minimize(pressure, temperature, composition);
 
       //phaseq(average_pressure/1.e5, average_temperature,
       //       n_comp, comp.data(), &nphases, wtphases.data(), cphases.data(),
@@ -130,6 +144,25 @@ namespace aspect
       //    out.thermal_expansion_coefficients[i] = sysprop[12];
       //    out.compressibilities[i] = sysprop[13]*1.e5;
       //  }
+
+      //for (unsigned int i=0; i<n_quad; ++i)
+      //  {
+      //    out.viscosities[i] = eta;
+      //    out.thermal_conductivities[i] = k_value;
+      //    out.densities[i] = wrapper.sys_density();
+      //    out.specific_heat[i] = wrapper.sys_mol_heat_capacity();
+      //    out.thermal_expansion_coefficients[i] = wrapper.sys_expansivity();
+      //    out.compressibilities[i] = wrapper.sys_mol_heat_capacity();
+      //  }
+      for (unsigned int i=0; i<n_quad; ++i)
+        {
+          out.viscosities[i] = eta;
+          out.thermal_conductivities[i] = k_value;
+          out.densities[i] = 1000;
+          out.specific_heat[i] = 100;
+          out.thermal_expansion_coefficients[i] = 100;
+          out.compressibilities[i] = 100;
+        }
     }
 
 
