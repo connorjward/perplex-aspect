@@ -10,29 +10,9 @@
 
       contains
 
-        subroutine c_set_pressure(pressure) bind(c)
-          real(c_double), intent(in), value :: pressure
-
-          ! source: ?
-          double precision v, tr, pr, r, ps
-          common / cst5  / v(l2), tr, pr, r, ps
-
-          v(1) = pressure
-        end subroutine
-
-        subroutine c_set_temperature(temperature) bind(c)
-          real(c_double), intent(in), value :: temperature
-
-          ! source: ?
-          double precision v, tr, pr, r, ps
-          common / cst5  / v(l2), tr, pr, r, ps
-
-          v(2) = temperature
-        end subroutine
-
         ! part 1 of wrapper for meemm (meemum.f)
         ! read the input file (only needs to be called once)
-        subroutine c_init(filename) bind(c)
+        subroutine init(filename) bind(c)
           character(c_char), dimension(*), intent(in) :: filename
 
           integer :: i
@@ -61,7 +41,7 @@
         !> part 2 of wrapper for meemm (meemum.f)
         ! called at each iteration
         ! pretty much imitates meemm
-        subroutine c_minimize() bind(c)
+        subroutine minimize() bind(c)
           integer i
 
           logical bad
@@ -95,37 +75,35 @@
          end if 
        end subroutine
 
-       subroutine c_set_composition_component(id, amount) bind(c)
+       subroutine set_pressure(pressure) bind(c)
+         real(c_double), intent(in), value :: pressure
+ 
+         ! source: ?
+         double precision v, tr, pr, r, ps
+         common / cst5  / v(l2), tr, pr, r, ps
+ 
+         v(1) = pressure
+       end subroutine
+ 
+       subroutine set_temperature(temperature) bind(c)
+         real(c_double), intent(in), value :: temperature
+ 
+         ! source: ?
+         double precision v, tr, pr, r, ps
+         common / cst5  / v(l2), tr, pr, r, ps
+ 
+         v(2) = temperature
+       end subroutine
+
+       subroutine set_composition_component(id, amount) bind(c)
          integer(c_size_t), intent(in), value :: id
          real(c_double), intent(in), value :: amount
 
-         cblk(id+1) = amount
-       end subroutine
-
-       subroutine iniprp_wrapper()
-         ! wrapper for iniprp (resub.f)
-
-         ! ----- VARIABLES -----
-         ! resub.f : subroutine iniprp
-         logical first, err 
-
-
-         ! ----- WRAPPER -----
-         first = .true.
-
-         ! *** prevent prompt for project name ***
-         outprt = .true.
-
-         call input1 (first,err)
-         call input2 (first)
-         call setau1 
-         call input9 (first)
-         if (lopt(50)) call outsei
-         call initlp
+         cblk(id) = amount
        end subroutine
 
         !> @return n_soln_models Number of solution models
-        function n_soln_models() bind(c)
+        function get_n_soln_models() bind(c) result(n_soln_models)
           integer(c_size_t) :: n_soln_models
 
           integer isoct
@@ -136,7 +114,8 @@
 
         !> @param  soln_id        Solution model index
         !! @return abbr_soln_name Abbreviated solution model name
-        function abbr_soln_name(soln_id) bind(c)
+        function get_abbr_soln_name(soln_id) bind(c)
+     >      result(abbr_soln_name)
           integer(c_size_t), intent(in), value :: soln_id
           type(c_ptr) :: abbr_soln_name
 
@@ -148,7 +127,8 @@
 
         !> @param  soln_id        Solution model index
         !! @return full_soln_name Full solution model name
-        function full_soln_name(soln_id) bind(c)
+        function get_full_soln_name(soln_id) bind(c)
+     >      result(full_soln_name)
           integer(c_size_t), intent(in), value :: soln_id
           type(c_ptr) :: full_soln_name
 
@@ -159,7 +139,7 @@
         end function
 
         !> @return n_phases Number of phases
-        function n_phases() bind(c)
+        function get_n_phases() bind(c) result(n_phases)
           integer(c_size_t) :: n_phases
 
           integer kkp, np, ncpd, ntot
@@ -172,7 +152,7 @@
 
         !> @param  phase_id   Phase index
         !! @return phase_name Phase name
-        function phase_name(phase_id) bind(c)
+        function get_phase_name(phase_id) bind(c) result(phase_name)
           integer(c_size_t), intent(in), value :: phase_id
           type(c_ptr) :: phase_name
 
@@ -184,7 +164,8 @@
 
         !> @param  phase_id          Phase index
         !! @return phase_weight_frac Fractional phase weight
-        function phase_weight_frac(phase_id) bind(c)
+        function get_phase_weight_frac(phase_id) bind(c)
+     >      result(phase_weight_frac)
           integer(c_size_t), intent(in), value :: phase_id
           real(c_double) :: phase_weight_frac
 
@@ -198,7 +179,8 @@
 
         !> @param  phase_id       Phase index
         !! @return phase_vol_frac Fractional volume of a phase
-        function phase_vol_frac(phase_id) bind(c)
+        function get_phase_vol_frac(phase_id) bind(c)
+     >      result(phase_vol_frac)
           integer(c_size_t), intent(in), value :: phase_id
           real(c_double) :: phase_vol_frac
 
@@ -213,7 +195,8 @@
 
         !> @param  phase_id       Phase index
         !! @return phase_mol_frac Fractional number of moles of a phase
-        function phase_mol_frac(phase_id) bind(c)
+        function get_phase_mol_frac(phase_id) bind(c)
+     >      result(phase_mol_frac)
           integer(c_size_t), intent(in), value :: phase_id
           real(c_double) :: phase_mol_frac
 
@@ -227,7 +210,8 @@
 
         !> @param  phase_id  Phase index
         !! @return phase_mol Number of moles of a phase
-        function phase_mol(phase_id) bind(c)
+        function get_phase_mol(phase_id) bind(c)
+     >      result(phase_mol)
           integer(c_size_t), intent(in), value :: phase_id
           real(c_double) :: phase_mol
 
@@ -239,26 +223,8 @@
           phase_mol = props(16, phase_id)
         end function
 
-!       !> @param  c      Composition index
-!       !! @return amount Number of moles of the composition
-!       function composition_amount(c) bind(c)
-!         integer(c_size_t), intent(in), value :: c
-!         real(c_double) :: composition_amount
-!         
-!         composition_amount = cblk(c) 
-!       end function
-
-!       !> @param c      Composition index
-!       !! @param amount Number of moles of the composition
-!       subroutine composition_amount(c, amount) bind(c)
-!         integer(c_size_t), intent(in), value :: c
-!         real(c_double), intent(in), value :: amount
-
-!         cblk(c) = amount
-!       end subroutine
-
         !> @return sys_density The system density (kg/m3)
-        function sys_density() bind(c)
+        function get_sys_density() bind(c) result(sys_density)
           real(c_double) :: sys_density
 
           double precision props, psys, psys1, pgeo, pgeo1
@@ -270,7 +236,8 @@
         end function
 
         !> @return sys_expansivity The system expansivity
-        function sys_expansivity() bind(c) 
+        function get_sys_expansivity() bind(c) 
+     >      result(sys_expansivity)
           real(c_double) :: sys_expansivity
 
           double precision props, psys, psys1, pgeo, pgeo1
@@ -282,7 +249,8 @@
         end function
 
         !> @return sys_mol_entropy The system molar entropy
-        function sys_mol_entropy() bind(c)
+        function get_sys_mol_entropy() bind(c)
+     >      result(sys_mol_entropy)
           real(c_double) :: sys_mol_entropy
 
           double precision props, psys, psys1, pgeo, pgeo1
@@ -294,7 +262,8 @@
         end function
 
         !> @return sys_mol_heat_capacity The system molar heat capacity
-        function sys_mol_heat_capacity() bind(c)
+        function get_sys_mol_heat_capacity() bind(c)
+     >      result(sys_mol_heat_capacity)
           real(c_double) :: sys_mol_heat_capacity
 
           double precision props, psys, psys1, pgeo, pgeo1
@@ -302,8 +271,30 @@
      >    pgeo(i8),pgeo1(i8)
 
           ! source: olib.f
-          sys_mol_heat_capacity = psys(12) / psys(1) * 1d5 / psys(10)
+          sys_mol_heat_capacity = psys(12)
         end function
+
+        subroutine iniprp_wrapper()
+          ! wrapper for iniprp (resub.f)
+
+          ! ----- VARIABLES -----
+          ! resub.f : subroutine iniprp
+          logical first, err 
+
+
+          ! ----- WRAPPER -----
+          first = .true.
+
+          ! *** prevent prompt for project name ***
+          outprt = .true.
+
+          call input1 (first,err)
+          call input2 (first)
+          call setau1 
+          call input9 (first)
+          if (lopt(50)) call outsei
+          call initlp
+        end subroutine
 
         !> Convert a Fortran string to a C string.
         !! @param f_str The Fortran string to be converted.
@@ -325,68 +316,3 @@
         end function
       end module
        
-!       !UNUSED
-!       function get_melt_frac() bind(c) result(melt_frac)
-!         real(c_double) :: melt_frac
-!         double precision props,psys,psys1,pgeo,pgeo1
-!         common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),
-!    >    pgeo1(i8)
-
-!         ! melt_frac = props(17,imelt)*props(16,imelt) / psys(17)
-!         melt_frac = 0.1
-!       end function
-
-
-!       function has_melt() bind(c)
-!         logical(c_bool) :: has_melt
-
-!         logical gflu,aflu,fluid,shear,lflu,volume,rxn
-!         common/ cxt20 /gflu,aflu,fluid(k5),shear,lflu,volume,rxn
-
-!         has_melt = aflu
-!       end function
-
-!       function is_melt(phase_id) bind(c)
-!         integer(c_int), intent(in) :: phase_id
-!         logical(c_bool) :: is_melt
-
-!         logical gflu,aflu,fluid,shear,lflu,volume,rxn
-!         common / cxt20 / gflu, aflu, fluid(k5), shear, lflu, volume,
-!    >    rxn
-
-!         is_melt = fluid(phase_id)
-!       end function
-
-!       function get_n_components() bind(c) result(n)
-!         integer(c_int) :: n
-
-!         n = k5
-!       end function
-
-!       subroutine get_component_name(comp_id, comp_name) bind(c)
-!         integer(c_int), intent(in) :: comp_id
-!         character(c_char), dimension(*), intent(out) :: comp_name
-
-!         ! component names (from where?)
-!         character*5 cname
-!         common / csta4 / cname(k5)
-
-!         integer :: i
-
-!         do i = 1, 5
-!         comp_name(i:i) = cname(comp_id)(i:i)
-!         end do
-!       end subroutine
-
-!       subroutine get_component_amount(comp_id, comp_amount) bind(c)
-!         integer(c_int), intent(in) :: comp_id
-!         real(c_double), intent(out) :: comp_amount
-
-!         integer :: i
-
-!         ! where is this from? file reference
-!         double precision a,b,c
-!         common / cst313 / a(k5,k1), b(k5), c(k1)
-
-!         comp_amount = b(comp_id)
-!       end subroutine

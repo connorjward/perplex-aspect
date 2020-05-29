@@ -1,32 +1,30 @@
 #include <cstddef>
 
-extern "C" {
-  void c_init(const char*);
-  void c_minimize();
+namespace ftoc {
+  extern "C" {
+    void init(const char*);
+    void minimize();
 
-  void c_set_pressure(double);
-  void c_set_temperature(double);
+    void set_pressure(double);
+    void set_temperature(double);
 
-  double c_get_composition_component(size_t);
-  void c_set_composition_component(size_t, double);
+    double get_composition_component(size_t);
+    void   set_composition_component(size_t, double);
 
+    size_t get_n_soln_models();
+    char*  get_abbr_soln_name(size_t);
+    char*  get_full_soln_name(size_t);
 
-  size_t n_soln_models();
-  char* abbr_soln_name(size_t);
-  char* full_soln_name(size_t);
+    size_t get_n_phases();
+    char*  get_phase_name(size_t);
+    double get_phase_weight_frac(size_t);
+    double get_phase_vol_frac(size_t);
+    double get_phase_mol_frac(size_t);
+    double get_phase_mol(size_t);
 
-  size_t n_phases();
-  char* phase_name(size_t);
-  double phase_weight_frac(size_t);
-  double phase_vol_frac(size_t);
-  double phase_mol_frac(size_t);
-  double phase_mol(size_t);
-
-  double composition_amount(size_t);
-
-  double sys_density();
-  double sys_expansivity();
-  double sys_mol_entropy();
-  double sys_mol_heat_capacity();
-
+    double get_sys_density();
+    double get_sys_expansivity();
+    double get_sys_mol_entropy();
+    double get_sys_mol_heat_capacity();
+  }
 }
