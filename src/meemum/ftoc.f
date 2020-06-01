@@ -72,35 +72,45 @@
             call calpr0 (6)
 
             if (io3.eq.0) call calpr0 (n3)
-         end if 
-       end subroutine
+          end if 
+        end subroutine
 
-       subroutine set_pressure(pressure) bind(c)
-         real(c_double), intent(in), value :: pressure
- 
-         ! source: ?
-         double precision v, tr, pr, r, ps
-         common / cst5  / v(l2), tr, pr, r, ps
- 
-         v(1) = pressure
-       end subroutine
- 
-       subroutine set_temperature(temperature) bind(c)
-         real(c_double), intent(in), value :: temperature
- 
-         ! source: ?
-         double precision v, tr, pr, r, ps
-         common / cst5  / v(l2), tr, pr, r, ps
- 
-         v(2) = temperature
-       end subroutine
+        subroutine set_pressure(pressure) bind(c)
+          real(c_double), intent(in), value :: pressure
 
-       subroutine set_composition_component(id, amount) bind(c)
-         integer(c_size_t), intent(in), value :: id
-         real(c_double), intent(in), value :: amount
+          ! source: ?
+          double precision v, tr, pr, r, ps
+          common / cst5  / v(l2), tr, pr, r, ps
 
-         cblk(id) = amount
-       end subroutine
+          v(1) = pressure
+        end subroutine
+
+        subroutine set_temperature(temperature) bind(c)
+          real(c_double), intent(in), value :: temperature
+
+          ! source: ?
+          double precision v, tr, pr, r, ps
+          common / cst5  / v(l2), tr, pr, r, ps
+
+          v(2) = temperature
+        end subroutine
+
+        subroutine set_composition_component(id, amount) bind(c)
+          integer(c_size_t), intent(in), value :: id
+          real(c_double), intent(in), value :: amount
+
+          cblk(id+1) = amount
+        end subroutine
+
+        !> @return composition_component Amount (in moles) of a
+        ! composition component
+        function get_composition_component(comp_id) bind(c)
+     >     result(composition_component)
+          integer(c_size_t), intent(in), value :: comp_id
+          real(c_double) :: composition_component
+
+          composition_component = cblk(comp_id+1)
+        end function
 
         !> @return n_soln_models Number of solution models
         function get_n_soln_models() bind(c) result(n_soln_models)
@@ -122,7 +132,7 @@
           character fname*10, aname*6, lname*22
           common / csta7 / fname(h9), aname(h9), lname(h9)
 
-          abbr_soln_name = alloc_c_str(aname(soln_id))
+          abbr_soln_name = alloc_c_str(aname(soln_id+1))
         end function
 
         !> @param  soln_id        Solution model index
@@ -135,7 +145,7 @@
           character fname*10, aname*6, lname*22
           common / csta7 / fname(h9), aname(h9), lname(h9)
 
-          full_soln_name = alloc_c_str(fname(soln_id))
+          full_soln_name = alloc_c_str(fname(soln_id+1))
         end function
 
         !> @return n_phases Number of phases
@@ -159,7 +169,7 @@
           character pname*14
           common / cxt21a / pname(k5)
 
-          phase_name = alloc_c_str(pname(phase_id))
+          phase_name = alloc_c_str(pname(phase_id+1))
         end function
 
         !> @param  phase_id          Phase index
@@ -169,12 +179,13 @@
           integer(c_size_t), intent(in), value :: phase_id
           real(c_double) :: phase_weight_frac
 
-        double precision props, psys, psys1, pgeo, pgeo1
-        common / cxt22 / props(i8,k5), psys(i8), psys1(i8),
-     >  pgeo(i8),pgeo1(i8)
+          double precision props, psys, psys1, pgeo, pgeo1
+          common / cxt22 / props(i8,k5), psys(i8), psys1(i8),
+     >    pgeo(i8),pgeo1(i8)
+
           ! source: olib.f
-          phase_weight_frac = props(17, phase_id) * props(16, phase_id) 
-     >    / psys(17)
+          phase_weight_frac = props(17, phase_id+1) 
+     >    * props(16, phase_id+1) / psys(17)
         end function
 
         !> @param  phase_id       Phase index
@@ -189,7 +200,7 @@
      >    pgeo(i8),pgeo1(i8)
 
           ! source: olib.f
-          phase_vol_frac = props(1, phase_id) * props(16, phase_id) 
+          phase_vol_frac = props(1, phase_id+1) * props(16, phase_id+1) 
      >    / psys(1)
         end function
 
@@ -205,7 +216,7 @@
      >    pgeo(i8),pgeo1(i8)
 
           ! source: olib.f
-          phase_mol_frac = props(16, phase_id) / psys(16)
+          phase_mol_frac = props(16, phase_id+1) / psys(16)
         end function
 
         !> @param  phase_id  Phase index
@@ -220,7 +231,7 @@
      >    pgeo(i8),pgeo1(i8)
 
           ! source: olib.f
-          phase_mol = props(16, phase_id)
+          phase_mol = props(16, phase_id+1)
         end function
 
         !> @return sys_density The system density (kg/m3)
@@ -230,7 +241,7 @@
           double precision props, psys, psys1, pgeo, pgeo1
           common / cxt22 / props(i8,k5), psys(i8), psys1(i8),
      >    pgeo(i8),pgeo1(i8)
-          
+
           ! source: olib.f
           sys_density = psys(10)
         end function
@@ -315,4 +326,4 @@
           ptr = c_loc(c_str)
         end function
       end module
-       
+

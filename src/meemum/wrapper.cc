@@ -6,12 +6,13 @@ void MeemumWrapper::init(const std::string filename) {
   ftoc::init(filename.c_str());
 }
 
-void MeemumWrapper::minimize(const double pressure, 
-                             const double temperature,
-			     const std::vector<double> &composition) const {
+MinimizeResult 
+MeemumWrapper::minimize(const double pressure, 
+                        const double temperature,
+			const std::vector<double> &composition) const {
   // set the temperature and pressure
-  ftoc::set_temperature(temperature);
   ftoc::set_pressure(pressure);
+  ftoc::set_temperature(temperature);
 
   // set the composition
   for (size_t i = 0; i < composition.size(); i++)
@@ -19,6 +20,24 @@ void MeemumWrapper::minimize(const double pressure,
 
   // run the minimization
   ftoc::minimize();
+
+  std::vector<Phase> phases;
+  for (size_t i = 0; i < ftoc::get_n_phases(); i++) {
+    Phase phase { 
+      std::string(ftoc::get_phase_name(i)),
+      ftoc::get_phase_mol(i),
+    };
+    phases.push_back(phase);
+  }
+
+  return MinimizeResult { 
+    ftoc::get_sys_density(),
+    ftoc::get_sys_expansivity(),
+    ftoc::get_sys_mol_entropy(),
+    ftoc::get_sys_mol_heat_capacity(),
+
+    phases,
+  };
 }
 
 size_t MeemumWrapper::n_soln_models() { return ftoc::get_n_soln_models(); }

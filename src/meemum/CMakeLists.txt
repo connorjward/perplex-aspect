@@ -1,4 +1,3 @@
-
 FetchContent_Declare(
   perplex
   URL https://petrol.natur.cuni.cz/~ondro/perplex-sources-stable.zip
@@ -37,21 +36,28 @@ add_custom_command(
   COMMENT "Replace all occurences of dgemv with x0001 to prevent linking conflicts with BLAS."
 )
 
-add_executable(meemum-test wrapper.test.cc)
-
-target_include_directories(
-  meemum-test 
-  PUBLIC ${PerpleXASPECT_SOURCE_DIR}/include
+# Compile tests
+add_executable(
+  meemum-test
+  ftoc.test.cc
+  # wrapper.test.cc
 )
 
-target_link_libraries(meemum-test meemum gtest_main)
+target_link_libraries(
+  meemum-test
+  meemum
+  gtest
+  gtest_main
+)
 
 # Copy test files to build directory
 file(
-  COPY ${PerpleXASPECT_SOURCE_DIR}/data/hgp
+  COPY ${PerpleXASPECT_SOURCE_DIR}/data/test-data
   DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-add_test(NAME meemum-test COMMAND meemum-test
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/hgp
+# Automatically add tests
+gtest_discover_tests(
+  meemum-test
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test-data
 )

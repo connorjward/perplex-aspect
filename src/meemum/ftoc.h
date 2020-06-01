@@ -7,9 +7,9 @@ namespace ftoc {
 
     void set_pressure(double);
     void set_temperature(double);
+    void set_composition_component(size_t, double);
 
     double get_composition_component(size_t);
-    void   set_composition_component(size_t, double);
 
     size_t get_n_soln_models();
     char*  get_abbr_soln_name(size_t);
