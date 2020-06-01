@@ -37,7 +37,6 @@ add_custom_command(
   COMMENT "Replace all occurences of dgemv with x0001 to prevent linking conflicts with BLAS."
 )
 
-
 add_executable(meemum-test wrapper.test.cc)
 
 target_include_directories(
