@@ -1,9 +1,35 @@
+#include <iostream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <meemum/wrapper.h>
 #include "ftoc.h"
 
 void MeemumWrapper::init(const std::string filename) {
   // TODO: set filename before ftoc::init
+  std::cout << "starting init" << std::endl;
+  // disable stdout
+  int bak, new_;
+  fflush(stdout);
+  bak = dup(1);
+  /* new_ = open("/dev/null", O_WRONLY); */
+  new_ = open("/dev/null", O_WRONLY);
+  dup2(new_, 1);
+  // read file
+  close(new_);
   ftoc::init(filename.c_str());
+  // re-enable stdout
+  fflush(stdout);
+  dup2(bak, 1);
+  close(bak);
+  std::cout << "init done" << std::endl;
 }
 
 MinimizeResult 
@@ -18,8 +44,23 @@ MeemumWrapper::minimize(const double pressure,
   for (size_t i = 0; i < composition.size(); i++)
     ftoc::set_composition_component(i+1, composition[i]);
 
+  std::cout << "starting minimize" << std::endl;
+  // disable stdout
+  int bak, new_;
+  fflush(stdout);
+  bak = dup(1);
+  new_ = open("/dev/null", O_WRONLY);
+  dup2(new_, 1);
+  close(new_);
+
   // run the minimization
   ftoc::minimize();
+
+  // re-enable stdout
+  fflush(stdout);
+  dup2(bak, 1);
+  close(bak);
+  std::cout << "minimize done" << std::endl;
 
   std::vector<Phase> phases;
   for (size_t i = 0; i < ftoc::get_n_phases(); i++) {
