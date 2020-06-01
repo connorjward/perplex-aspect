@@ -12,23 +12,18 @@
 #include <meemum/wrapper.h>
 #include "ftoc.h"
 
+static const int disable_stdout();
+static void enable_stdout(const int);
+
 void MeemumWrapper::init(const std::string filename) {
   // TODO: set filename before ftoc::init
   std::cout << "starting init" << std::endl;
   // disable stdout
-  int bak, new_;
-  fflush(stdout);
-  bak = dup(1);
-  /* new_ = open("/dev/null", O_WRONLY); */
-  new_ = open("/dev/null", O_WRONLY);
-  dup2(new_, 1);
+  const int stdout_descriptor = disable_stdout();
   // read file
-  close(new_);
   ftoc::init(filename.c_str());
   // re-enable stdout
-  fflush(stdout);
-  dup2(bak, 1);
-  close(bak);
+  enable_stdout(stdout_descriptor);
   std::cout << "init done" << std::endl;
 }
 
@@ -46,20 +41,14 @@ MeemumWrapper::minimize(const double pressure,
 
   std::cout << "starting minimize" << std::endl;
   // disable stdout
-  int bak, new_;
-  fflush(stdout);
-  bak = dup(1);
-  new_ = open("/dev/null", O_WRONLY);
-  dup2(new_, 1);
-  close(new_);
+  const int fd = disable_stdout();
 
   // run the minimization
   ftoc::minimize();
 
   // re-enable stdout
-  fflush(stdout);
-  dup2(bak, 1);
-  close(bak);
+  enable_stdout(fd);
+
   std::cout << "minimize done" << std::endl;
 
   std::vector<Phase> phases;
@@ -124,4 +113,28 @@ double MeemumWrapper::sys_expansivity() const { return ftoc::get_sys_expansivity
 double MeemumWrapper::sys_mol_entropy() const { return ftoc::get_sys_mol_entropy(); }
 
 double MeemumWrapper::sys_mol_heat_capacity() const { return ftoc::get_sys_mol_heat_capacity(); }
+
+static const int disable_stdout() {
+  // flush stdout
+  fflush(stdout);
+
+  // get file descriptors
+  const int stdout_descriptor = dup(1);
+  const int null_descriptor = open("/dev/null", O_WRONLY);
+
+  // reassign stdout to /dev/null
+  dup2(null_descriptor, 1);
+  close(null_descriptor);
+
+  return stdout_descriptor;
+}
+
+static void enable_stdout(const int stdout_descriptor) {
+  // flush stdout
+  fflush(stdout);
+  
+  // reassign descriptor
+  dup2(stdout_descriptor, 1);
+  close(stdout_descriptor);
+}
 
