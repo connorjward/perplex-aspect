@@ -9,10 +9,6 @@ include(CTest)
 include(FetchContent)
 include(GoogleTest)
 
-# set the C++ standard
-#set(CMAKE_CXX_STANDARD 11)
-#set(CMAKE_CXX_STANDARD_REQUIRED True)
-
 # enable Fortran compilation
 enable_language(Fortran)
 

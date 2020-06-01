@@ -1,19 +1,3 @@
-#include(FindBLAS)
-#include(FindLAPACK)
-#
-#if(NOT BLAS_FOUND)
-#  # some error checking...
-#  message("BLAS library not found")
-#else()
-#  message("Using BLAS libraries found at: ${BLAS_LIBRARIES}")
-#endif()
-#
-#if(NOT LAPACK_FOUND)
-#  # some error checking...
-#  message("LAPACK library not found")
-#else()
-#  message("Using LAPACK libraries found at: ${LAPACK_LIBRARIES}")
-#endif()
 
 FetchContent_Declare(
   perplex
@@ -27,7 +11,7 @@ if(NOT perplex_POPULATED)
 endif()
 
 add_library(
-  meemum 
+  meemum
   wrapper.cc 
   ftoc.f
   ${perplex_SOURCE_DIR}/BLASlib.f
@@ -39,22 +23,20 @@ add_library(
   ${perplex_SOURCE_DIR}/tlib.f
 )
 
-# include Perple_X header files
-target_include_directories(meemum 
-                           PUBLIC ${PerpleXASPECT_SOURCE_DIR}/include
-			   PRIVATE ${perplex_SOURCE_DIR})
+target_include_directories(
+  meemum 
+  PUBLIC ${PerpleXASPECT_SOURCE_DIR}/include
+  PRIVATE ${perplex_SOURCE_DIR}
+)
+		       
+add_custom_command(
+  TARGET meemum
+  PRE_BUILD
+  COMMAND sed -i 's/dgemv/x0001/g' ${perplex_SOURCE_DIR}/BLASlib.f
+  COMMAND sed -i 's/dgemv/x0001/g' ${perplex_SOURCE_DIR}/nlib.f
+  COMMENT "Replace all occurences of dgemv with x0001 to prevent linking conflicts with BLAS."
+)
 
-#		 target_link_libraries(meemum ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
-
-# link with precompiled Perple_X object code
-#target_link_directories(meemum ${perplex_SOURCE_DIR})
-#target_link_libraries(meemum 
-#                      PRIVATE $ENV{PERPLEX_DIR}/resub.o 
-#                              $ENV{PERPLEX_DIR}/flib.o 
-#                              $ENV{PERPLEX_DIR}/nlib.o 
-#                              $ENV{PERPLEX_DIR}/olib.o 
-#                              $ENV{PERPLEX_DIR}/rlib.o 
-#                              $ENV{PERPLEX_DIR}/tlib.o)
 
 add_executable(meemum-test wrapper.test.cc)
 

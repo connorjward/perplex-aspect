@@ -48,8 +48,6 @@ PROJECT(${TARGET})
 
 ADD_LIBRARY(${TARGET} SHARED material_model.cc)
 
-#set_property(TARGET ${TARGET} PROPERTY CXX_EXTENSIONS On)
-
 target_link_libraries(${TARGET} meemum)
 
 ASPECT_SETUP_PLUGIN(${TARGET})
