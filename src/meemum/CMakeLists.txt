@@ -40,7 +40,7 @@ add_custom_command(
 add_executable(
   meemum-test
   ftoc.test.cc
-  # wrapper.test.cc
+  wrapper.test.cc
 )
 
 target_link_libraries(

@@ -37,7 +37,7 @@ MeemumWrapper::minimize(const double pressure,
 
   // set the composition
   for (size_t i = 0; i < composition.size(); i++)
-    ftoc::set_composition_component(i+1, composition[i]);
+    ftoc::set_composition_component(i, composition[i]);
 
   std::cout << "starting minimize" << std::endl;
   // disable stdout
@@ -60,7 +60,7 @@ MeemumWrapper::minimize(const double pressure,
     phases.push_back(phase);
   }
 
-  return MinimizeResult { 
+  return MinimizeResult {
     ftoc::get_sys_density(),
     ftoc::get_sys_expansivity(),
     ftoc::get_sys_mol_entropy(),
@@ -79,40 +79,6 @@ std::string MeemumWrapper::abbr_soln_name(size_t soln) {
 std::string MeemumWrapper::full_soln_name(size_t soln) {
   return std::string { ftoc::get_full_soln_name(soln+1) };
 }
-
-size_t MeemumWrapper::n_phases() { 
-  return ftoc::get_n_phases(); 
-}
-
-std::string MeemumWrapper::phase_name(const size_t phase) {
-  return std::string { ftoc::get_phase_name(phase+1) }; 
-}
-
-double MeemumWrapper::phase_weight_frac(const size_t phase) { 
-  return ftoc::get_phase_weight_frac(phase+1); 
-}
-
-double MeemumWrapper::phase_vol_frac(const size_t phase) { 
-  return ftoc::get_phase_vol_frac(phase+1); 
-}
-
-double MeemumWrapper::phase_mol_frac(const size_t phase) { 
-  return ftoc::get_phase_mol_frac(phase+1); 
-}
-
-double MeemumWrapper::phase_mol(const size_t phase) { 
-  return ftoc::get_phase_mol(phase+1); 
-}
-
-double MeemumWrapper::sys_density() const { 
-  return ftoc::get_sys_density(); 
-}
-
-double MeemumWrapper::sys_expansivity() const { return ftoc::get_sys_expansivity(); }
-
-double MeemumWrapper::sys_mol_entropy() const { return ftoc::get_sys_mol_entropy(); }
-
-double MeemumWrapper::sys_mol_heat_capacity() const { return ftoc::get_sys_mol_heat_capacity(); }
 
 static const int disable_stdout() {
   // flush stdout
