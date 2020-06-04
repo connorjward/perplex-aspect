@@ -1,8 +1,7 @@
-include(CTest)
-include(FetchContent)
-include(GoogleTest)
-
 if(BUILD_TESTING)
+  include(FetchContent)
+  include(GoogleTest)
+
   FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
@@ -17,6 +16,6 @@ if(BUILD_TESTING)
   endif()
 endif()
 
-add_subdirectory(meemum)
+add_subdirectory(perplex)
 add_subdirectory(plugin)
 

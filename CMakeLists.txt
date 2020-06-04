@@ -4,10 +4,9 @@ cmake_minimum_required(VERSION 3.11)
 # set the project name
 project(PerpleXASPECT)
 
-# include modules
+# required for tests to be found by ctest
+# also declares BUILD_TESTING option
 include(CTest)
-include(FetchContent)
-include(GoogleTest)
 
 # enable Fortran compilation
 enable_language(Fortran)
@@ -19,21 +18,7 @@ set(CMAKE_CXX_STANDARD 11)
 # TODO: is this necessary?
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-if(BUILD_TESTING)
-  FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG release-1.8.1
-  )
-
-  FetchContent_GetProperties(googletest)
-
-  if(NOT googletest_POPULATED)
-    FetchContent_Populate(googletest)
-    add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-  endif()
-endif()
-
 include_directories(include)
+
 add_subdirectory(src)
 

@@ -10,7 +10,7 @@ set Additional shared libraries = ./libmy_plugin.so
 # function. Stay tuned!
 
 set Dimension                              = 2
-set End time                               = 0
+set End time                               = 1
 set Adiabatic surface temperature          = 1300
 set Output directory                       = output-perplex-lookup
 
@@ -35,7 +35,7 @@ subsection Initial composition model
 end
 
 subsection Material model
-# set Model name                   = simple
+  # set Model name                   = simple
   set Model name                   = my perplex lookup
   subsection PerpleX lookup model v2
     set PerpleX input file name	   = khgp
@@ -46,10 +46,10 @@ end
 subsection Geometry model
   set Model name = box 
   subsection Box
-    set X extent                = 200e3 
+    set X extent                = 1 
     set X repetitions           = 1      
-    set Y extent                = 800e3  
-    set Y repetitions           = 16
+    set Y extent                = 1  
+    set Y repetitions           = 1
   end
 end
 
@@ -77,15 +77,13 @@ end
 
 subsection Mesh refinement
   set Initial adaptive refinement              = 0         
-  set Initial global refinement                = 1         
+  set Initial global refinement                = 0         
 end
 
 subsection Postprocess
-# set List of postprocessors = depth average
-  set List of postprocessors = heating statistics, material statistics, temperature statistics
+  set List of postprocessors = global statistics, visualization
 
-  subsection Depth average
-    set Output format = gnuplot
-    set Number of zones = 200
+  subsection Visualization
+    # set List of output variables = named additional outputs
   end
 end
