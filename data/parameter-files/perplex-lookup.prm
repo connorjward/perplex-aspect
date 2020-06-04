@@ -77,7 +77,7 @@ end
 
 subsection Mesh refinement
   set Initial adaptive refinement              = 0         
-  set Initial global refinement                = 0         
+  set Initial global refinement                = 1         
 end
 
 subsection Postprocess

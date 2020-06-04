@@ -43,14 +43,15 @@ namespace aspect
 			   const unsigned int n_points)
     : 
     NamedAdditionalMaterialOutputs<dim>(phase_names) {
-      n_moles.push_back(std::vector<double>(n_points, numbers::signaling_nan<double>()));
+      for (unsigned int i = 0; i < phase_names.size(); i++)
+	n_moles.push_back(std::vector<double>(n_points, 0));
     }
 
     template <int dim>
     std::vector<double>
     PhaseAdditionalOutputs<dim>::get_nth_output(const unsigned int idx) const
     {
-      AssertIndexRange(idx, n_moles.size());
+      /* AssertIndexRange(idx, n_moles.size()); */
       return n_moles[idx];
     }
 
@@ -75,7 +76,7 @@ namespace aspect
 
       // create phase index map
       const std::vector<std::string> names = wrapper.solution_phase_names();
-      for (size_t i = 0; i < names.size(); i++)
+      for (unsigned int i = 0; i < names.size(); i++)
 	phase_idx_map[names[i]] = i;
 
       for (auto it = phase_idx_map.begin(); it != phase_idx_map.end(); ++it) {
@@ -165,9 +166,9 @@ namespace aspect
 
       if (phase_out != nullptr) {
 	for (Phase phase : res.phases) {
-	  size_t phase_idx;
+	  unsigned int phase_idx;
 	  try {
-	    /* const size_t phase_idx = phase_idx_map.at(phase.name); */
+	    /* const unsigned int phase_idx = phase_idx_map.at(phase.name); */
 	    phase_idx = phase_idx_map.at(phase.name);
 	  } catch(std::out_of_range ex) {
 	    std::cout << "out of range exception triggered" << std::endl;
@@ -178,7 +179,7 @@ namespace aspect
 	    exit(1);
 	  }
 
-	  for (size_t i = 0; i < n_quad; i++)
+	  for (unsigned int i = 0; i < n_quad; i++)
 	    phase_out->get_nth_output(phase_idx)[i] = phase.n_moles;
 	}
       }
@@ -275,7 +276,7 @@ namespace aspect
 	const std::vector<std::string> names = wrapper.solution_phase_names();
 	std::cout << names.size() << std::endl;
 	/* std::cout << names[0] << std::endl; */
-	const size_t n_points = out.n_evaluation_points();
+	const unsigned int n_points = out.n_evaluation_points();
 
 	out.additional_outputs.push_back(std_cxx14::
 	                                 make_unique<MaterialModel::
