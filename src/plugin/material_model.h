@@ -22,7 +22,7 @@
 #define _aspect_material_model_perplex_lookup_h
 
 #include <aspect/material_model/interface.h>
-#include <meemum/wrapper.h>
+#include <perplex/solver.h>
 
 namespace aspect
 {
@@ -99,9 +99,13 @@ namespace aspect
          * @}
          */
 
+	void 
+	create_additional_named_outputs(MaterialModel::MaterialModelOutputs<dim> &out) const;
+
 
       private:
 	MeemumWrapper wrapper;
+	std::map<std::string, size_t> phase_idx_map;
         std::string perplex_file_name;
         double eta;
         double k_value;

@@ -24,13 +24,13 @@ set Output directory                       = output-perplex-lookup
 # by the PerpleX routines, so it doesn't need to equal 1 or 100.
 
 subsection Compositional fields
-  set Number of fields          = 10
+  set Number of fields          = 4
 end
 
 subsection Initial composition model
   set List of model names = function
   subsection Function
-    set Function expression = 0.01; 0.25; 38.46; 1.77; 2.82; 50.5; 5.88; 0.07; 0.11; 0.05
+    set Function expression = 38.500; 2.820; 50.500; 5.880
   end
 end
 
@@ -38,7 +38,7 @@ subsection Material model
   # set Model name                   = simple
   set Model name                   = my perplex lookup
   subsection PerpleX lookup model v2
-    set PerpleX input file name	   = khgp
+    set PerpleX input file name	   = test1
     set Viscosity                  = 1e21
   end
 end
@@ -81,9 +81,9 @@ subsection Mesh refinement
 end
 
 subsection Postprocess
-  set List of postprocessors = global statistics, visualization
+  set List of postprocessors = visualization
 
   subsection Visualization
-    # set List of output variables = named additional outputs
+    set List of output variables = named additional outputs
   end
 end

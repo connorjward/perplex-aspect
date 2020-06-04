@@ -49,6 +49,6 @@ PROJECT(${TARGET})
 ADD_LIBRARY(${TARGET} SHARED material_model.cc)
 
 target_compile_options(${TARGET} PRIVATE -fext-numeric-literals)
-target_link_libraries(${TARGET} meemum)
+target_link_libraries(${TARGET} perplex)
 
 ASPECT_SETUP_PLUGIN(${TARGET})

@@ -1,22 +1,22 @@
 /*
-  Copyright (C) 2011 - 2018 by the authors of the ASPECT code.
-  Copyright (C) 2020 Connor Ward
+   Copyright (C) 2011 - 2018 by the authors of the ASPECT code.
+   Copyright (C) 2020 Connor Ward
 
-  This file is part of PerplexASPECT.
+   This file is part of PerplexASPECT.
 
-  PerplexASPECT is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
+   PerplexASPECT is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
 
-  PerplexASPECT is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+   PerplexASPECT is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-  You should have received a copy of the GNU General Public License
-  along with PerplexASPECT.  If not, see <https://www.gnu.org/licenses/>.
-*/
+   You should have received a copy of the GNU General Public License
+   along with PerplexASPECT.  If not, see <https://www.gnu.org/licenses/>.
+   */
 
 #include "material_model.h"
 
@@ -27,13 +27,61 @@ namespace aspect
   namespace MaterialModel
   {
     template <int dim>
+    class PhaseAdditionalOutputs : public NamedAdditionalMaterialOutputs<dim>
+    {
+      public:
+	PhaseAdditionalOutputs(const std::vector<std::string> &phase_names, const unsigned int n_points);
+
+	std::vector<double> get_nth_output(const unsigned int idx) const override;
+
+	std::vector<std::vector<double>> n_moles;
+    };
+
+    template <int dim>
+    PhaseAdditionalOutputs<dim>::
+    PhaseAdditionalOutputs(const std::vector<std::string> &phase_names, 
+			   const unsigned int n_points)
+    : 
+    NamedAdditionalMaterialOutputs<dim>(phase_names) {
+      n_moles.push_back(std::vector<double>(n_points, numbers::signaling_nan<double>()));
+    }
+
+    template <int dim>
+    std::vector<double>
+    PhaseAdditionalOutputs<dim>::get_nth_output(const unsigned int idx) const
+    {
+      AssertIndexRange(idx, n_moles.size());
+      return n_moles[idx];
+    }
+
+
+
+
+
+
+
+
+
+
+    template <int dim>
     void
     MyPerpleXLookup<dim>::initialize()
     {
+      std::cout << "entering initialize" << std::endl;
       AssertThrow(dealii::MultithreadInfo::is_running_single_threaded(),
                   ExcMessage("The PerpleXLookup MaterialModel only works in single threaded mode (do not use -j)!"));
 
       wrapper.init(perplex_file_name.c_str()); // this line initializes meemum
+
+      // create phase index map
+      const std::vector<std::string> names = wrapper.solution_phase_names();
+      for (size_t i = 0; i < names.size(); i++)
+	phase_idx_map[names[i]] = i;
+
+      for (auto it = phase_idx_map.begin(); it != phase_idx_map.end(); ++it) {
+	std::cout << it->first << ", " << it->second << '\n';
+      }
+      std::cout << "leaving initialize" << std::endl;
     }
 
     template <int dim>
@@ -58,6 +106,7 @@ namespace aspect
     evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
              MaterialModel::MaterialModelOutputs<dim> &out) const
     {
+      std::cout << "entering evaluate" << std::endl;
       /* Instead of evaluating at every quadrature point per cell,
        * we here average the P, T and X values, and evaluate once.
        * This is much quicker than evaluating at all quadrature
@@ -75,14 +124,14 @@ namespace aspect
       unsigned int n_quad = in.n_evaluation_points(); // number of quadrature points in cell
       unsigned int n_comp = in.composition[0].size(); // number of components in rock
 
-      const double average_temperature = std::min(max_temperature,
-                                                  std::max(min_temperature,
-                                                           (accumulate( in.temperature.begin(), in.temperature.end(), 0.0) /
-                                                            n_quad)));
-      const double average_pressure = std::min(max_pressure,
-                                               std::max(min_pressure,
-                                                        (accumulate( in.pressure.begin(), in.pressure.end(), 0.0) /
-                                                         n_quad)));
+      /* const double average_temperature = std::min(max_temperature, */
+      /*                                             std::max(min_temperature, */
+      /*                                                      (accumulate( in.temperature.begin(), in.temperature.end(), 0.0) / */
+      /*                                                       n_quad))); */
+      /* const double average_pressure = std::min(max_pressure, */
+      /*                                          std::max(min_pressure, */
+      /*                                                   (accumulate( in.pressure.begin(), in.pressure.end(), 0.0) / */
+      /*                                                    n_quad))); */
 
       std::vector<double> comp;
       comp.resize(n_comp);
@@ -98,71 +147,42 @@ namespace aspect
           comp[c] /= (double)n_quad;
         }
 
-      // Here is the call to PerpleX/meemum
-      int nphases;
+      /* MinimizeResult res = wrapper.minimize(in.pressure[0], in.temperature[0], in.composition[0]); */
+      MinimizeResult res = wrapper.minimize(20000, 1500, in.composition[0]);
 
-    //  std::cout << dealii::MultithreadInfo::n_threads() << std::endl;
-     //exit(0);
-     //
-      //std::cout << average_pressure << std::endl;
-      //std::cout << average_temperature << std::endl;
-
-      //for (auto c : comp)
-      //  std::cout << c << std::endl;
-
-      //exit(0);
-
-      const double pressure { 25000 };
-      const double temperature { 1500 };
-      const std::vector<double> composition = { 0.110000e-01, 0.249000, 38.4610, 
-	1.77400,
-	2.82100,     
-	50.5250,     
-	5.88200,     
-	0.710000E-01 ,
-	0.109000     ,
-	0.480000E-01 };
-      //wrapper.minimize(average_pressure, average_temperature, comp);
-      wrapper.minimize(pressure, temperature, composition);
-
-      //phaseq(average_pressure/1.e5, average_temperature,
-      //       n_comp, comp.data(), &nphases, wtphases.data(), cphases.data(),
-      //       sysprop.data(), namephases.data(), phaseq_dbg);
-
-      //AssertThrow(!isnan(sysprop[9]) && !isnan(sysprop[11]) && !isnan(sysprop[12]) && !isnan(sysprop[13]),
-      //           ExcMessage("PerpleX returned NaN for at least one material property at " +
-      //                      std::to_string(average_pressure) +" bar, " +
-      //                      std::to_string(average_temperature) + " K. Aborting. " +
-      //                      "Please adjust the P-T bounds in the parameter file or adjust the PerpleX files."));
-
-      //for (unsigned int i=0; i<n_quad; ++i)
-      //  {
-      //    out.viscosities[i] = eta;
-      //    out.thermal_conductivities[i] = k_value;
-      //    out.densities[i] = sysprop[9];
-      //    out.specific_heat[i] = sysprop[11]*(1000./sysprop[16]); // molar Cp * (1000/molar mass) (g)
-      //    out.thermal_expansion_coefficients[i] = sysprop[12];
-      //    out.compressibilities[i] = sysprop[13]*1.e5;
-      //  }
-
-      //for (unsigned int i=0; i<n_quad; ++i)
-      //  {
-      //    out.viscosities[i] = eta;
-      //    out.thermal_conductivities[i] = k_value;
-      //    out.densities[i] = wrapper.sys_density();
-      //    out.specific_heat[i] = wrapper.sys_mol_heat_capacity();
-      //    out.thermal_expansion_coefficients[i] = wrapper.sys_expansivity();
-      //    out.compressibilities[i] = wrapper.sys_mol_heat_capacity();
-      //  }
       for (unsigned int i=0; i<n_quad; ++i)
-        {
-          out.viscosities[i] = eta;
-          out.thermal_conductivities[i] = k_value;
-          out.densities[i] = 1000;
-          out.specific_heat[i] = 100;
-          out.thermal_expansion_coefficients[i] = 100;
-          out.compressibilities[i] = 100;
-        }
+      {
+	out.viscosities[i] = eta;
+	out.thermal_conductivities[i] = k_value;
+	out.densities[i] = 1000;
+	out.specific_heat[i] = 100;
+	out.thermal_expansion_coefficients[i] = 100;
+	out.compressibilities[i] = 100;
+      }
+
+      // store phase information
+      PhaseAdditionalOutputs<dim> *phase_out = out.template get_additional_output<PhaseAdditionalOutputs<dim>>();
+
+      if (phase_out != nullptr) {
+	for (Phase phase : res.phases) {
+	  size_t phase_idx;
+	  try {
+	    /* const size_t phase_idx = phase_idx_map.at(phase.name); */
+	    phase_idx = phase_idx_map.at(phase.name);
+	  } catch(std::out_of_range ex) {
+	    std::cout << "out of range exception triggered" << std::endl;
+	    std::cout << "looking for: " << phase.name << std::endl;
+	    for (auto it = phase_idx_map.begin(); it != phase_idx_map.end(); ++it) {
+	      std::cout << it->first << ", " << it->second << '\n';
+	    }
+	    exit(1);
+	  }
+
+	  for (size_t i = 0; i < n_quad; i++)
+	    phase_out->get_nth_output(phase_idx)[i] = phase.n_moles;
+	}
+      }
+      std::cout << "leaving evaluate" << std::endl;
     }
 
 
@@ -243,6 +263,25 @@ namespace aspect
       this->model_dependence.specific_heat = NonlinearDependence::temperature
                                              | NonlinearDependence::pressure
                                              | NonlinearDependence::compositional_fields;
+    }
+
+    template <int dim>
+    void
+    MyPerpleXLookup<dim>::
+    create_additional_named_outputs(MaterialModel::MaterialModelOutputs<dim> &out) const
+    {
+      std::cout << "entering create_additional_named_outputs" << std::endl;
+      if (out.template get_additional_output<PhaseAdditionalOutputs<dim>>() == nullptr) {
+	const std::vector<std::string> names = wrapper.solution_phase_names();
+	std::cout << names.size() << std::endl;
+	/* std::cout << names[0] << std::endl; */
+	const size_t n_points = out.n_evaluation_points();
+
+	out.additional_outputs.push_back(std_cxx14::
+	                                 make_unique<MaterialModel::
+					 PhaseAdditionalOutputs<dim>>(names, n_points));
+      }
+      std::cout << "leaving create_additional_named_outputs" << std::endl;
     }
   }
 }

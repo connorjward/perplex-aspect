@@ -41,11 +41,11 @@ static void enable_stdout(const int stdout_descriptor) {
 
 void MeemumWrapper::init(const std::string filename) {
   // disable stdout
-  const int stdout_descriptor = disable_stdout();
+  /* const int fd = disable_stdout(); */
   // read file
   ftoc::init(filename.c_str());
   // re-enable stdout
-  enable_stdout(stdout_descriptor);
+  /* enable_stdout(fd); */
 }
 
 MinimizeResult 
@@ -61,13 +61,13 @@ MeemumWrapper::minimize(const double pressure,
     ftoc::set_composition_component(i, composition[i]);
 
   // disable Perple_X output by temporarily disabling stdout
-  const int fd = disable_stdout();
+  /* const int fd = disable_stdout(); */
 
   // run the minimization
   ftoc::minimize();
 
   // re-enable stdout
-  enable_stdout(fd);
+  /* enable_stdout(fd); */
 
   // get phase information
   std::vector<Phase> phases;
@@ -89,10 +89,13 @@ MeemumWrapper::minimize(const double pressure,
 }
 
 std::vector<std::string> MeemumWrapper::solution_phase_names() const {
+  std::cout << "Number of solution models: " << ftoc::get_n_soln_models() << std::endl;
+
   std::vector<std::string> names;
-  for (size_t i; i < ftoc::get_n_soln_models(); i++) {
-    std::string name { ftoc::get_abbr_soln_name(i) };
+  for (size_t i = 0; i < ftoc::get_n_soln_models(); i++) {
+    std::string name { ftoc::get_full_soln_name(i) };
     names.push_back(name);
+    std::cout << name << std::endl;
   }
   return names;
 }

@@ -1,0 +1,570 @@
+Microsoft Windows [Version 6.1.7601]
+Copyright (c) 2009 Microsoft Corporation.  All rights reserved.
+
+C:\jamie\Perple_X>del *1db*.tab
+Could Not Find C:\jamie\Perple_X\*1db*.tab
+
+C:\jamie\Perple_X>werami
+
+Perple_X version 6.8.4, source updated Sept 15, 2018.
+
+Copyright (C) 1986-2018 James A D Connolly <www.perplex.ethz/copyright.html>.
+
+Enter the project name (the name assigned in BUILD) [default = my_project]:
+gloss1db
+
+Reading Perple_X options from: gloss1db_perplex_option.dat
+Writing Perple_X option summary to file: not requested
+
+Perple_X version 6.8.4, source updated Sept 15, 2018.
+
+Copyright (C) 1986-2018 James A D Connolly <www.perplex.ethz/copyright.html>.
+
+Perple_X computational option settings for WERAMI:
+
+    Keyword:               Value:     Permitted values [default]:
+
+  Input/Output options:
+
+    aqueous_output         T          [F] T
+    aqeuous_species         20        [20] 0-100
+    aq_solvent_composition m          [y] m: y => mol fraction, m => molality
+    aq_solute_composition  m          y [m]: y => mol fraction, m => molality
+    spreadsheet            T          [F] T
+    logarithmic_p          F          [F] T
+    bad_number             NaN        [0.0]
+    composition_constant   F          [F] T
+    composition_phase      mol        [mol] wt
+    composition_system     wt         [wt] mol
+    proportions            vol        [vol] wt mol
+    interpolation          on         [on] off
+    melt_is_fluid          F          [F] T
+    solution_names         mod        [model] abbreviation full
+    species_output         T          [T] F
+    species_Gibbs_energies F          [F] T
+    seismic_output         som        [some] none all
+    pause_on_error         T          [T] F
+    poisson_test           F          [F] T
+
+  Information file output options:
+
+    option_list_files      F          [F] T; echo computational options
+
+  Thermodynamic options:
+
+    approx_alpha           T          [T] F
+    Anderson-Gruneisen     F          [F] T
+    hybrid_EoS_H2O            0       [7] 0-2, 4-8
+    hybrid_EoS_CO2            5       [7] 0-4
+    hybrid_EoS_CH4            4       [1] 0-1
+    fd_expansion_factor    2.0        >0 [2.]
+    finite_difference_p    0.1D+05    >0 [1d4]; fraction = 0.1D-02 [1d-2]
+
+  Seismic velocity options:
+
+    bounds                 VRH        [VRH] HS
+    vrh/hs_weighting       0.5        [0.5] 0->1
+    explicit_bulk_modulus  T          [F] T
+    poisson_ratio          on         [on] all off; Poisson ratio = 0.35
+
+To change these options see: www.perplex.ethz.ch/perplex_options.html
+
+
+
+
+**warning ver099** aq_output or aq_lagged_speciation is T, but dependent_potentials is off, dependent_potentials set = on (AQIDST)
+
+Select operational mode:
+    1 - properties at specified conditions
+    3 - properties along a 1d path
+    0 - EXIT
+1
+
+Console output will be echoed in file: gloss1db_4.txt
+
+
+Enter node #   (999 to quit):
+400
+
+**warning ver178** at T(K)=   920.8     P(bar)=  0.3990E+05
+the shear modulus of: Grt(JH)
+is missing or invalid and has been estimated from the default poisson ratio
+
+
+**warning ver178** at T(K)=   920.8     P(bar)=  0.3990E+05
+the shear modulus of: Mica(CF)
+is missing or invalid and has been estimated from the default poisson ratio
+
+
+**warning ver178** at T(K)=   920.8     P(bar)=  0.3990E+05
+the shear modulus of: Do(HP)
+is missing or invalid and has been estimated from the default poisson ratio
+
+
+**warning ver178** at T(K)=   920.8     P(bar)=  0.3990E+05
+the shear modulus of: M(HP)
+is missing or invalid and has been estimated from the default poisson ratio
+
+
+**warning ver178** at T(K)=   920.8     P(bar)=  0.3990E+05
+the shear modulus of: Omph(GHP)
+is missing or invalid and has been estimated from the default poisson ratio
+
+
+**warning ver178** at T(K)=   920.8     P(bar)=  0.3990E+05
+the shear modulus of: law
+is missing or invalid and has been estimated from the default poisson ratio
+
+
+**warning ver178** at T(K)=   920.8     P(bar)=  0.3990E+05
+the shear modulus of: coe
+is missing or invalid and has been estimated from the default poisson ratio
+
+
+**warning ver178** at T(K)=   920.8     P(bar)=  0.3990E+05
+the shear modulus of: pyr
+is missing or invalid and has been estimated from the default poisson ratio
+
+
+**warning ver178** at T(K)=   920.8     P(bar)=  0.3990E+05
+the shear modulus of: diam
+is missing or invalid and has been estimated from the default poisson ratio
+
+
+----------------------------------------
+
+Stable phases at:
+                             node #   =  400.000
+                             P(bar)   =  39901.0
+                             T(K)     =  920.751
+
+Phase Compositions (molar  proportions):
+                   wt %      vol %     mol %     mol        H2       C        Si       Al       Fe       Mg       Ca       Na       K        O2       S2
+ Grt(JH)            5.45      4.06      1.11    0.114E-01  0.00000  0.00000  3.00000  1.97917  1.64895  0.23958  1.13230  0.00000  0.00000  6.00000  0.00000
+ Mica(CF)          19.36     19.15      4.62    0.476E-01  1.00000  0.00000  3.62639  1.74722  0.22351  0.40288  0.00000  0.07569  0.92431  6.00000  0.00000
+ Do(HP)             5.75      5.56      2.82    0.291E-01  0.00000  2.00000  0.00000  0.00000  0.36736  0.63264  1.00000  0.00000  0.00000  3.00000  0.00000
+ M(HP)              0.20      0.17      0.19    0.196E-02  0.00000  1.00000  0.00000  0.00000  0.45556  0.54444  0.00000  0.00000  0.00000  1.50000  0.00000
+ Omph(GHP)         22.73     19.60     10.29    0.106      0.00000  0.00000  2.00000  0.59861  0.20694  0.19444  0.29792  0.70208  0.00000  3.00000  0.00000
+ COH-Fluid+         5.54     11.54     28.89    0.298      0.98309  0.01691  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.50845  0.00000
+ law               10.27      9.71      3.14    0.324E-01  2.00000  0.00000  2.00000  2.00000  0.00000  0.00000  1.00000  0.00000  0.00000  5.00000  0.00000
+ coe               29.78     29.48     47.69    0.491      0.00000  0.00000  1.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  1.00000  0.00000
+ pyr                0.89      0.71      0.97    0.100E-01  0.00000  0.00000  0.00000  0.00000  1.00000  0.00000  0.00000  0.00000  0.00000  0.00000  1.00000
+ diam               0.03      0.03      0.27    0.280E-02  0.00000  1.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000
+
+Phase speciation (molar proportions):
+
+ Grt(JH)           alm: 0.54271, py: 0.07986, gr: 0.36702, andr: 0.01042
+ Mica(CF)          cel: 0.40288, fcel: 0.22351, mu: 0.29792, pa: 0.07569
+ Do(HP)            dol: 0.63264, ank: 0.36736
+ M(HP)             mag: 0.54444, sid: 0.45556
+ Omph(GHP)         di: 0.01883, jd: 0.46798, acm_dqf: 0.09222, hed: 0.04724, om: 0.23877, cfm: 0.11247, jac: 0.02249
+ COH-Fluid+        CO2: 0.01691, CH4: 0.00000, H2S: 0.00001, H2O: 0.98308
+
+Molar Properties and Density:
+                    N(g)          G(J)     S(J/K)     V(J/bar)      Cp(J/K)       Alpha(1/K)  Beta(1/bar)    Cp/Cv    Density(kg/m3)
+ Grt(JH)           472.94       -5416056   796.23       11.852       495.99      0.26090E-04  0.53731E-06   1.0287       3990.5
+ Mica(CF)          403.15       -5241429   775.20       13.433       500.20      0.33076E-04  0.13870E-05   1.0199       3001.3
+ Do(HP)            195.99       -1967433   396.19       6.3787       247.63      0.39121E-04  0.10032E-05   1.0375       3072.5
+ M(HP)              98.68        -850184   192.88       2.8434       118.45      0.44927E-04  0.86804E-06   1.0542       3470.6
+ Omph(GHP)         212.68       -2750207   386.82       6.1777       247.37      0.26345E-04  0.76607E-06   1.0213       3442.7
+ COH-Fluid+         18.45        -246555   130.37       1.2952       59.527      0.69129E-04  0.66948E-05   1.0145       1424.8
+ law               314.24       -4393965   634.62       10.013       449.09      0.32512E-04  0.76311E-06   1.0293       3138.4
+ coe                60.08        -818302   104.94       2.0037       70.073      0.13820E-04  0.90370E-06   1.0056       2998.7
+ pyr                87.91        -126060   131.23       2.3780       80.371      0.35419E-04  0.69750E-06   1.0515       3696.8
+ diam               12.01          10031   18.183      0.34091       20.786      0.11694E-04  0.22282E-06   1.0094       3523.2
+ System             99.14       -1280788   211.19       3.3398       130.69      0.30270E-04  0.16130E-05   1.0135       2968.4
+ System - fluid     93.64       -1207398   172.38       2.9543       112.97      0.25199E-04  0.94988E-06   1.0164       3169.8
+
+Seismic Properties:
+                 Gruneisen_T      Ks(bar)      Mu(bar)    V0(km/s)     Vp(km/s)     Vs(km/s)   Poisson ratio
+ Grt(JH)            1.1935      0.19145E+07  0.63816E+06   6.9264       8.3245       3.9990      0.35000
+ Mica(CF)          0.65315      0.73533E+06  0.24511E+06   4.9498       5.9489       2.8578      0.35000
+ Do(HP)             1.0423      0.10343E+07  0.34475E+06   5.8019       6.9730       3.3497      0.35000
+ M(HP)              1.3098      0.12144E+07  0.40481E+06   5.9154       7.1095       3.4153      0.35000
+ Omph(GHP)         0.87713      0.13331E+07  0.44438E+06   6.2228       7.4789       3.5927      0.35000
+ COH-Fluid+        0.22793      0.15154E+06   0.0000       3.2612       3.2612       0.0000      0.50000
+ law               0.97770      0.13488E+07  0.44959E+06   6.5557       7.8790       3.7849      0.35000
+ coe               0.43972      0.11128E+07  0.37092E+06   6.0916       7.3212       3.5170      0.35000
+ pyr                1.5799      0.15075E+07  0.50252E+06   6.3859       7.6749       3.6869      0.35000
+ diam              0.86878      0.45299E+07  0.15100E+07   11.339       13.628       6.5466      0.35000
+ System            0.66786      0.82891E+06  0.16838E+06   5.2844       5.9572       2.3817      0.40488
+ System - fluid    0.72527      0.11069E+07  0.36897E+06   5.9093       7.1022       3.4118      0.35000
+
+Bulk Composition:
+
+                     Complete Assemblage                            Solid+Melt Only
+              mol        g        wt %     mol/kg          mol        g        wt %     mol/kg
+    H2        0.405     0.816     0.823     4.085          0.112     0.226     0.242     1.200
+    C         0.068     0.817     0.824     0.686          0.063     0.756     0.808     0.672
+    Si        0.975    27.383    27.621     9.835          0.975    27.383    29.241    10.412
+    Al        0.234     6.314     6.369     2.360          0.234     6.314     6.742     2.499
+    Fe        0.073     4.077     4.112     0.736          0.073     4.077     4.353     0.780
+    Mg        0.062     1.507     1.520     0.625          0.062     1.507     1.609     0.662
+    Ca        0.106     4.248     4.285     1.069          0.106     4.248     4.537     1.132
+    Na        0.078     1.793     1.809     0.787          0.078     1.793     1.915     0.833
+    K         0.044     1.720     1.735     0.444          0.044     1.720     1.837     0.470
+    O2        1.567    50.142    50.578    15.806          1.416    45.300    48.374    15.117
+    S2        0.010     0.321     0.323     0.101          0.010     0.321     0.342     0.107
+
+Other Bulk Properties:
+
+ Enthalpy (J/kg) = -.109578E+08
+ Specific Enthalpy (J/m3) = -.325267E+11
+ Entropy (J/K/kg) =  2130.26
+ Specific Entropy (J/K/m3) = 0.632338E+07
+ Heat Capacity (J/K/kg) =  1318.26
+ Specific Heat Capacity (J/K/m3) = 0.391306E+07
+
+
+ Solid Enthalpy (J/kg) = -.111985E+08
+ Solid Secific Enthalpy (J/m3) (2) = -.354967E+11
+ Solid Entropy (J/K/kg) =  1840.83
+ Solid Specific Entropy (J/K/m3) = 0.583502E+07
+ Solid Heat Capacity (J/K/kg) (1) =  1288.23
+ Solid Specific Heat Capacity (J/K/m3) (1) = 0.382394E+07
+
+
+N.B.: Aggregate properties represent the entire stable assemblage.
+Solid aggregate properties represent solid and melt properties,
+but do not include molecular fluid properties.
+
+
+Chemical Potentials (J/mol):
+
+      H2            C             Si            Al            Fe            Mg            Ca            Na            K             O2            S2
+    -44531.5       10031.9      -419156.      -485520.      -84068.1      -409959.      -499820.      -253252.      -249447.      -399146.      -41992.8
+
+Variance (c-p+2) =  3
+
+
+Back-calculated solute speciation in the solvent:
+
+pH = 4.202+/-0.000; Delta_pH = 1.293; ionic_strength = 2.615; gamma/q^2 = 0.8493
+dielectric constant = 29.75; solvent molar mass, g/mol = 18.4546; solute molality = 5.947
+
+Solute endmember properties:
+
+          charge   molality     mol_fraction      g,J/mol*     g0,J/mol**
+HSiO3-      -1    2.40217       0.399471E-01      -988335       -993794
+K+           1   0.942512       0.156736E-01      -301252       -299549
+Ca(HCO3)     1   0.935001       0.155487E-01     -1162578      -1160813
+Na+          1   0.723214       0.120267E-01      -305057       -301326
+SiO2,aq      0   0.551184       0.916595E-02      -818302       -813741
+HCO3-       -1   0.165092       0.274542E-02      -559147       -544108
+Si2O4,aq     0   0.128409       0.213539E-02     -1636604      -1620890
+OH-         -1   0.284846E-01   0.473687E-03      -170033       -141541
+KOH,aq       0   0.154257E-01   0.256523E-03      -471286       -439349
+NaHCO3,a     0   0.128389E-01   0.213505E-03      -864205       -830863
+CaCO3,aq     0   0.128030E-01   0.212909E-03     -1088507      -1055143
+NaHSiO3,     0   0.966859E-02   0.160785E-03     -1293392      -1257879
+NaOH,aq      0   0.549925E-02   0.914502E-04      -475090       -435257
+CO3-2       -2   0.477026E-02   0.793273E-04      -485076       -439154
+Ca+2         2   0.203886E-02   0.339054E-04      -603430       -551001
+Ca(OH)+      1   0.118486E-02   0.197037E-04      -773464       -720630
+HS-         -1   0.115916E-02   0.192763E-04         8543         61545
+Mg(HSiO3     1   0.113974E-02   0.189535E-04     -1501904      -1448773
+HAlO2,aq     0   0.107986E-02   0.179576E-04      -906931       -854637
+HSO3-       -1   0.226929E-03   0.377373E-05      -590176       -524689
+
+Normalized solvent endmember properties:
+
+         molality   mol_fraction  vol_fraction v,cm3/mol*  g,J/mol*   g0,J/mol***
+CO2        0.9164     0.01691        0.03262      24.979    -389114     -362183
+CH4        0.0001     0.00000        0.00000      31.988     -79031       12088
+H2S        0.0004     0.00001        0.00002      32.078     -65527       17567
+H2O       53.2701     0.98308        0.96736      12.745    -244104     -243976
+
+*partial molar, **molal ref. state, ***molar ref. state.
+
+
+Back-calculated fluid bulk composition:
+
+             mol %           wt %
+    H2      56.9387        7.94044
+    C       2.11786        1.76007
+    Si      3.33085        6.47267
+    Al     0.209934E-02   0.391921E-02
+    Fe     0.231979E-05   0.896359E-05
+    Mg     0.215240E-02   0.361962E-02
+    Ca     0.984017        2.72871
+    Na     0.777209        1.23631
+    K      0.990619        2.67990
+    O2      34.8552        77.1715
+    S2     0.126919E-02   0.281586E-02
+
+----------------------------------------
+
+
+Enter node #   (999 to quit):
+999
+Select operational mode:
+    1 - properties at specified conditions
+    3 - properties along a 1d path
+    0 - EXIT
+3
+
+Select a property [enter 0 to finish]:
+    1 - Specific Enthalpy (J/m3)
+    2 - Density (kg/m3)
+    3 - Specific heat capacity (J/K/m3)
+    4 - Expansivity (1/K, for volume)
+    5 - Compressibility (1/bar, for volume)
+    6 - Composition (Mol, Mass, or Wt%) of the system
+    7 - Mode (Vol, Mol, or Wt proportion) of a phase
+    8 - Composition (Mol, Mass, or Wt%) of a solution phase
+    9 - Grueneisen thermal ratio
+   10 - Adiabatic bulk modulus (bar)
+   11 - Adiabatic shear modulus (bar)
+   12 - Sound velocity (km/s)
+   13 - P-wave velocity (Vp, km/s)
+   14 - S-wave velocity (Vs, km/s)
+   15 - Vp/Vs
+   16 - Specific entropy (J/K/m3)
+   17 - Entropy (J/K/kg)
+   18 - Enthalpy (J/kg)
+   19 - Heat Capacity (J/K/kg)
+   20 - Specific mass of a phase (kg/m3-system)
+   21 - Poisson ratio
+   22 - Molar Volume (J/bar)
+   23 - Dependent potentials (J/mol, bar, K)
+   24 - Assemblage Index
+   25 - Modes of all phases
+   26 - Sound velocity T derivative (km/s/K)
+   27 - P-wave velocity T derivative (km/s/K)
+   28 - S-wave velocity T derivative (km/s/K)
+   29 - Adiabatic bulk modulus T derivative (bar/K)
+   30 - Shear modulus T derivative (bar/K)
+   31 - Sound velocity P derivative (km/s/bar)
+   32 - P-wave velocity P derivative (km/s/bar)
+   33 - S-wave velocity P derivative (km/s/bar)
+   34 - Adiabatic bulk modulus P derivative (unitless)
+   35 - Shear modulus P derivative (unitless)
+   36 - All phase &/or system properties
+   37 - Absolute amount (Vol, Mol, or Wt) of a phase
+   38 - Multiple property output
+   39 - Heat capacity ratio (Cp/Cv)
+   40 - Lagged or back-calculated aqueous solute chemistry
+25
+
+Output cumulative modes (y/n)?
+(see www.perplex.ethz.ch/perplex_options.html#cumulative_modes)
+y
+
+**warning ver210** the fancy_cumulative_modes option (perplex_option.dat) is T.
+This option may lead to inconsistent curves for coarsely sampled profiles.
+
+
+Include fluid in computation of aggregate (or modal) properties (y/n)?
+y
+
+**warning ver178** at T(K)=   277.1     P(bar)=   1.000
+the shear modulus of: Stlp
+is missing or invalid and has been estimated from the default poisson ratio
+
+
+**warning ver178** at T(K)=   277.1     P(bar)=   1.000
+the shear modulus of: Omph(GHP)
+is missing or invalid and has been estimated from the default poisson ratio
+
+
+**warning ver049** warning 178 will not be repeated for future instances of this problem.
+currently in routine: GETPHP
+
+
+
+**warning ver637** Immiscibility occurs in one or more phases
+interpolation will be turned off at all affected nodes.
+To overide this feature at the risk of computing inconsistent properties
+set solvus_tolerance = 1 and rerun VERTEX
+
+
+**warning ver177** at T(K)=   910.7     P(bar)=  0.3890E+05 aggregate seismic properties
+cannot be computed because of missing/invalid properties for: COH-Fluid+
+
+
+**warning ver177** at T(K)=   982.2     P(bar)=  0.4880E+05 aggregate seismic properties
+cannot be computed because of missing/invalid properties for: COH-Fluid+
+
+
+**warning ver177** at T(K)=   1023.     P(bar)=  0.5710E+05 aggregate seismic properties
+cannot be computed because of missing/invalid properties for: COH-Fluid+
+
+
+**warning ver177** at T(K)=   1024.     P(bar)=  0.5720E+05 aggregate seismic properties
+cannot be computed because of missing/invalid properties for: COH-Fluid+
+
+
+**warning ver177** at T(K)=   1049.     P(bar)=  0.6330E+05 aggregate seismic properties
+cannot be computed because of missing/invalid properties for: COH-Fluid+
+
+
+**warning ver179** at T(K)=   1052.     P(bar)=  0.6430E+05 the effective expansivity of: COH-Fluid+
+is negative. Most probably this is because of a Landau ordering model. The Gruneisen
+thermal parameter and seismic speeds for this phase should be considered with caution.
+
+
+**warning ver177** at T(K)=   1062.     P(bar)=  0.6740E+05 aggregate seismic properties
+cannot be computed because of missing/invalid properties for: COH-Fluid+
+
+
+**warning ver177** at T(K)=   1063.     P(bar)=  0.6750E+05 aggregate seismic properties
+cannot be computed because of missing/invalid properties for: COH-Fluid+
+
+
+**warning ver177** at T(K)=   1070.     P(bar)=  0.7000E+05 aggregate seismic properties
+cannot be computed because of missing/invalid properties for: COH-Fluid+
+
+
+**warning ver177** at T(K)=   1070.     P(bar)=  0.7010E+05 aggregate seismic properties
+cannot be computed because of missing/invalid properties for: COH-Fluid+
+
+
+**warning ver177** at T(K)=   1075.     P(bar)=  0.7170E+05 aggregate seismic properties
+cannot be computed because of missing/invalid properties for: COH-Fluid+
+
+
+**warning ver177** at T(K)=   1080.     P(bar)=  0.7360E+05 aggregate seismic properties
+cannot be computed because of missing/invalid properties for: COH-Fluid+
+
+
+**warning ver049** warning 177 will not be repeated for future instances of this problem.
+currently in routine: GETSYP
+
+
+
+Data ranges excluding values equal to bad_number (       NaN) specified in perplex_option.dat:
+
+     Stlp           Omph(GHP)      Omph(GHP)      clin           ab             san            q              stlb           cc             pyr            gph            Mica(CF)       Pu             law            arag           COH-Fluid+     Do(HP)         diam           M(HP)          coe
+     Grt(JH)        ky             stv
+min    0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000
+       0.00000        0.00000        0.00000
+max    92.0653        56.9930        46.1099        57.7998        92.0653        57.7998        91.8955        100.000        57.7998        57.7998        38.4560        38.4560        56.9930        62.5163        61.1215        100.000        18.8265        92.0119        18.8265        91.4159
+       16.2756        61.1215        86.0125
+
+Output has been written to two files:
+
+     plt format is in file: gloss1db_1.plt
+     1d tab format is in file: gloss1db_1.tab
+
+plt format files can be plotted with:
+
+     PSVDRAW
+
+1d tab format files can be processed with:
+
+     PSTABLE - a Perple_X plotting program
+     PERPLE_X_PLOT - a Matlab plotting script
+     spread-sheet programs, e.g., EXCEL
+
+for details on tab format refer to:
+     perplex.ethz.ch/perplex/faq/Perple_X_tab_file_format.txt
+
+Select operational mode:
+    1 - properties at specified conditions
+    3 - properties along a 1d path
+    0 - EXIT
+3
+
+Select a property [enter 0 to finish]:
+    1 - Specific Enthalpy (J/m3)
+    2 - Density (kg/m3)
+    3 - Specific heat capacity (J/K/m3)
+    4 - Expansivity (1/K, for volume)
+    5 - Compressibility (1/bar, for volume)
+    6 - Composition (Mol, Mass, or Wt%) of the system
+    7 - Mode (Vol, Mol, or Wt proportion) of a phase
+    8 - Composition (Mol, Mass, or Wt%) of a solution phase
+    9 - Grueneisen thermal ratio
+   10 - Adiabatic bulk modulus (bar)
+   11 - Adiabatic shear modulus (bar)
+   12 - Sound velocity (km/s)
+   13 - P-wave velocity (Vp, km/s)
+   14 - S-wave velocity (Vs, km/s)
+   15 - Vp/Vs
+   16 - Specific entropy (J/K/m3)
+   17 - Entropy (J/K/kg)
+   18 - Enthalpy (J/kg)
+   19 - Heat Capacity (J/K/kg)
+   20 - Specific mass of a phase (kg/m3-system)
+   21 - Poisson ratio
+   22 - Molar Volume (J/bar)
+   23 - Dependent potentials (J/mol, bar, K)
+   24 - Assemblage Index
+   25 - Modes of all phases
+   26 - Sound velocity T derivative (km/s/K)
+   27 - P-wave velocity T derivative (km/s/K)
+   28 - S-wave velocity T derivative (km/s/K)
+   29 - Adiabatic bulk modulus T derivative (bar/K)
+   30 - Shear modulus T derivative (bar/K)
+   31 - Sound velocity P derivative (km/s/bar)
+   32 - P-wave velocity P derivative (km/s/bar)
+   33 - S-wave velocity P derivative (km/s/bar)
+   34 - Adiabatic bulk modulus P derivative (unitless)
+   35 - Shear modulus P derivative (unitless)
+   36 - All phase &/or system properties
+   37 - Absolute amount (Vol, Mol, or Wt) of a phase
+   38 - Multiple property output
+   39 - Heat capacity ratio (Cp/Cv)
+   40 - Lagged or back-calculated aqueous solute chemistry
+40
+
+**warning ver099** AQRXDO did not converge on solute speciation
+
+
+**warning ver099** AQRXDO did not converge on solute speciation
+
+
+**warning ver099** AQRXDO did not converge on solute speciation
+
+
+**warning ver099** AQRXDO did not converge on solute speciation
+
+
+**warning ver099** AQRXDO did not converge on solute speciation
+
+
+**warning ver099** AQRXDO did not converge on solute speciation
+
+
+**warning ver099** AQRXDO did not converge on solute speciation
+
+
+**warning ver099** AQRXDO did not converge on solute speciation
+
+
+**warning ver099** AQRXDO did not converge on solute speciation
+
+
+Data ranges excluding values equal to bad_number (       NaN) specified in perplex_option.dat:
+
+     H2,mol_abs     C,mol_abs      Si,mol_abs     Al,mol_abs     Fe,mol_abs     Mg,mol_abs     Ca,mol_abs     Na,mol_abs     K,mol_abs      O2,mol_abs     S2,mol_abs     m_{CO2}        m_{CH4}        m_{H2S}        m_{H2O}        m_{FeC4H6O4}   m_{FeC2H3O2}   m_{NaCO3-}     m_{CO3-2}      m_{Al+3}
+     m_{AlO2-}      m_{Ca(HCO3)}   m_{Ca(OH)+}    m_{Ca+2}       m_{CaCO3,aq}   m_{CaSO4,aq}   m_{Fe+2}       m_{Fe+3}       m_{H+}         m_{HAlO2,aq}   m_{HCO3-}      m_{HO2-}       m_{HS-}        m_{HSiO3-}     m_{HSO3-}      m_{HSO4-}      m_{HSO5-}      m_{K+}         m_{KOH,aq}     m_{KSO4-}
+     m_{Mg(HCO3)}   m_{Mg(HSiO3}   m_{Mg+2}       m_{MgCO3,aq}   m_{MgOH+}      m_{MgSO4,aq}   m_{Na+}        m_{NaHCO3,a}   m_{NaHSiO3,}   m_{NaOH,aq}    m_{OH-}        m_{S2-2}       m_{S2O3-2}     m_{S2O4-2}     m_{S2O5-2}     m_{S2O6-2}     m_{S2O8-2}     m_{S3-2}       m_{S3O6-2}     m_{S4-2}
+     m_{S4O6-2}     m_{S5-2}       m_{S5O6-2}     m_{Si2O4,aq}   m_{SiO2,aq}    m_{SO3-2}      m_{SO4-2}      pH-pH_0        pH             error_pH       permittivity   I,m            tot_solute_m
+min    0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000
+       0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000
+       0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000
+       0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000        0.00000
+max    92.0653        56.9930        46.1099        57.7998        92.0653        57.7998        91.8955        100.000        57.7998        57.7998        38.4560        38.4560        56.9930        62.5163        61.1215        100.000        18.8265        92.0119        18.8265        91.4159
+       16.2756        61.1215        86.0125       0.340942       0.241822        118.434       0.876459E-004  0.139704E-012  0.148590E-003  0.720519E-002  0.171946       0.639529E-017  0.117625E-002   12.5771       0.299499E-002  0.978504E-003  0.646474E-017   8.50789       0.428971       0.298282E
+-004  0.221703E-002  0.905745       0.939405E-002  0.452993E-005  0.299736E-002  0.110193E-005   1.85426       0.129938E-001   2.28218       0.105114E-001  0.297293E-001  0.133796E-008  0.162666E-008  0.121431E-015  0.412884E-016  0.208592E-017  0.552040E-034  0.839781E-010  0.236853E-018  0.556318E
+-011  0.101261E-016  0.369932E-012  0.758944E-019  0.163353        1.06257       0.155801E-008  0.310410E-004   2.91654        8.60336       0.139043E-004   79.8211        12.5856        145.564
+
+Output has been written to the 1d tab format file: gloss1db_2.tab
+
+1d tab format files can be processed with:
+
+     PSTABLE - a Perple_X plotting program
+     PERPLE_X_PLOT - a Matlab plotting script
+     spread-sheet programs, e.g., EXCEL
+
+for details on tab format refer to:
+     perplex.ethz.ch/perplex/faq/Perple_X_tab_file_format.txt
+
+Select operational mode:
+    1 - properties at specified conditions
+    3 - properties along a 1d path
+    0 - EXIT
+0
+
+C:\jamie\Perple_X>
