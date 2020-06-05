@@ -44,7 +44,7 @@ endif ()
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
 SET(TARGET "my_plugin")
-PROJECT(${TARGET})
+# PROJECT(${TARGET})
 
 ADD_LIBRARY(${TARGET} SHARED material_model.cc)
 

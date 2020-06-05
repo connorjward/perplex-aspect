@@ -14,14 +14,6 @@ target_link_libraries(
   perplex
   PRIVATE perplex-obj
 )
-		       
-# add_custom_command(
-#   TARGET perplex
-#   PRE_BUILD
-#   COMMAND sed -i 's/dgemv/x0001/g' ${perplex-tmp_SOURCE_DIR}/BLASlib.f
-#   COMMAND sed -i 's/dgemv/x0001/g' ${perplex-tmp_SOURCE_DIR}/nlib.f
-#   COMMENT "Replace all occurences of dgemv with x0001 to prevent linking conflicts with BLAS."
-# )
 
 # unit tests
 add_executable(
