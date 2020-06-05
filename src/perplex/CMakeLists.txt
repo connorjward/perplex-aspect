@@ -7,12 +7,12 @@ add_library(
 
 target_include_directories(
   perplex 
-  PRIVATE ${PerpleXASPECT_SOURCE_DIR}/external/perplex
+  PRIVATE ${perplex-extern_SOURCE_DIR}
 )
 
 target_link_libraries(
   perplex
-  PRIVATE perplex-obj
+  PRIVATE perplex-extern
 )
 
 # unit tests
