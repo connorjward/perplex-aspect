@@ -16,16 +16,15 @@ TEST(MeemumWrapperTest, CheckMatchesPerpleXOutput) {
   MinimizeResult res = wrapper.minimize(pressure, temperature, composition);
 
   // check system properties
-  EXPECT_NEAR(res.density, 3249.0, 0.05);
-  EXPECT_NEAR(res.expansivity, 0.36028e-4, 5e-9);
-  EXPECT_NEAR(res.molar_entropy, 4419.1, 0.05);
-  EXPECT_NEAR(res.molar_heat_capacity, 2824.5, 0.05);
+  EXPECT_NEAR(res.density, 3249.3, 0.05);
+  EXPECT_NEAR(res.expansivity, 0.38575e-4, 5e-9);
+  EXPECT_NEAR(res.molar_entropy, 11996, 0.5);
+  EXPECT_NEAR(res.molar_heat_capacity, 6244.7, 0.05);
 
   // check solution model info
-  EXPECT_EQ(wrapper.solution_phase_names().size(), -1);
+  EXPECT_EQ(wrapper.solution_phase_names().size(), 4);
 
   // check phase properties
-  Phase phase = res.phases[3];
-  EXPECT_STREQ(phase.name.c_str(), "q");
-  EXPECT_NEAR(phase.n_moles, 17.7, 5e-2);
+  EXPECT_STREQ(res.phases[0].name.c_str(), "Cpx(HGP)");
+  EXPECT_NEAR(res.phases[0].n_moles, 3.07, 5e-2);
 }
