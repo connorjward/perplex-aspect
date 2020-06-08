@@ -1,6 +1,7 @@
 # library
 add_library(
   perplex
+  SHARED
   interface.f
   solver.cc 
 )

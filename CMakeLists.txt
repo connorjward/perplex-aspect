@@ -13,11 +13,6 @@ enable_language(Fortran)
 
 set(CMAKE_CXX_STANDARD 11)
 
-# enable position independent code (for shared libraries)
-# TODO: make this target dependent?
-# TODO: is this necessary?
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
 # install GoogleTest
 if(BUILD_TESTING)
   include(FetchContent)

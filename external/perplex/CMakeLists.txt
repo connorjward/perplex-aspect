@@ -10,6 +10,8 @@ add_library(
   tlib.f
 )
 
+set_target_properties(perplex-extern PROPERTIES POSITION_INDEPENDENT_CODE True)
+
 target_compile_options(
   perplex-extern 
   PRIVATE 
