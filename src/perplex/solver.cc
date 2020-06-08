@@ -39,62 +39,102 @@ namespace {
   }
 }
 
-namespace perplex {
-  void Solver::init(const std::string filename) {
-    // disable stdout
+namespace perplex 
+{
+  void 
+  Solver::init(const std::string filename) 
+  {
+    // Disable stdout
     const int fd = disable_stdout();
-    // read file
+    // Read file
     interface::init(filename.c_str());
-    // re-enable stdout
+    // Re-enable stdout
     enable_stdout(fd);
+
+    // Set composition
+    for (unsigned int i = 0; i < interface::get_n_composition_components(); ++i) {
+      composition.push_back(interface::get_composition_component(i));
+      composition_component_names.push_back(std::
+	                                    string(interface::
+					           get_composition_component_name(i)));
+    }
+
+    // Set solution_phase_names
+    for (unsigned int i = 0; i < interface::get_n_soln_models(); ++i)
+      solution_phase_names.push_back(std::string(interface::get_full_soln_name(i)));
   }
 
   MinimizeResult 
-    Solver::minimize(const double pressure, 
-	const double temperature,
-	const std::vector<double> &composition) const {
-      // set the temperature and pressure
-      interface::set_pressure(pressure);
-      interface::set_temperature(temperature);
+  Solver::minimize(const double pressure, 
+                   const double temperature) const
+  {
+    // Set the temperature, pressure and composition
+    interface::set_pressure(pressure);
+    interface::set_temperature(temperature);
+    for (unsigned int i = 0; i < composition.size(); i++)
+      interface::set_composition_component(i, composition[i]);
 
-      // set the composition
-      for (size_t i = 0; i < composition.size(); i++)
-	interface::set_composition_component(i, composition[i]);
+    // disable Perple_X output by temporarily disabling stdout
+    const int fd = disable_stdout();
 
-      // disable Perple_X output by temporarily disabling stdout
-      const int fd = disable_stdout();
+    // run the minimization
+    interface::minimize();
 
-      // run the minimization
-      interface::minimize();
+    // re-enable stdout
+    enable_stdout(fd);
 
-      // re-enable stdout
-      enable_stdout(fd);
+    // get phase information
+    std::vector<Phase> phases;
+    for (unsigned int i = 0; i < interface::get_n_phases(); i++) {
+      std::vector<double> phase_composition;
+      for (unsigned int j = 0; j < interface::get_n_composition_components(); ++j)
+	phase_composition.push_back(interface::get_composition_component(j));
 
-      // get phase information
-      std::vector<Phase> phases;
-      for (size_t i = 0; i < interface::get_n_phases(); i++) {
-	Phase phase { 
-	  std::string(interface::get_phase_name(i)),
-	    interface::get_phase_mol(i),
-	};
-	phases.push_back(phase);
-      }
-
-      return MinimizeResult {
-	interface::get_sys_density(),
-	  interface::get_sys_expansivity(),
-	  interface::get_sys_mol_entropy(),
-	  interface::get_sys_mol_heat_capacity(),
-	  phases
+      Phase phase { 
+	std::string(interface::get_phase_name(i)),
+	interface::get_phase_mol(i),
+	phase_composition
       };
+      phases.push_back(phase);
     }
 
-  std::vector<std::string> Solver::solution_phase_names() const {
-    std::vector<std::string> names;
-    for (size_t i = 0; i < interface::get_n_soln_models(); i++) {
-      std::string name { interface::get_full_soln_name(i) };
-      names.push_back(name);
-    }
-    return names;
+    return MinimizeResult {
+      interface::get_sys_density(),
+      interface::get_sys_expansivity(),
+      interface::get_sys_mol_entropy(),
+      interface::get_sys_mol_heat_capacity(),
+      phases
+    };
+  }
+
+  std::vector<double> 
+  Solver::get_composition() const
+  {
+    return composition;   
+  }
+
+  void
+  Solver::set_composition(std::vector<double> &composition)
+  {
+    /* AssertThrow(this->composition.size() == composition.size()); */
+    this->composition = composition;
+  }
+
+  std::vector<std::string>
+  Solver::get_composition_component_names() const
+  {
+    return composition_component_names;
+  }
+
+  unsigned int
+  Solver::get_n_solution_phases() const
+  {
+    return solution_phase_names.size();
+  }
+
+  std::vector<std::string> 
+  Solver::get_solution_phase_names() const 
+  {
+    return solution_phase_names;
   }
 }

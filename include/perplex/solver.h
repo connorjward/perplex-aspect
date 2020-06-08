@@ -2,10 +2,13 @@
 #include <string>
 #include <vector>
 
-namespace perplex {
-  struct Phase {
+namespace perplex 
+{
+  struct Phase 
+  {
     std::string name;
     double n_moles;
+    std::vector<double> composition;
   };
 
   struct MinimizeResult {
@@ -23,9 +26,30 @@ namespace perplex {
 
       MinimizeResult 
       minimize(const double pressure, 
-	       const double temperature, 
-	       const std::vector<double> &composition) const;
+	       const double temperature) const;
+      
+      std::vector<double>
+      get_composition() const;
 
-      std::vector<std::string> solution_phase_names() const;
+      void
+      set_composition(std::vector<double> &composition);
+
+      std::vector<std::string>
+      get_composition_component_names() const;
+
+      unsigned int
+      get_n_solution_phases() const;
+
+      std::vector<std::string> 
+      get_solution_phase_names() const;
+
+    private:
+      std::vector<double> composition;
+
+      std::vector<std::string> composition_component_names;
+
+      std::vector<std::string> solution_phase_names;
+
+
   };
 }

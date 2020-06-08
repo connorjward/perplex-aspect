@@ -102,6 +102,19 @@
           cblk(id+1) = amount
         end subroutine
 
+        !> @return n_composition_components Number of composition
+        ! components
+        function get_n_composition_components() bind(c)
+     >      result(n_composition_components)
+          integer(c_size_t) :: n_composition_components
+
+          ! source: olib.f
+          integer icomp,istct,iphct,icp
+          common / cst6  / icomp, istct, iphct, icp
+
+          n_composition_components = icomp
+        end function
+
         !> @return composition_component Amount (in moles) of a
         ! composition component
         function get_composition_component(comp_id) bind(c)
@@ -110,6 +123,21 @@
           real(c_double) :: composition_component
 
           composition_component = cblk(comp_id+1)
+        end function
+
+        !> @param  comp_idx  Composition component index
+        !!
+        !! @return comp_name Name of a composition component
+        function get_composition_component_name(comp_idx) bind(c)
+     >      result(comp_name)
+          integer(c_size_t), intent(in), value :: comp_idx
+          type(c_ptr) :: comp_name
+
+          ! source: olib.f
+          character cname*5
+          common / csta4  / cname(k5) 
+
+          comp_name = alloc_c_str(cname(comp_idx+1))
         end function
 
         !> @return n_soln_models Number of solution models

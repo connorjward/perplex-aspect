@@ -1,8 +1,11 @@
 #include <cstddef>
 
-namespace perplex {
-  namespace interface {
-    extern "C" {
+namespace perplex 
+{
+  namespace interface 
+  {
+    extern "C" 
+    {
       void init(const char*);
       void minimize();
 
@@ -10,7 +13,9 @@ namespace perplex {
       void set_temperature(double);
       void set_composition_component(size_t, double);
 
+      size_t get_n_composition_components();
       double get_composition_component(size_t);
+      char*  get_composition_component_name(size_t);
 
       size_t get_n_soln_models();
       char*  get_abbr_soln_name(size_t);

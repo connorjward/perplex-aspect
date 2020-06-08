@@ -21,8 +21,19 @@ class InterfaceTest : public ::testing::Test {
     }
 };
 
+TEST_F(InterfaceTest, CheckGetNCompositionComponents) {
+  EXPECT_EQ(interface::get_n_composition_components(), 4);
+}
+
 TEST_F(InterfaceTest, CheckGetCompositionComponent) {
   EXPECT_NEAR(interface::get_composition_component(3), 5.880, 5e-4);
+}
+
+TEST_F(InterfaceTest, CheckGetCompositionComponentName) {
+  EXPECT_STREQ(interface::get_composition_component_name(0), "SiO2");
+  EXPECT_STREQ(interface::get_composition_component_name(1), "CaO");
+  EXPECT_STREQ(interface::get_composition_component_name(2), "MgO");
+  EXPECT_STREQ(interface::get_composition_component_name(3), "FeO");
 }
 
 TEST_F(InterfaceTest, CheckGetNSolnModels) {

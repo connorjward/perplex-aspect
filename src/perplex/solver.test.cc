@@ -16,7 +16,7 @@ class SolverTest : public ::testing::Test {
       composition.push_back(5.880);
 
       solver.init(filename);
-      res = solver.minimize(pressure, temperature, composition);
+      res = solver.minimize(pressure, temperature);
     }
 
     Solver solver;
@@ -40,7 +40,7 @@ TEST_F(SolverTest, CheckMolarHeatCapacity) {
 } 
 
 TEST_F(SolverTest, CheckNSolutionPhaseNames) {
-  EXPECT_EQ(solver.solution_phase_names().size(), 4);
+  EXPECT_EQ(solver.get_solution_phase_names().size(), 4);
 }
 
 TEST_F(SolverTest, CheckPhaseNames) {
