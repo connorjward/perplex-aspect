@@ -2,32 +2,30 @@
 #include <string>
 #include <vector>
 
-struct Phase 
-{
-  std::string name;
-  double n_moles;
-};
+namespace perplex {
+  struct Phase {
+    std::string name;
+    double n_moles;
+  };
 
-struct MinimizeResult 
-{
-  double density;
-  double expansivity;
-  double molar_entropy;
-  double molar_heat_capacity;
+  struct MinimizeResult {
+    double density;
+    double expansivity;
+    double molar_entropy;
+    double molar_heat_capacity;
 
-  std::vector<Phase> phases;
-};
+    std::vector<Phase> phases;
+  };
 
-class MeemumWrapper 
-{
-  public:
-    void init(const std::string);
+  class Solver {
+    public:
+      void init(const std::string);
 
-    MinimizeResult 
-    minimize(const double pressure, 
-      	     const double temperature, 
-	     const std::vector<double> &composition) const;
+      MinimizeResult 
+      minimize(const double pressure, 
+	       const double temperature, 
+	       const std::vector<double> &composition) const;
 
-    std::vector<std::string> solution_phase_names() const;
-};
-
+      std::vector<std::string> solution_phase_names() const;
+  };
+}

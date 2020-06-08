@@ -104,7 +104,7 @@ namespace aspect
 
 
       private:
-	MeemumWrapper wrapper;
+	perplex::Solver solver;
 	std::map<std::string, size_t> phase_idx_map;
         std::string perplex_file_name;
         double eta;

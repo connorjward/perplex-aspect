@@ -72,10 +72,10 @@ namespace aspect
       AssertThrow(dealii::MultithreadInfo::is_running_single_threaded(),
                   ExcMessage("The PerpleXLookup MaterialModel only works in single threaded mode (do not use -j)!"));
 
-      wrapper.init(perplex_file_name.c_str()); // this line initializes meemum
+      solver.init(perplex_file_name.c_str()); // this line initializes meemum
 
       // create phase index map
-      const std::vector<std::string> names = wrapper.solution_phase_names();
+      const std::vector<std::string> names = solver.solution_phase_names();
       for (unsigned int i = 0; i < names.size(); i++)
 	phase_idx_map[names[i]] = i;
 
@@ -148,8 +148,8 @@ namespace aspect
           comp[c] /= (double)n_quad;
         }
 
-      /* MinimizeResult res = wrapper.minimize(in.pressure[0], in.temperature[0], in.composition[0]); */
-      MinimizeResult res = wrapper.minimize(20000, 1500, in.composition[0]);
+      /* MinimizeResult res = solver.minimize(in.pressure[0], in.temperature[0], in.composition[0]); */
+      perplex::MinimizeResult res = solver.minimize(20000, 1500, in.composition[0]);
 
       for (unsigned int i=0; i<n_quad; ++i)
       {
@@ -165,7 +165,7 @@ namespace aspect
       PhaseAdditionalOutputs<dim> *phase_out = out.template get_additional_output<PhaseAdditionalOutputs<dim>>();
 
       if (phase_out != nullptr) {
-	for (Phase phase : res.phases) {
+	for (auto phase : res.phases) {
 	  unsigned int phase_idx;
 	  try {
 	    /* const unsigned int phase_idx = phase_idx_map.at(phase.name); */
@@ -273,7 +273,7 @@ namespace aspect
     {
       std::cout << "entering create_additional_named_outputs" << std::endl;
       if (out.template get_additional_output<PhaseAdditionalOutputs<dim>>() == nullptr) {
-	const std::vector<std::string> names = wrapper.solution_phase_names();
+	const std::vector<std::string> names = solver.solution_phase_names();
 	std::cout << names.size() << std::endl;
 	/* std::cout << names[0] << std::endl; */
 	const unsigned int n_points = out.n_evaluation_points();

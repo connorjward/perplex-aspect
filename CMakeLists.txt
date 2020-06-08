@@ -41,6 +41,6 @@ include_directories(include)
 
 add_subdirectory(external/perplex)
 
+add_subdirectory(src/aspect)
 add_subdirectory(src/perplex)
-add_subdirectory(src/plugin)
 

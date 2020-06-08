@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include <perplex/solver.h>
 
+using namespace perplex;
+
 class SolverTest : public ::testing::Test {
   protected:
     void SetUp() override {
@@ -17,7 +19,7 @@ class SolverTest : public ::testing::Test {
       res = solver.minimize(pressure, temperature, composition);
     }
 
-    MeemumWrapper solver;
+    Solver solver;
     MinimizeResult res;
 };
 
