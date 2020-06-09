@@ -79,32 +79,40 @@ namespace perplex
       interface::set_composition_component(i, composition_[i]);
 
     // disable Perple_X output by temporarily disabling stdout
-    const int fd = disable_stdout();
+    /* const int fd = disable_stdout(); */
 
     // run the minimization
     interface::minimize();
 
     // re-enable stdout
-    enable_stdout(fd);
+    /* enable_stdout(fd); */
 
     // get phase information
     std::vector<Phase> phases;
 
     for (unsigned int i = 0; i < solution_phase_names_.size(); ++i) {
-      std::string name(interface::get_full_soln_name(i));
+      std::string short_name(interface::get_abbr_soln_name(i));
+      std::string long_name(interface::get_full_soln_name(i));
       double molar_amount { 0.0 };
       std::vector<double> phase_composition;
 
       for (unsigned int j = 0; j < interface::get_n_phases(); ++j) {
 	// check if solution model present in output
-	if (std::string(interface::get_phase_name(j)) == name) {
+	// since the phase name can sometimes be reported as either the short or long versions
+	// both are checked for
+	std::cout << short_name << std::endl;
+	std::cout << long_name << std::endl;
+	std::cout << std::string(interface::get_phase_name(j)) << std::endl;
+
+	std::string phase_name{interface::get_phase_name(j)};
+	if (phase_name == short_name || phase_name == long_name) {
 	  molar_amount = interface::get_phase_mol(j);
 	  
 	  for (unsigned int k = 0; k < interface::get_n_composition_components(); ++k)
 	    phase_composition.push_back(interface::get_phase_composition_component(j, k));
 	}
       }
-      phases.push_back(perplex::Phase{name, molar_amount, phase_composition});
+      phases.push_back(perplex::Phase{short_name, molar_amount, phase_composition});
     }
 
     return MinimizeResult {

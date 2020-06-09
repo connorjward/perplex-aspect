@@ -56,11 +56,9 @@ namespace aspect
           initialize_one_particle_property(const Point<dim> &position,
                                            std::vector<double> &particle_properties) const override
 	  {
-	    std::cout << "initialize_one_particle_property" << std::endl;
 	    for (unsigned int i = 0; i < perplex_solver.get_n_solution_phases() + 1; ++i)
 	      for (unsigned int j = 0; j < perplex_solver.get_composition().size(); ++j)
 		particle_properties.push_back(0.0);
-	    std::cout << "initialize_one_particle_property : " << particle_properties.size() << std::endl;
 	  }
 
           /**
@@ -132,7 +130,6 @@ namespace aspect
           std::vector<std::pair<std::string, unsigned int>>
           get_property_information() const override
 	  {
-	    std::cout << "get_property_information" << std::endl;
 	    std::vector<std::pair<std::string,unsigned int>> property_information;
 
 	    std::vector<std::string> comp_names = perplex_solver.get_composition_component_names();
@@ -147,7 +144,6 @@ namespace aspect
 	      for (unsigned int j = 0; j < comp_names.size(); ++j) 
 		property_information.push_back(std::make_pair(phase_names[i]+"::"+comp_names[j], 1));
       
-	    std::cout << "get_property_information : " << property_information.size() << std::endl;
 	    return property_information;
 	  }
 
@@ -181,7 +177,6 @@ namespace aspect
           void
           parse_parameters(ParameterHandler &prm) override
 	  {
-	    std::cout << "parse_parameters" << std::endl;
 	    prm.enter_subsection("Postprocess");
 	    {
 	      prm.enter_subsection("Particles");

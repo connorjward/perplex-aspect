@@ -15,7 +15,7 @@ set Use years in output instead of seconds = true
 # and downwellings evolve over time, and if differences develop between 
 # the model with and without melt migration, we set the end time to 140 Ma.
 # set End time                               = 1.4e8
-set End time                               = 1.4e6
+set End time                               = 1e7
 
 # We choose a stricter than default linear Stokes solver tolerance,
 # to be consistent with the global_melt cookbook.
@@ -197,10 +197,11 @@ subsection Postprocess
   subsection Particles
     set Number of particles         = 10
     set List of particle properties = initial position, pT path, phase composition
-    set Time between data output    = 6e5
+    set Time between data output    = 1e6
 
     subsection Phase composition
-      set PerpleX file name         = khgp
+      # set PerpleX file name         = khgp
+      set PerpleX file name         = test1
     end
   end
 end
