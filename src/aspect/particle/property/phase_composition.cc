@@ -91,7 +91,6 @@ namespace aspect
                                         const std::vector<Tensor<1,dim> > &gradients,
                                         const ArrayView<double> &particle_properties) const override
 	  {
-	    std::cout << "update_one_particle_property" << std::endl;
 	    // get properties
 	    const double pressure = solution[this->introspection().component_indices.pressure];
 	    const double temperature = solution[this->introspection().component_indices.temperature];
@@ -111,6 +110,11 @@ namespace aspect
 
 	    // phase compositions
 	    for (unsigned int i = 0; i < perplex_solver.get_n_solution_phases(); ++i) {
+	      if (res.phases[i].n_moles == 0.0) {
+		pos += perplex_solver.get_composition().size();
+	       	continue;
+	      }
+
 	      for (unsigned int j = 0; j < perplex_solver.get_composition().size(); ++j) {
 		particle_properties[pos+j] = res.phases[i].composition[j];
 	      }

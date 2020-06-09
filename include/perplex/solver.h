@@ -26,6 +26,12 @@ class Solver
  public:
   void init(const std::string);
 
+  /**
+   * Perform the minimization.
+   *
+   * @param pressure    The pressure (Pa)
+   * @param temperature The temperature (K)
+   */
   MinimizeResult 
   minimize(const double pressure, 
 	   const double temperature) const;

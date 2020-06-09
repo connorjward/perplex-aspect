@@ -14,7 +14,7 @@
 #include "interface.h"
 
 namespace {
-  static const int disable_stdout() {
+  const int disable_stdout() {
     // flush stdout
     fflush(stdout);
 
@@ -29,13 +29,17 @@ namespace {
     return stdout_descriptor;
   }
 
-  static void enable_stdout(const int stdout_descriptor) {
+  void enable_stdout(const int stdout_descriptor) {
     // flush stdout
     fflush(stdout);
 
     // reassign descriptor
     dup2(stdout_descriptor, 1);
     close(stdout_descriptor);
+  }
+
+  double convert_pascals_to_bar(const double pressure_in_pascals) {
+    return pressure_in_pascals / 1e6;
   }
 }
 
@@ -69,9 +73,9 @@ namespace perplex
                    const double temperature) const
   {
     // Set the temperature, pressure and composition
-    interface::set_pressure(pressure);
+    interface::set_pressure(convert_pascals_to_bar(pressure));
     interface::set_temperature(temperature);
-    for (unsigned int i = 0; i < composition_.size(); i++)
+    for (unsigned int i = 0; i < composition_.size(); ++i)
       interface::set_composition_component(i, composition_[i]);
 
     // disable Perple_X output by temporarily disabling stdout
@@ -85,17 +89,22 @@ namespace perplex
 
     // get phase information
     std::vector<Phase> phases;
-    for (unsigned int i = 0; i < interface::get_n_phases(); i++) {
-      std::vector<double> phase_composition;
-      for (unsigned int j = 0; j < interface::get_n_composition_components(); ++j)
-	phase_composition.push_back(interface::get_composition_component(j));
 
-      Phase phase { 
-	std::string(interface::get_phase_name(i)),
-	interface::get_phase_mol(i),
-	phase_composition
-      };
-      phases.push_back(phase);
+    for (unsigned int i = 0; i < solution_phase_names_.size(); ++i) {
+      std::string name(interface::get_full_soln_name(i));
+      double molar_amount { 0.0 };
+      std::vector<double> phase_composition;
+
+      for (unsigned int j = 0; j < interface::get_n_phases(); ++j) {
+	// check if solution model present in output
+	if (std::string(interface::get_phase_name(j)) == name) {
+	  molar_amount = interface::get_phase_mol(j);
+	  
+	  for (unsigned int k = 0; k < interface::get_n_composition_components(); ++k)
+	    phase_composition.push_back(interface::get_phase_composition_component(j, k));
+	}
+      }
+      phases.push_back(perplex::Phase{name, molar_amount, phase_composition});
     }
 
     return MinimizeResult {

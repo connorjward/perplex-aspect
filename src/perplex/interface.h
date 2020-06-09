@@ -27,6 +27,8 @@ namespace perplex
       double get_phase_vol_frac(size_t);
       double get_phase_mol_frac(size_t);
       double get_phase_mol(size_t);
+      double get_phase_composition_component(size_t phase_idx,
+	                                     size_t component_idx);
 
       double get_sys_density();
       double get_sys_expansivity();

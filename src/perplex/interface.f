@@ -1,4 +1,4 @@
-      module mod_meemum_ftoc
+      module mod_meemum_interface
 
         use, intrinsic :: iso_c_binding
         use, intrinsic :: iso_fortran_env
@@ -260,6 +260,19 @@
 
           ! source: olib.f
           phase_mol = props(16, phase_id+1)
+        end function
+
+        function get_phase_composition_component(phase_idx, component_idx) bind(c)
+     >      result(phase_composition_component)
+          integer(c_size_t), intent(in), value :: phase_idx
+          integer(c_size_t), intent(in), value :: component_idx
+          real(c_double) :: phase_composition_component
+
+          ! source: olib.f
+          double precision pcomp
+          common / cst324 / pcomp(k0,k5)
+
+          phase_composition_component = pcomp(component_idx+1, phase_idx+1)
         end function
 
         !> @return sys_density The system density (kg/m3)

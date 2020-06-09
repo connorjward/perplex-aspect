@@ -16,6 +16,12 @@ target_link_libraries(
   PRIVATE perplex-extern
 )
 
+target_compile_options(
+  perplex
+  PRIVATE 
+  -ffixed-line-length-132 # increase line length 
+)
+
 # unit tests
 add_executable(
   test-perplex

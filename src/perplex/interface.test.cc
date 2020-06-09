@@ -68,6 +68,27 @@ TEST_F(InterfaceTest, CheckGetPhaseMol) {
   EXPECT_NEAR(interface::get_phase_mol(0), 3.07, 5e-2);
 }
 
+TEST_F(InterfaceTest, CheckGetPhaseCompositionComponent) {
+  ASSERT_NEAR(interface::get_phase_composition_component(0, 0), 2.00000, 5e-6);
+  ASSERT_NEAR(interface::get_phase_composition_component(0, 1), 0.74805, 5e-6);
+  ASSERT_NEAR(interface::get_phase_composition_component(0, 2), 1.14355, 5e-6);
+  ASSERT_NEAR(interface::get_phase_composition_component(0, 3), 0.10840, 5e-6);
+
+  ASSERT_NEAR(interface::get_phase_composition_component(1, 0), 1.00000, 5e-6);
+  ASSERT_NEAR(interface::get_phase_composition_component(1, 1), 0.00391, 5e-6);
+  ASSERT_NEAR(interface::get_phase_composition_component(1, 2), 1.77645, 5e-6);
+  ASSERT_NEAR(interface::get_phase_composition_component(1, 3), 0.21965, 5e-6);
+
+  ASSERT_NEAR(interface::get_phase_composition_component(2, 0), 2.00000, 5e-6);
+  ASSERT_NEAR(interface::get_phase_composition_component(2, 1), 0.07617, 5e-6);
+  ASSERT_NEAR(interface::get_phase_composition_component(2, 2), 1.75224, 5e-6);
+  ASSERT_NEAR(interface::get_phase_composition_component(2, 3), 0.17159, 5e-6);
+    /* mol        SiO2     CaO      MgO      FeO */
+    /*    Cpx(HGP)          13.44     13.56     10.36     3.07      2.00000  0.74805  1.14355  0.10840 */
+    /*     O(HGP)            62.02     61.68     69.93     20.7      1.00000  0.00391  1.77645  0.21965 */
+	 /* Opx(HGP)          24.54     24.75     19.70     5.83      2.00000  0.07617  1.75224  0.17159 */
+}
+
 TEST_F(InterfaceTest, CheckGetSysDensity) {
   EXPECT_NEAR(interface::get_sys_density(), 3249.3, 0.05);
 }
