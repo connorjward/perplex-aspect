@@ -32,12 +32,13 @@ target_link_libraries(
 
 # copy test files to build directory
 file(
-  COPY ${PerpleXASPECT_SOURCE_DIR}/data/perplex/tests
+  COPY ${PerpleXASPECT_SOURCE_DIR}/data/perplex-dat-files/test1
   DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+  FILES_MATCHING PATTERN *.dat
 )
 
 # automatically add tests
 gtest_discover_tests(
   test-perplex
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tests
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test1
 )

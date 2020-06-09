@@ -30,9 +30,9 @@ endif ()
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
-ADD_LIBRARY(${PROJECT_NAME} SHARED particle/property/phase_composition.cc)
+ADD_LIBRARY(perplexaspect SHARED particle/property/phase_composition.cc)
 
-target_compile_options(${PROJECT_NAME} PRIVATE -fext-numeric-literals)
-target_link_libraries(${PROJECT_NAME} perplex)
+target_compile_options(perplexaspect PRIVATE -fext-numeric-literals)
+target_link_libraries(perplexaspect perplex)
 
-ASPECT_SETUP_PLUGIN(${PROJECT_NAME})
+ASPECT_SETUP_PLUGIN(perplexaspect)

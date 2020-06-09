@@ -53,15 +53,15 @@ namespace perplex
 
     // Set composition
     for (unsigned int i = 0; i < interface::get_n_composition_components(); ++i) {
-      composition.push_back(interface::get_composition_component(i));
-      composition_component_names.push_back(std::
+      composition_.push_back(interface::get_composition_component(i));
+      composition_component_names_.push_back(std::
 	                                    string(interface::
 					           get_composition_component_name(i)));
     }
 
     // Set solution_phase_names
     for (unsigned int i = 0; i < interface::get_n_soln_models(); ++i)
-      solution_phase_names.push_back(std::string(interface::get_full_soln_name(i)));
+      solution_phase_names_.push_back(std::string(interface::get_full_soln_name(i)));
   }
 
   MinimizeResult 
@@ -71,8 +71,8 @@ namespace perplex
     // Set the temperature, pressure and composition
     interface::set_pressure(pressure);
     interface::set_temperature(temperature);
-    for (unsigned int i = 0; i < composition.size(); i++)
-      interface::set_composition_component(i, composition[i]);
+    for (unsigned int i = 0; i < composition_.size(); i++)
+      interface::set_composition_component(i, composition_[i]);
 
     // disable Perple_X output by temporarily disabling stdout
     const int fd = disable_stdout();
@@ -110,31 +110,31 @@ namespace perplex
   std::vector<double> 
   Solver::get_composition() const
   {
-    return composition;   
+    return composition_;   
   }
 
   void
   Solver::set_composition(std::vector<double> &composition)
   {
     /* AssertThrow(this->composition.size() == composition.size()); */
-    this->composition = composition;
+    this->composition_ = composition;
   }
 
   std::vector<std::string>
   Solver::get_composition_component_names() const
   {
-    return composition_component_names;
+    return composition_component_names_;
   }
 
   unsigned int
   Solver::get_n_solution_phases() const
   {
-    return solution_phase_names.size();
+    return solution_phase_names_.size();
   }
 
   std::vector<std::string> 
   Solver::get_solution_phase_names() const 
   {
-    return solution_phase_names;
+    return solution_phase_names_;
   }
 }

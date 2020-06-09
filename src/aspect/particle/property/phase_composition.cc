@@ -39,20 +39,8 @@ namespace aspect
         private:
 	  std::string perplex_dat_filename;
 	  perplex::Solver perplex_solver;
-	  std::vector<double> composition;
 
         public:
-	  /**
-	   * Initialization function. This function is called once at the 
-	   * beginning of the program after parse_parameters is run. 
-	   */
-	  void 
-	  initialize() override
-	  {
-	    perplex_solver.init(perplex_dat_filename);
-	    composition = perplex_solver.composition();
-	  }
-
           /**
            * Initialization function. This function is called once at the
            * creation of every particle for every property to initialize its
@@ -68,9 +56,11 @@ namespace aspect
           initialize_one_particle_property(const Point<dim> &position,
                                            std::vector<double> &particle_properties) const override
 	  {
+	    std::cout << "initialize_one_particle_property" << std::endl;
 	    for (unsigned int i = 0; i < perplex_solver.get_n_solution_phases() + 1; ++i)
-	      for (unsigned int j = 0; j < perplex_solver.composition().size(); ++j)
+	      for (unsigned int j = 0; j < perplex_solver.get_composition().size(); ++j)
 		particle_properties.push_back(0.0);
+	    std::cout << "initialize_one_particle_property : " << particle_properties.size() << std::endl;
 	  }
 
           /**
@@ -101,6 +91,7 @@ namespace aspect
                                         const std::vector<Tensor<1,dim> > &gradients,
                                         const ArrayView<double> &particle_properties) const override
 	  {
+	    std::cout << "update_one_particle_property" << std::endl;
 	    // get properties
 	    const double pressure = solution[this->introspection().component_indices.pressure];
 	    const double temperature = solution[this->introspection().component_indices.temperature];
@@ -137,10 +128,11 @@ namespace aspect
           std::vector<std::pair<std::string, unsigned int>>
           get_property_information() const override
 	  {
+	    std::cout << "get_property_information" << std::endl;
 	    std::vector<std::pair<std::string,unsigned int>> property_information;
 
-	    std::vector<std::string> comp_names = perplex_solver.composition_component_names();
-	    std::vector<std::string> phase_names = perplex_solver.solution_phase_names();
+	    std::vector<std::string> comp_names = perplex_solver.get_composition_component_names();
+	    std::vector<std::string> phase_names = perplex_solver.get_solution_phase_names();
 
 	    // bulk composition
 	    for (unsigned int i = 0; i < comp_names.size(); ++i)
@@ -151,6 +143,7 @@ namespace aspect
 	      for (unsigned int j = 0; j < comp_names.size(); ++j) 
 		property_information.push_back(std::make_pair(phase_names[i]+"::"+comp_names[j], 1));
       
+	    std::cout << "get_property_information : " << property_information.size() << std::endl;
 	    return property_information;
 	  }
 
@@ -165,7 +158,7 @@ namespace aspect
 	    {
 	      prm.enter_subsection("Particles");
 	      {
-		prm.enter_subsection("Phase Composition");
+		prm.enter_subsection("Phase composition");
 		{
 		  prm.declare_entry("PerpleX file name", "",
 		                    Patterns::FileName(),
@@ -184,14 +177,18 @@ namespace aspect
           void
           parse_parameters(ParameterHandler &prm) override
 	  {
+	    std::cout << "parse_parameters" << std::endl;
 	    prm.enter_subsection("Postprocess");
 	    {
 	      prm.enter_subsection("Particles");
 	      {
-		prm.enter_subsection("Phase Composition");
+		prm.enter_subsection("Phase composition");
 		  // TODO
 		  // Add decent assertions here to catch errors.
+		  // specify phases to measure, defaulting to 'all'
+		  // have different ways of specifying the initial composition (default: from file)
 		  perplex_dat_filename = prm.get("PerpleX file name");
+		  perplex_solver.init(perplex_dat_filename);
 		prm.leave_subsection();
 	      }
 	      prm.leave_subsection();
@@ -202,3 +199,18 @@ namespace aspect
     }
   }
 }
+
+// explicit instantiations
+namespace aspect
+{
+  namespace Particle
+  {
+    namespace Property
+    {
+      ASPECT_REGISTER_PARTICLE_PROPERTY(PhaseComposition,
+                                        "phase composition",
+                                        "Information about plugin.")
+    }
+  }
+}
+
