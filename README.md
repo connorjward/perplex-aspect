@@ -38,8 +38,4 @@ An out of source build is recommended:
 
 ## Testing
 
-Testing is done with [Google Test](github.com/google/googletest) and CTest (part of CMake). To run the tests (from `build/`) run:
-
-	cmake -DBUILD_TESTING=ON ..
-	make
-	ctest
+Testing is done with [Google Test](github.com/google/googletest) and CTest (part of CMake). To run, execute `ctest` from inside `build/`.
