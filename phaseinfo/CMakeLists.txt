@@ -17,7 +17,7 @@
 # <http://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.9)
-project(PhaseInfo)
+project(PhaseInfo CXX)
 
 option(PHASEINFO_BUILD_TESTING "docstring")
 
