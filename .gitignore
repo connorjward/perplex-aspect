@@ -1,3 +1,6 @@
+# build files
 /build/
 
-/src/_parameters.h
+# temporary files
+/tags
+*.swp
