@@ -1,19 +1,20 @@
-# set minimum cmake version
 cmake_minimum_required(VERSION 3.11)
 
-# set the project name
 project(PerpleX LANGUAGES CXX Fortran)
 
-# required for tests to be found by ctest
-# also declares BUILD_TESTING option
-include(CTest)
+option(PERPLEX_BUILD_TESTING "docstring")
 
-set(CMAKE_CXX_STANDARD 11)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+  include(CTest)
+endif()
+
+set(CMAKE_CXX_STANDARD 11) # TODO remove this
 
 add_subdirectory(extern/perplex)
 add_subdirectory(src)
 
-if(BUILD_TESTING)
+# build the tests if this is the main CMake project 
+if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR PERPLEX_BUILD_TESTING) AND BUILD_TESTING)
   include(FetchContent)
   include(GoogleTest)
 

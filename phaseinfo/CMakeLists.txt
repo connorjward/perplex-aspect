@@ -16,8 +16,14 @@
 # along with ASPECT; see the file LICENSE.  If not see
 # <http://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.9)
 project(PhaseInfo)
+
+option(PHASEINFO_BUILD_TESTING "docstring")
+
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+  include(CTest)
+endif()
 
 find_package(Aspect 2.1.0 QUIET HINTS ${Aspect_DIR} ../ ../../ $ENV{ASPECT_DIR})
 
@@ -34,3 +40,9 @@ endif ()
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
 add_subdirectory(src)
+
+# Build the tests if this is the main CMake project 
+# or if PHASEINFO_BUILD_TESTING is enabled.
+if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR PHASEINFO_BUILD_TESTING) AND BUILD_TESTING)
+  # add test directory...
+endif()

@@ -38,4 +38,6 @@ An out of source build is recommended:
 
 ## Testing
 
-Testing is done with [Google Test](github.com/google/googletest) and CTest (part of CMake). To run, execute `ctest` from inside `build/`.
+To compile the code with tests enabled, the `PERPLEX_BUILD_TESTING` and `PHASEINFO_BUILD_TESTING` options have to be set to `ON`. For example:
+
+    cmake -DAspect_DIR=/path/to/aspect -DPERPLEX_BUILD_TESTING=ON -DPHASEINFO_BUILD_TESTING=ON ..
