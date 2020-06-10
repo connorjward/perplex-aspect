@@ -40,6 +40,9 @@ An out of source build is recommended:
 
 ## Testing
 
-To compile the code with tests enabled, the `PERPLEX_BUILD_TESTING` and `PHASEINFO_BUILD_TESTING` options have to be set to `ON`. For example:
+To compile the code with tests enabled, the `PERPLEX_BUILD_TESTING` and `PHASEINFO_BUILD_TESTING` options have to be set to `ON`. The tests may then be run with CTest. For example:
 
-    cmake -DAspect_DIR=/path/to/aspect -DPERPLEX_BUILD_TESTING=ON -DPHASEINFO_BUILD_TESTING=ON ..
+	cmake -DAspect_DIR=/path/to/aspect \
+	      -DPERPLEX_BUILD_TESTING=ON -DPHASEINFO_BUILD_TESTING=ON \
+	      ..
+	ctest
