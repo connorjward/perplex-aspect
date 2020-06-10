@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <perplex/solver.h>
+#include <perplex/meemum_solver.h>
 
 using namespace perplex;
 
@@ -16,10 +16,11 @@ class SolverTest : public ::testing::Test {
       composition.push_back(5.880);
 
       solver.init(filename);
+      solver.set_composition(composition);
       res = solver.minimize(pressure, temperature);
     }
 
-    Solver solver;
+    MeemumSolver solver;
     MinimizeResult res;
 };
 

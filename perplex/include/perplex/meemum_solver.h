@@ -2,17 +2,21 @@
 #include <string>
 #include <vector>
 
-namespace perplex 
-{
-struct Phase 
-{
+namespace perplex {
+
+/**
+ * docstring
+ */
+struct Phase {
   std::string name;
   double n_moles;
   std::vector<double> composition;
 };
 
-struct MinimizeResult 
-{
+/**
+ * docstring
+ */
+struct MinimizeResult {
   double density;
   double expansivity;
   double molar_entropy;
@@ -21,10 +25,15 @@ struct MinimizeResult
   std::vector<Phase> phases;
 };
 
-class Solver 
-{
+/**
+ * docstring
+ */
+class MeemumSolver {
  public:
-  void init(const std::string);
+  /**
+   * docstring
+   */
+  void init(const std::string perplex_filename);
 
   /**
    * Perform the minimization.
@@ -36,26 +45,51 @@ class Solver
   minimize(const double pressure, 
 	   const double temperature) const;
   
+  /**
+   * docstring
+   */
   std::vector<double>
   get_composition() const;
 
+  /**
+   * docstring
+   */
   void
   set_composition(std::vector<double> &composition);
 
+  /**
+   * docstring
+   */
   std::vector<std::string>
   get_composition_component_names() const;
 
+  /**
+   * docstring
+   */
   unsigned int
   get_n_solution_phases() const;
 
+  /**
+   * docstring
+   */
   std::vector<std::string> 
   get_solution_phase_names() const;
 
  private:
+  /**
+   * docstring
+   */
   std::vector<double> composition_;
 
+  /**
+   * docstring
+   */
   std::vector<std::string> composition_component_names_;
 
+  /**
+   * docstring
+   */
   std::vector<std::string> solution_phase_names_;
 };
-}
+
+} // end namespace

@@ -19,7 +19,7 @@
  */
 
 #include <aspect/particle/property/interface.h>
-#include <perplex/solver.h>
+#include <perplex/meemum_solver.h>
 
 namespace aspect
 {
@@ -38,7 +38,7 @@ namespace aspect
       {
         private:
 	  std::string perplex_dat_filename;
-	  perplex::Solver perplex_solver;
+	  perplex::MeemumSolver perplex_solver;
 
         public:
           /**

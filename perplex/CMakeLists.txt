@@ -10,7 +10,9 @@ include(CTest)
 
 set(CMAKE_CXX_STANDARD 11)
 
-# install GoogleTest
+add_subdirectory(extern/perplex)
+add_subdirectory(src)
+
 if(BUILD_TESTING)
   include(FetchContent)
   include(GoogleTest)
@@ -27,8 +29,6 @@ if(BUILD_TESTING)
     FetchContent_Populate(googletest)
     add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
   endif()
+
+  add_subdirectory(test)
 endif()
-
-add_subdirectory(extern/perplex)
-add_subdirectory(src)
-

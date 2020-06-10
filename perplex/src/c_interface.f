@@ -1,4 +1,4 @@
-      module mod_meemum_interface
+      module mod_meemum_c_interface
 
         use, intrinsic :: iso_c_binding
         use, intrinsic :: iso_fortran_env
