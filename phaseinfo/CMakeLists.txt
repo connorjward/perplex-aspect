@@ -16,6 +16,9 @@
 # along with ASPECT; see the file LICENSE.  If not see
 # <http://www.gnu.org/licenses/>.
 
+cmake_minimum_required(VERSION 2.8)
+project(PhaseInfo)
+
 find_package(Aspect 2.1.0 QUIET HINTS ${Aspect_DIR} ../ ../../ $ENV{ASPECT_DIR})
 
 if (NOT Aspect_FOUND)
@@ -30,9 +33,4 @@ endif ()
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
-ADD_LIBRARY(perplexaspect SHARED particle/property/phase_composition.cc)
-
-target_compile_options(perplexaspect PRIVATE -fext-numeric-literals)
-target_link_libraries(perplexaspect perplex)
-
-ASPECT_SETUP_PLUGIN(perplexaspect)
+add_subdirectory(src)

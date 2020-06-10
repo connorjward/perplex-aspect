@@ -8,6 +8,7 @@ add_library(
 
 target_include_directories(
   perplex 
+  PUBLIC ${PROJECT_SOURCE_DIR}/include
   PRIVATE ${perplex-extern_SOURCE_DIR}
 )
 
@@ -38,7 +39,7 @@ target_link_libraries(
 
 # copy test files to build directory
 file(
-  COPY ${PerpleXASPECT_SOURCE_DIR}/data/perplex-dat-files/test1
+  COPY ${CMAKE_SOURCE_DIR}/data/perplex-dat-files/test1
   DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
   FILES_MATCHING PATTERN *.dat
 )
