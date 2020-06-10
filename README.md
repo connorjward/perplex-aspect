@@ -8,7 +8,7 @@ This repository contains two libraries:
 
 ## Prerequisites
 
-- [ASPECT](github.com/geodynamics/aspect) (for `phaseinfo` only)
+- [ASPECT](github.com/geodynamics/aspect)
 
 - CMake version `3.11+`
 
@@ -16,13 +16,15 @@ This repository contains two libraries:
 
 - A C++ 2011 compatible C++ compiler (e.g. `gcc`)
 
+- A MPI library (e.g. `openmpi`)
+
 ## Installation instructions
 
 An out of source build is recommended:
 
 	mkdir build
 	cd build
-	cmake ..
+	cmake -DAspect_DIR=/path/to/aspect/ ..
 	make
 	
 ## Project layout
