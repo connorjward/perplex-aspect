@@ -1,25 +1,20 @@
-# perplex-aspect
+# PerpleX-ASPECT
 
-An ASPECT plugin that calculates melt and residue composition using the thermodynamic code Perple_X.
-Specifically the code MEEMUM is used that can calculate a plethora of thermodynamic properties at a given P-T-X point.
+This repository contains two libraries: 
+
+- `perplex` : A C++ wrapper for the thermodynamic code [Perple_X](perplex.ethz.ch) (written in Fortran 77).
+
+- `phaseinfo` : A plugin for the geodynamical code [ASPECT](aspect.geodynamics.org) that can analyse phase (mineral) amounts and composition.
 
 ## Prerequisites
 
-### ASPECT
+- [ASPECT](github.com/geodynamics/aspect) (for `phaseinfo` only)
 
-(work in progress)
+- CMake version `3.11+`
 
-### Perple_X
+- A Fortran 2003 compatible Fortran compiler (e.g. `gfortran`)
 
-A current version of Perple_X may be obtained from its [website](perplex.ethz.ch/).
-Perple_X 6.9.0 is also included in this repo as a zip archive. 
-
-Installation is straightforward to do with the provided makefile. The only requirement of this project is that the PERPLEX_DIR environment variable be set pointing to the installation directory.
-
-### Other programs
-
-- `cmake`
-- `gcc`
+- A C++ 2011 compatible C++ compiler (e.g. `gcc`)
 
 ## Installation instructions
 
@@ -29,19 +24,22 @@ An out of source build is recommended:
 	cd build
 	cmake ..
 	make
+	
+## Project layout
+
+	data/		ASPECT parameter files and Perple_X data files
+	perplex/	Perple_X wrapper
+	  extern/	Perple_X source code
+	  include/	public header files
+	  src/		source code
+	  test/		unit tests
+	phaseinfo/	ASPECT plugin
+	  src/		source code
 
 ## Testing
 
-Testing is done using [Google Test](https://github.com/google/googletest).
-Tests are automatically compiled using `cmake` and can be run using the `ctest` command.
-Note that tests are currently very slow as a call to MEEMUM needs to be run for every test.
+Testing is done with [Google Test](github.com/google/googletest) and CTest (part of CMake). To run the tests (from `build/`) run:
 
-## Design choices
-
-Previous attempts have been made to combine ASPECT and Perple_X.
-However, they had a few problems with their design making the code hard to extend and maintain.
-
-The main difference between this implementation and their is that the initial wrapper code is written in Fortran and not C++.
-Although it is possible to integrate the existing Fortran code directly into C++ it requires interfacing directly with obscurely named COMMON blocks (e.g. `cxt22`) and hard-coding some 400-line parameter file.
-The code I have written presents a much more C\+\+-friendly interface to the user whilst also being easier to maintain and extend since the parameter file issue may be avoided.
-
+	cmake -DBUILD_TESTING=ON ..
+	make
+	ctest
