@@ -3,7 +3,7 @@
 # explains how to add melting and melt transport to a mantle
 # convection simulation. 
 
-set Additional shared libraries            = ./libperplexaspect.so
+set Additional shared libraries            = ./libphaseinfo.so
 
 set Dimension                              = 2
 set Adiabatic surface temperature          = 1600
