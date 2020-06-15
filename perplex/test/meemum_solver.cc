@@ -1,13 +1,15 @@
 #include <gtest/gtest.h>
 #include <perplex/meemum_solver.h>
 
+#include "utils.h"
+
 using namespace perplex;
 
 class SolverTest : public ::testing::Test {
   protected:
     void SetUp() override {
       const std::string filename("test1");
-      const double pressure { 20000 };
+      const double pressure { utils::convert_bar_to_pascals(20000) };
       const double temperature { 1500 };
       std::vector<double> composition;
       composition.push_back(38.500);
@@ -45,7 +47,7 @@ TEST_F(SolverTest, CheckNSolutionPhaseNames) {
 }
 
 TEST_F(SolverTest, CheckPhaseNames) {
-  EXPECT_STREQ(res.phases[0].name.c_str(), "Cpx(HGP)");
+  EXPECT_STREQ(res.phases[0].name.c_str(), "Cpx");
 }
 
 TEST_F(SolverTest, CheckPhaseNMoles) {

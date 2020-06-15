@@ -10,10 +10,10 @@
 
 #include <perplex/meemum_solver.h>
 #include "c_interface.h"
+#include "utils.h"
 
 namespace 
 {
-
   const int disable_stdout() {
     // flush stdout
     fflush(stdout);
@@ -36,10 +36,6 @@ namespace
     // reassign descriptor
     dup2(stdout_descriptor, 1);
     close(stdout_descriptor);
-  }
-
-  double convert_pascals_to_bar(const double pressure_in_pascals) {
-    return pressure_in_pascals / 1e6;
   }
 }
 
@@ -72,7 +68,7 @@ namespace perplex
 	                 const double temperature) const
   {
     // Set the temperature, pressure and bulk composition
-    c_interface::solver_set_pressure(convert_pascals_to_bar(pressure));
+    c_interface::solver_set_pressure(utils::convert_pascals_to_bar(pressure));
     c_interface::solver_set_temperature(temperature);
     for (unsigned int i = 0; i < composition_.size(); ++i)
       c_interface::bulk_props_set_composition(i, composition_[i]);
@@ -99,10 +95,6 @@ namespace perplex
 	// check if solution model present in output
 	// since the phase name can sometimes be reported as either the short or long versions
 	// both are checked for
-	std::cout << short_name << std::endl;
-	std::cout << long_name << std::endl;
-	std::cout << std::string(c_interface::res_phase_props_get_name(j)) << std::endl;
-
 	std::string phase_name{c_interface::res_phase_props_get_name(j)};
 	if (phase_name == short_name || phase_name == long_name) {
 	  molar_amount = c_interface::res_phase_props_get_mol(j);
