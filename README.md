@@ -25,8 +25,30 @@ An out of source build is recommended:
 	mkdir build
 	cd build
 	cmake -DAspect_DIR=/path/to/aspect/ ..
-	make
+	make -j<N>
 	
+## Running instructions
+
+The `phaseinfo` library produces a shared library `phaseinfo.so` that can be dynamically linked to when running ASPECT. To enable linking, just add the following line to the ASPECT input parameter file:
+
+	...
+	set Additional shared libraries = /path/to/libphaseinfo.so
+	...
+	
+A basic example implementation of the plugin can be found in `data/aspect-prm-files/example.prm`.
+
+The input parameters enabled by this shared library are explained in more detail [here](https://github.com/cward97/perplex-aspect/wiki/ASPECT-input-parameters).
+
+## Testing
+
+To compile the code with tests enabled, the `PERPLEX_BUILD_TESTING` and `PHASEINFO_BUILD_TESTING` options have to be set to `ON` (default is `OFF`). The tests may then be run with CTest. For example:
+
+	cmake -DAspect_DIR=/path/to/aspect \
+	      -DPERPLEX_BUILD_TESTING=ON -DPHASEINFO_BUILD_TESTING=ON \
+	      ..
+	make -j<N>
+	ctest
+
 ## Project layout
 
 	data/		ASPECT parameter files and Perple_X data files
@@ -37,12 +59,3 @@ An out of source build is recommended:
 	  test/		unit tests
 	phaseinfo/	ASPECT plugin
 	  src/		source code
-
-## Testing
-
-To compile the code with tests enabled, the `PERPLEX_BUILD_TESTING` and `PHASEINFO_BUILD_TESTING` options have to be set to `ON` (default is `OFF`). The tests may then be run with CTest. For example:
-
-	cmake -DAspect_DIR=/path/to/aspect \
-	      -DPERPLEX_BUILD_TESTING=ON -DPHASEINFO_BUILD_TESTING=ON \
-	      ..
-	ctest
