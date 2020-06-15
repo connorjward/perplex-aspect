@@ -103,7 +103,8 @@
         ! ------------------ COMPOSITION PROPERTIES ------------------
         ! ------------------------------------------------------------
 
-        function composition_props_get_n() bind(c) result(res)
+        function composition_props_get_n_components() bind(c) 
+     >      result(res)
           integer(c_size_t) :: res
 
           ! source: olib.f

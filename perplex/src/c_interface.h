@@ -13,7 +13,7 @@ namespace perplex
       /**
        * Initialize the solver.
        *
-       * @param filename The name of the Perple_X problem definition file
+       * @param filename The name of the Perple_X problem definition file.
        */
       void solver_init(const char* filename);
 
@@ -23,12 +23,12 @@ namespace perplex
       void solver_minimize();
 
       /**
-       * @param pressure The pressure used in the minimization (bar) 
+       * @param pressure The pressure used in the minimization (bar).
        */
       void solver_set_pressure(const double pressure);
 
       /**
-       * @param temperature The temperature used in the minimization (K)
+       * @param temperature The temperature used in the minimization (K).
        */
       void solver_set_temperature(const double temperature);
 
@@ -37,14 +37,13 @@ namespace perplex
       /* ------------------------------------------------------------ */
 
       /**
-       * @return Number of composition components
+       * @return Number of composition components.
        */
-      size_t composition_props_get_n();
+      size_t composition_props_get_n_components();
 
       /**
-       * @param component_idx Composition component index 
-       *
-       * @return Name of a composition component
+       * @param component_idx Composition component index.
+       * @return              Name of a composition component.
        */
       char* composition_props_get_name(size_t component_idx);
 
@@ -53,18 +52,14 @@ namespace perplex
       /* ----------------------------------------------------------- */
 
       /**
-       * Get the bulk composition.
-       *
-       * @param component_idx Composition component index 
-       * @return              Amount of component (mol)  
+       * @param component_idx Composition component index.
+       * @return              Amount of component (mol). 
        */
       double bulk_props_get_composition(size_t component_idx);
 
       /**
-       * Set the bulk composition.
-       *
-       * @param component_idx Composition component index
-       * @param amount        Amount of component (mol) 
+       * @param component_idx Composition component index.
+       * @param amount        Amount of component (mol).
        */
       void bulk_props_set_composition(size_t component_idx, double amount);
 
@@ -73,19 +68,19 @@ namespace perplex
       /* --------------------------------------------------------- */
 
       /**
-       * @return Number of solution phases
+       * @return Number of solution phases.
        */
       size_t soln_phase_props_get_n();
 
       /**
-       * @param soln_phase_idx Solution phase index
-       * @return	       Solution phase short name
+       * @param soln_phase_idx Solution phase index.
+       * @return	       Solution phase short name.
        */
       char* soln_phase_props_get_short_name(size_t);
 
       /**
-       * @param soln_phase_idx Solution phase index
-       * @return	       Solution phase long name
+       * @param soln_phase_idx Solution phase index.
+       * @return	       Solution phase long name.
        */
       char* soln_phase_props_get_long_name(size_t);
 
@@ -94,46 +89,46 @@ namespace perplex
       /* ----------------------------------------------------------- */
 
       /**
-       * @return Number of result phases
+       * @return Number of result phases.
        */
       size_t res_phase_props_get_n();
 
       /**
-       * @param res_phase_idx Result phase index 
-       * @return              Result phase name
+       * @param res_phase_idx Result phase index.
+       * @return              Result phase name.
        *
        * @remark The returned name can be either the short or long version.
        */
       char* res_phase_props_get_name(size_t res_phase_idx);
 
       /**
-       * @param res_phase_idx Result phase index
-       * @return              Result phase fractional weight
+       * @param res_phase_idx Result phase index.
+       * @return              Result phase fractional weight.
        */
       double res_phase_props_get_weight_frac(size_t res_phase_idx);
 
       /**
-       * @param res_phase_idx Result phase index
-       * @return              Result phase fractional volume
+       * @param res_phase_idx Result phase index.
+       * @return              Result phase fractional volume.
        */
       double res_phase_props_get_vol_frac(size_t res_phase_idx);
 
       /**
-       * @param res_phase_idx Result phase index
-       * @return              Result phase fractional molar amount
+       * @param res_phase_idx Result phase index.
+       * @return              Result phase fractional molar amount.
        */
       double res_phase_props_get_mol_frac(size_t res_phase_idx);
 
       /**
-       * @param res_phase_idx Result phase index
-       * @return              Result phase molar amount
+       * @param res_phase_idx Result phase index.
+       * @return              Result phase molar amount.
        */
       double res_phase_props_get_mol(size_t res_phase_idx);
 
       /**
-       * @param res_phase_idx Result phase index
-       * @param component_idx Composition component index 
-       * @return              Amount of component in result phase (mol)  
+       * @param res_phase_idx Result phase index.
+       * @param component_idx Composition component index.
+       * @return              Amount of component in result phase (mol). 
        */
       double res_phase_props_get_composition(size_t res_phase_idx,
 	                                     size_t component_idx);
@@ -143,22 +138,22 @@ namespace perplex
       /* ----------------------------------------------------------- */
 
       /**
-       * @return System density (kg/m3)
+       * @return System density (kg/m3).
        */
       double sys_props_get_density();
 
       /**
-       * @return System expansivity (units?)
+       * @return System expansivity (1/K).
        */
       double sys_props_get_expansivity();
 
       /**
-       * @return System molar entropy (units?)
+       * @return System molar entropy (J/K).
        */
       double sys_props_get_mol_entropy();
 
       /**
-       * @return System molar heat capacity (units?)
+       * @return System molar heat capacity (J/K).
        */
       double sys_props_get_mol_heat_capacity();
     } 

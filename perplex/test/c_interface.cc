@@ -22,7 +22,7 @@ class InterfaceTest : public ::testing::Test {
 };
 
 TEST_F(InterfaceTest, CheckCompositionProps) {
-  EXPECT_EQ(composition_props_get_n(), 4);
+  EXPECT_EQ(composition_props_get_n_components(), 4);
 
   EXPECT_STREQ(composition_props_get_name(0), "SiO2");
   EXPECT_STREQ(composition_props_get_name(1), "CaO");

@@ -1,4 +1,4 @@
-add_executable(perplex_test c_interface.cc meemum_solver.cc)
+add_executable(perplex_test c_interface.cc solver.cc)
 
 target_include_directories(perplex_test PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
