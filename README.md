@@ -18,6 +18,14 @@ This repository contains two libraries:
 
 - A MPI library (e.g. `openmpi`)
 
+- LAPACK
+
+- BLAS
+
+- Git
+
+- zlib
+
 ## Installation instructions
 
 An out of source build is recommended:
