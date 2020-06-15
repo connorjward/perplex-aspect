@@ -41,49 +41,47 @@ namespace
   double convert_pascals_to_bar(const double pressure_in_pascals) {
     return pressure_in_pascals / 1e6;
   }
-
 }
 
 namespace perplex 
 {
-  void 
-  MeemumSolver::init(const std::string filename) 
+  void MeemumSolver::init(const std::string filename) 
   {
     // Disable stdout
     const int fd = disable_stdout();
     // Read file
-    c_interface::init(filename.c_str());
+    c_interface::solver_init(filename.c_str());
     // Re-enable stdout
     enable_stdout(fd);
 
-    // Set composition
-    for (unsigned int i = 0; i < c_interface::get_n_composition_components(); ++i) {
-      composition_.push_back(c_interface::get_composition_component(i));
+    // Set bulk composition
+    for (unsigned int i = 0; i < c_interface::composition_props_get_n(); ++i) {
+      composition_.push_back(c_interface::bulk_props_get_composition(i));
       composition_component_names_.push_back(std::
 	  string(c_interface::
-	    get_composition_component_name(i)));
+	    composition_props_get_name(i)));
     }
 
     // Set solution_phase_names
-    for (unsigned int i = 0; i < c_interface::get_n_soln_models(); ++i)
-      solution_phase_names_.push_back(std::string(c_interface::get_full_soln_name(i)));
+    for (unsigned int i = 0; i < c_interface::soln_phase_props_get_n(); ++i)
+      solution_phase_names_.push_back(std::string(c_interface::soln_phase_props_get_long_name(i)));
   }
 
   MinimizeResult 
   MeemumSolver::minimize(const double pressure, 
 	                 const double temperature) const
   {
-    // Set the temperature, pressure and composition
-    c_interface::set_pressure(convert_pascals_to_bar(pressure));
-    c_interface::set_temperature(temperature);
+    // Set the temperature, pressure and bulk composition
+    c_interface::solver_set_pressure(convert_pascals_to_bar(pressure));
+    c_interface::solver_set_temperature(temperature);
     for (unsigned int i = 0; i < composition_.size(); ++i)
-      c_interface::set_composition_component(i, composition_[i]);
+      c_interface::bulk_props_set_composition(i, composition_[i]);
 
     // disable Perple_X output by temporarily disabling stdout
     /* const int fd = disable_stdout(); */
 
     // run the minimization
-    c_interface::minimize();
+    c_interface::solver_minimize();
 
     // re-enable stdout
     /* enable_stdout(fd); */
@@ -92,35 +90,35 @@ namespace perplex
     std::vector<Phase> phases;
 
     for (unsigned int i = 0; i < solution_phase_names_.size(); ++i) {
-      std::string short_name(c_interface::get_abbr_soln_name(i));
-      std::string long_name(c_interface::get_full_soln_name(i));
+      std::string short_name(c_interface::soln_phase_props_get_short_name(i));
+      std::string long_name(c_interface::soln_phase_props_get_long_name(i));
       double molar_amount { 0.0 };
       std::vector<double> phase_composition;
 
-      for (unsigned int j = 0; j < c_interface::get_n_phases(); ++j) {
+      for (unsigned int j = 0; j < c_interface::res_phase_props_get_n(); ++j) {
 	// check if solution model present in output
 	// since the phase name can sometimes be reported as either the short or long versions
 	// both are checked for
 	std::cout << short_name << std::endl;
 	std::cout << long_name << std::endl;
-	std::cout << std::string(c_interface::get_phase_name(j)) << std::endl;
+	std::cout << std::string(c_interface::res_phase_props_get_name(j)) << std::endl;
 
-	std::string phase_name{c_interface::get_phase_name(j)};
+	std::string phase_name{c_interface::res_phase_props_get_name(j)};
 	if (phase_name == short_name || phase_name == long_name) {
-	  molar_amount = c_interface::get_phase_mol(j);
+	  molar_amount = c_interface::res_phase_props_get_mol(j);
 
-	  for (unsigned int k = 0; k < c_interface::get_n_composition_components(); ++k)
-	    phase_composition.push_back(c_interface::get_phase_composition_component(j, k));
+	  for (unsigned int k = 0; k < c_interface::composition_props_get_n(); ++k)
+	    phase_composition.push_back(c_interface::res_phase_props_get_composition(j, k));
 	}
       }
       phases.push_back(perplex::Phase{short_name, molar_amount, phase_composition});
     }
 
     return MinimizeResult {
-      c_interface::get_sys_density(),
-	c_interface::get_sys_expansivity(),
-	c_interface::get_sys_mol_entropy(),
-	c_interface::get_sys_mol_heat_capacity(),
+      c_interface::sys_props_get_density(),
+	c_interface::sys_props_get_expansivity(),
+	c_interface::sys_props_get_mol_entropy(),
+	c_interface::sys_props_get_mol_heat_capacity(),
 	phases
     };
   }

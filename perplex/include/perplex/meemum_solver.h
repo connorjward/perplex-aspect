@@ -37,8 +37,7 @@ namespace perplex
       /**
        * docstring
        */
-      void 
-      init(const std::string perplex_filename);
+      void init(const std::string perplex_filename);
 
       /**
        * Perform the minimization.
@@ -46,39 +45,33 @@ namespace perplex
        * @param pressure    The pressure (Pa)
        * @param temperature The temperature (K)
        */
-      MinimizeResult 
-      minimize(const double pressure, 
-	       const double temperature) const;
+      MinimizeResult minimize(const double pressure, 
+	                      const double temperature) const;
 
       /**
        * docstring
        */
-      std::vector<double>
-      get_composition() const;
+      std::vector<double> get_composition() const;
 
       /**
        * docstring
        */
-      void
-      set_composition(std::vector<double> &composition);
+      void set_composition(std::vector<double> &composition);
 
       /**
        * docstring
        */
-      std::vector<std::string>
-      get_composition_component_names() const;
+      std::vector<std::string> get_composition_component_names() const;
 
       /**
        * docstring
        */
-      unsigned int
-      get_n_solution_phases() const;
+      unsigned int get_n_solution_phases() const;
 
       /**
        * docstring
        */
-      std::vector<std::string> 
-      get_solution_phase_names() const;
+      std::vector<std::string> get_solution_phase_names() const;
 
     private:
       /**
