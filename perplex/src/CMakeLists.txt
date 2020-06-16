@@ -1,5 +1,5 @@
 add_library(perplex SHARED
-	    c_interface.f solver.cc utils.cc)
+	    main.cc state.cc utils.cc c_interface.f)
 
 target_include_directories(perplex 
 			   PUBLIC ${PROJECT_SOURCE_DIR}/include

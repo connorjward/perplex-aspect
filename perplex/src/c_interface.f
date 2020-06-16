@@ -157,7 +157,7 @@
           res = isoct
         end function
 
-        function soln_phase_props_get_short_name(soln_phase_idx) bind(c)
+        function soln_phase_props_get_abbr_name(soln_phase_idx) bind(c)
      >      result(res)
           integer(c_size_t), intent(in), value :: soln_phase_idx
           type(c_ptr) :: res
@@ -169,7 +169,7 @@
           res = alloc_c_str(aname(soln_phase_idx+1))
         end function
 
-        function soln_phase_props_get_long_name(soln_phase_idx) bind(c)
+        function soln_phase_props_get_full_name(soln_phase_idx) bind(c)
      >      result(res)
           integer(c_size_t), intent(in), value :: soln_phase_idx
           type(c_ptr) :: res

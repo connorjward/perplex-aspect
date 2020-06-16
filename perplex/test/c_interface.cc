@@ -1,15 +1,14 @@
 #include <gtest/gtest.h>
-#include "c_interface.h"
 
-using namespace perplex::c_interface;
+#include "c_interface.h"
 
 class InterfaceTest : public ::testing::Test {
   protected:
     void SetUp() override {
-      const char *filename { "test1" };
-      const double pressure { 20000 };
-      const double temperature { 1500 };
-      const double composition[4] { 38.500, 2.820, 50.500, 5.880 };
+      const char *filename{"test1"};
+      const double pressure{20000};
+      const double temperature{1500};
+      const double composition[4]{38.500, 2.820, 50.500, 5.880};
 
       solver_init(filename);
       solver_set_pressure(pressure);
@@ -37,9 +36,9 @@ TEST_F(InterfaceTest, CheckBulkProps) {
 TEST_F(InterfaceTest, CheckSolnPhaseProps) {
   EXPECT_EQ(soln_phase_props_get_n(), 4);
 
-  EXPECT_STREQ(soln_phase_props_get_short_name(2), "Ol");
+  EXPECT_STREQ(soln_phase_props_get_abbr_name(2), "Ol");
 
-  EXPECT_STREQ(soln_phase_props_get_long_name(3), "Opx(HGP)");
+  EXPECT_STREQ(soln_phase_props_get_full_name(3), "Opx(HGP)");
 }
 
 TEST_F(InterfaceTest, CheckResPhaseProps) {

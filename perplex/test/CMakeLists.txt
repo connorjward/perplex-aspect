@@ -1,10 +1,11 @@
-add_executable(perplex_test c_interface.cc solver.cc)
+add_executable(perplex-test 
+               c_interface.cc main.cc state.cc)
 
-target_include_directories(perplex_test PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_include_directories(perplex-test PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
-target_link_libraries(perplex_test perplex gtest gtest_main)
+target_link_libraries(perplex-test perplex gtest gtest_main)
 
-gtest_discover_tests(perplex_test
+gtest_discover_tests(perplex-test
 		     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test-simple)
 
 # copy test files to build directory
