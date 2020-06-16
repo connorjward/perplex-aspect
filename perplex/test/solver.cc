@@ -43,7 +43,7 @@ TEST_F(SolverTest, CheckMolarHeatCapacity) {
 } 
 
 TEST_F(SolverTest, CheckNSolutionPhaseNames) {
-  EXPECT_EQ(solver.get_phase_names().abbr.size(), 4);
+  EXPECT_EQ(solver.get_solution_phase_names().size(), 4);
 }
 
 /* TEST_F(SolverTest, CheckPhaseNames) { */

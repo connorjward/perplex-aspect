@@ -74,15 +74,15 @@ namespace perplex
 
       /**
        * @param soln_phase_idx Solution phase index.
-       * @return	       Solution phase short name.
+       * @return	       The abbreviated name of the solution phase.
        */
-      char* soln_phase_props_get_short_name(size_t);
+      char* soln_phase_props_get_abbr_name(size_t soln_phase_idx);
 
       /**
        * @param soln_phase_idx Solution phase index.
-       * @return	       Solution phase long name.
+       * @return	       The full name of the solution phase.
        */
-      char* soln_phase_props_get_long_name(size_t);
+      char* soln_phase_props_get_full_name(size_t soln_phase_idx);
 
       /* ----------------------------------------------------------- */
       /* ----------------- RESULT PHASE PROPERTIES ----------------- */

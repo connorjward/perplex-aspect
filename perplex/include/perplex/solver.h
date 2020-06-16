@@ -4,31 +4,40 @@
 
 namespace perplex 
 {
-  /**
-   * A data structure storing both the abbreviated and full names of the
-   * possible solution phases.
-   */
-  struct PhaseNames
+  struct CompositionProperties
+  {
+    std::vector<std::string> component_names;
+  }
+
+  struct BulkProperties
+  {
+    std::vector<double> composition;
+  }
+
+  struct SolutionPhaseProperties
   {
     /**
      * docstring
      */
-    std::vector<std::string> abbr;
+    std::string abbr_name;
 
     /**
      * docstring
      */
-    std::vector<std::string> full;
-  };
+    std::string full_name;
+  }
 
-  /**
-   * A data structure containing phase information.
-   */
-  struct Phase 
+  struct ResultPhaseProperties
   {
+    std::string name;
     double n_moles;
     std::vector<double> composition;
   };
+
+  struct SystemPhaseProperties
+  {
+
+  }
 
   /**
    * A data structure containing the result of Solver::minimize().
@@ -38,7 +47,7 @@ namespace perplex
     /**
      * A vector containing the phase information.
      */
-    std::vector<Phase> phases;
+    std::vector<PhaseInfo> phases;
 
     /**
      * The system density (kg/m3).
@@ -81,7 +90,7 @@ namespace perplex
        * @param temperature The temperature (K).
        * @return            The result of the minimization.
        */
-      const MinimizeResult& minimize(const double pressure, 
+      const MinimizeResult minimize(const double pressure, 
 	                             const double temperature);
 
       /**
@@ -102,7 +111,7 @@ namespace perplex
       /**
        * @return The phase names.
        */
-      const PhaseNames& get_phase_names() const;
+      const std::vector<PhaseName>& get_solution_phase_names() const;
 
     private:
       /**
@@ -110,19 +119,14 @@ namespace perplex
        */
       std::vector<double> bulk_composition;
 
-      /**
-       * A vector storing the names of the different composition components.
-       */
       std::vector<std::string> composition_names;
+      std::vector<PhaseName> solution_phase_names;
 
-      /**
-       * A vector storing the names of the different possible phases in the solution.
-       */
-      PhaseNames phase_names;
+      void set_conditions(const double pressure, const double temperature) const;
 
-      /**
-       * A data structure to store the results of the minimization.
-       */
-      MinimizeResult minimize_result;
+      void populate_minimize_result(MinimizeResult& minimize_result) const;
+
+      const std::pair<std::string,std::string> 
+      get_phase_names(const std::string phase_name) const;
   };
 } 

@@ -60,65 +60,26 @@ namespace perplex
       composition_names.push_back(std::string{c_interface::composition_props_get_name(c)});
     }
 
-    for (size_t p = 0; p < c_interface::soln_phase_props_get_n(); ++p) {
-      phase_names.abbr.push_back(std::string{c_interface::soln_phase_props_get_short_name(p)});
-      phase_names.full.push_back(std::string{c_interface::soln_phase_props_get_long_name(p)});
-    }
-
-    // TODO
-    // Put into a MinimizeResult.init() method.
-    minimize_result.phases.resize(c_interface::soln_phase_props_get_n());
     for (size_t p = 0; p < c_interface::soln_phase_props_get_n(); ++p)
-      minimize_result.phases[p].composition.resize(c_interface::composition_props_get_n_components());
+      solution_phase_names.push_back(PhaseName{
+	  std::string{c_interface::soln_phase_props_get_short_name(p)},
+	  std::string{c_interface::soln_phase_props_get_long_name(p)}}
+      );
   }
 
-  const MinimizeResult& Solver::minimize(const double pressure, 
-                                         const double temperature)
+  const MinimizeResult Solver::minimize(const double pressure, 
+                                        const double temperature)
   {
-    // set the initial conditions
-    c_interface::solver_set_pressure(utils::convert_pascals_to_bar(pressure));
-    c_interface::solver_set_temperature(temperature);
-    for (size_t c = 0; c < bulk_composition.size(); ++c)
-      c_interface::bulk_props_set_composition(c, bulk_composition[c]);
+    set_conditions(pressure, temperature);
 
     // disable stdout to prevent Perple_X dominating stdout
     /* const int fd = disable_stdout(); */
     c_interface::solver_minimize();
     /* enable_stdout(fd); */
 
-    // TODO
-    // Put into a MinimizeResult.update() method.
-    for (size_t res_phase_idx = 0; res_phase_idx < c_interface::res_phase_props_get_n(); ++res_phase_idx) {
-      std::string phase_name{c_interface::res_phase_props_get_name(res_phase_idx)};
-
-        std::vector<std::string>::iterator abbr_it = std::find(phase_names.abbr.begin(), 
-	                                                       phase_names.abbr.end(), 
-					                       phase_name);
-        std::vector<std::string>::iterator full_it = std::find(phase_names.full.begin(), 
-	                                phase_names.full.end(), 
-					phase_name);
-
-      size_t phase_idx;
-      if (abbr_it < phase_names.abbr.end())
-	phase_idx = std::distance(phase_names.abbr.begin(), abbr_it);
-      else if (full_it < phase_names.full.end())
-	phase_idx = std::distance(phase_names.full.begin(), full_it);
-      else
-	throw std::runtime_error("Phase name not found.");
-
-      Phase &phase { minimize_result.phases[phase_idx] };
-      phase.n_moles = c_interface::res_phase_props_get_mol(phase_idx);
-      for (size_t c = 0; c < c_interface::composition_props_get_n_components(); ++c) {
-	phase.composition[c] = c_interface::res_phase_props_get_composition(phase_idx, c);
-      }
-    }
-
-    minimize_result.density = c_interface::sys_props_get_density();
-    minimize_result.expansivity = c_interface::sys_props_get_expansivity();
-    minimize_result.molar_entropy = c_interface::sys_props_get_mol_entropy();
-    minimize_result.molar_heat_capacity = c_interface::sys_props_get_mol_heat_capacity();
-
-    return minimize_result;
+    MinimizeResult res;
+    populate_result(res);
+    return res;
   }
 
   const std::vector<double>& Solver::get_bulk_composition() const 
@@ -132,11 +93,56 @@ namespace perplex
     this->bulk_composition = bulk_composition;
   }
 
-  const std::vector<std::string>& Solver::get_composition_names() const {
+  const std::vector<std::string>& Solver::get_composition_names() const 
+  {
     return composition_names;
   }
 
-  const PhaseNames& Solver::get_phase_names() const {
-    return phase_names;
+  const std::vector<std::string>& Solver::get_solution_phase_names() const 
+  {
+    return solution_phase_names;
+  }
+
+
+  void Solver::set_conditions(const double pressure, const double temperature) const
+  {
+    c_interface::solver_set_pressure(utils::convert_pascals_to_bar(pressure));
+    c_interface::solver_set_temperature(temperature);
+    for (size_t c = 0; c < bulk_composition.size(); ++c)
+      c_interface::bulk_props_set_composition(c, bulk_composition[c]);
+  }
+
+  void Solver::populate_minimize_result(MinimizeResult& minimize_result) const
+  {
+    for (size_t p = 0; p < c_interface::res_phase_props_get_n(); ++p) {
+      PhaseInfo phase_info;
+
+      auto phase_names{get_phase_names(c_interface::res_phase_props_get_name(p))};
+      phase_info.abbr_name = phase_names.first;
+      phase_info.full_name = phase_names.second();
+      phase_info.n_moles = c_interface::res_phase_props_get_mol(p);
+      for (size_t c = 0; c < c_interface::composition_props_get_n_components(); ++c) {
+	phase_info.composition.push_back(c_interface::res_phase_props_get_composition(p, c));
+      }
+      minimize_result.phases.push_back(phase_info);
+    }
+
+    minimize_result.density = c_interface::sys_props_get_density();
+    minimize_result.expansivity = c_interface::sys_props_get_expansivity();
+    minimize_result.molar_entropy = c_interface::sys_props_get_mol_entropy();
+    minimize_result.molar_heat_capacity = c_interface::sys_props_get_mol_heat_capacity();
+  }
+
+  const std::pair<std::string,std::string> 
+  Solver::get_phase_names(const std::string phase_name) const 
+  {
+    for (size_t i = 0; i < c_interface::soln_phase_props_get_n(); ++i) {
+      std::string abbr_name{c_interface::soln_phase_props_get_short_name(i)};
+      std::string full_name{c_interface::soln_phase_props_get_long_name(i)};
+
+      if (phase_name == abbr_name || phase_name == full_name)
+	return std::pair(abbr_name, full_name);
+    }
+    // TODO throw a suitable error here
   }
 }
