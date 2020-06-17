@@ -1,5 +1,5 @@
 add_executable(perplex-test 
-               c_interface.cc main.cc state.cc)
+               c_interface.cc state.cc)
 
 target_include_directories(perplex-test PRIVATE ${PROJECT_SOURCE_DIR}/src)
 

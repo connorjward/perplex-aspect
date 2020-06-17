@@ -6,40 +6,48 @@
 
 namespace perplex
 {
-  // TODO
-  // Make singleton class.
   class State
   {
     public:
       /**
        * docstring
        */
-      const size_t n_composition_components;
+      static State& get_instance();
+
+      /**
+       *
+       */
+      void initialize(const std::string& filename);
+
+      /**
+       *
+       */
+      void minimize(const double pressure, const double temperature);
 
       /**
        * docstring
        */
-      const std::vector<std::string> composition_component_names;
+      size_t get_n_composition_components() const;
 
       /**
        * docstring
        */
-      const size_t n_soln_phases;
+      const std::vector<std::string>& get_composition_component_names() const;
 
       /**
        * docstring
        */
-      const std::vector<std::string> abbr_soln_phase_names;
+      size_t get_n_soln_phases() const;
 
       /**
        * docstring
        */
-      const std::vector<std::string> full_soln_phase_names;
+      const std::vector<std::string>& get_abbr_soln_phase_names() const;
 
       /**
        * docstring
        */
-      State();
+      const std::vector<std::string>& get_full_soln_phase_names() const;
 
       /**
        * docstring
@@ -54,57 +62,57 @@ namespace perplex
       /**
        * docstring
        */
-      double get_system_density();
+      double get_system_density() const;
 
       /**
        * docstring
        */
-      double get_system_expansivity();
+      double get_system_expansivity() const;
 
       /**
        * docstring
        */
-      double get_system_molar_entropy();
+      double get_system_molar_entropy() const;
 
       /**
        * docstring
        */
-      double get_system_molar_heat_capacity();
+      double get_system_molar_heat_capacity() const;
 
       /**
        * docstring
        */
-      size_t get_n_end_phases();
+      size_t get_n_end_phases() const;
 
       /**
        * docstring
        */
-      std::string get_end_phase_name(const size_t end_phase_idx);
+      std::string get_end_phase_name(const size_t end_phase_idx) const;
 
       /**
        * docstring
        */
-      double get_end_phase_weight_frac(const size_t end_phase_idx);
+      double get_end_phase_weight_frac(const size_t end_phase_idx) const;
 
       /**
        * docstring
        */
-      double get_end_phase_vol_frac(const size_t end_phase_idx);
+      double get_end_phase_vol_frac(const size_t end_phase_idx) const;
 
       /**
        * docstring
        */
-      double get_end_phase_mol_frac(const size_t end_phase_idx);
+      double get_end_phase_mol_frac(const size_t end_phase_idx) const;
 
       /**
        * docstring
        */
-      double get_end_phase_mol(const size_t end_phase_idx);
+      double get_end_phase_mol(const size_t end_phase_idx) const;
 
       /**
        * docstring
        */
-      const std::vector<double>& 
+      std::vector<double>
       get_end_phase_composition(const size_t end_phase_idx) const;
 
       /**
@@ -118,5 +126,23 @@ namespace perplex
        */
       const std::string& 
       find_full_phase_name(const std::string& end_phase_name) const;
+
+      /**
+       *
+       */
+      int get_status() { return status; }
+
+    private:
+      /**
+       *
+       */
+      int status;
+
+      /**
+       * Construct the class.
+       *
+       * @remark This constructor is private to enforce the singleton pattern.
+       */
+      State();
   };
 }
