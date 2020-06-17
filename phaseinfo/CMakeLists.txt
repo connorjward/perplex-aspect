@@ -27,7 +27,7 @@ endif()
 
 find_package(Aspect 2.1.0 QUIET HINTS ${Aspect_DIR} ../ ../../ $ENV{ASPECT_DIR})
 
-if (NOT Aspect_FOUND)
+if(NOT Aspect_FOUND)
   message(FATAL_ERROR "\n"
 	"Could not find a valid ASPECT build/installation directory. "
 	"Please specify the directory where you are building ASPECT by passing\n"
@@ -35,7 +35,7 @@ if (NOT Aspect_FOUND)
 	"to cmake or by setting the environment variable ASPECT_DIR in your shell "
 	"before calling cmake. See the section 'How to write a plugin' in the "
         "manual for more information.")
-endif ()
+endif()
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
@@ -44,5 +44,11 @@ add_subdirectory(src)
 # Build the tests if this is the main CMake project 
 # or if PHASEINFO_BUILD_TESTING is enabled.
 if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR PHASEINFO_BUILD_TESTING) AND BUILD_TESTING)
-  # add test directory...
+  # copy test files
+  file(COPY ${PROJECT_SOURCE_DIR}/data/test
+       DESTINATION ${PROJECT_BINARY_DIR}/data)
+
+  add_test(NAME CheckRuns
+           COMMAND ${PROJECT_BINARY_DIR}/src/aspect test.prm
+	   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/data/test/simple)
 endif()

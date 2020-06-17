@@ -1,5 +1,6 @@
 /*
  Copyright (C) 2015 - 2018 by the authors of the ASPECT code.
+ Copyright (C) 2020 Connor Ward.
 
  This file is part of ASPECT.
 
@@ -19,7 +20,8 @@
  */
 
 #include <aspect/particle/property/interface.h>
-#include <perplex/meemum_solver.h>
+
+#include <perplex/state.h>
 
 namespace aspect
 {
@@ -38,7 +40,6 @@ namespace aspect
       {
         private:
 	  std::string perplex_dat_filename;
-	  perplex::MeemumSolver perplex_solver;
 
         public:
           /**
@@ -53,11 +54,12 @@ namespace aspect
            * properties.
            */
           void
-          initialize_one_particle_property(const Point<dim> &position,
+          initialize_one_particle_property(const Point<dim>&,
                                            std::vector<double> &particle_properties) const override
 	  {
-	    for (unsigned int i = 0; i < perplex_solver.get_n_solution_phases() + 1; ++i)
-	      for (unsigned int j = 0; j < perplex_solver.get_composition().size(); ++j)
+	    perplex::State state{perplex::State::get_instance()};
+	    for (unsigned int i = 0; i < state.get_n_soln_phases() + 1; ++i)
+	      for (unsigned int j = 0; j < state.get_n_composition_components(); ++j)
 		particle_properties.push_back(0.0);
 	  }
 
@@ -84,39 +86,41 @@ namespace aspect
            */
 	  void
           update_one_particle_property (const unsigned int data_position,
-                                        const Point<dim> &position,
+                                        const Point<dim>&,
                                         const Vector<double> &solution,
-                                        const std::vector<Tensor<1,dim> > &gradients,
+                                        const std::vector<Tensor<1,dim>>&,
                                         const ArrayView<double> &particle_properties) const override
 	  {
-	    // get properties
+	    perplex::State state{perplex::State::get_instance()};
+
 	    const double pressure = solution[this->introspection().component_indices.pressure];
 	    const double temperature = solution[this->introspection().component_indices.temperature];
 
-	    // perform minimization
-	    const perplex::MinimizeResult res = perplex_solver.minimize(pressure,
-	                                                         	temperature);
+	    state.minimize(pressure, temperature);
 
 	    // store as property
 	    unsigned int pos { data_position };
 
-	    // bulk composition
-	    for (unsigned int i = 0; i < perplex_solver.get_composition().size(); ++i) {
-	      particle_properties[pos+i] = perplex_solver.get_composition()[i];
+	    std::vector<double> bulk_composition{state.get_bulk_composition()};
+	    for (unsigned int i = 0; i < state.get_n_composition_components(); ++i) {
+	      particle_properties[pos+i] = bulk_composition[i];
 	    }
-	    pos += perplex_solver.get_composition().size();
+	    pos += state.get_n_composition_components();
 
 	    // phase compositions
-	    for (unsigned int i = 0; i < perplex_solver.get_n_solution_phases(); ++i) {
-	      if (res.phases[i].n_moles == 0.0) {
-		pos += perplex_solver.get_composition().size();
-	       	continue;
-	      }
+	    std::vector<std::string> soln_names{state.get_abbr_soln_phase_names()};
+	    for (unsigned int i = 0; i < state.get_n_soln_phases(); ++i) {
+	      for (unsigned int j = 0; j < state.get_n_end_phases(); ++j) {
+		std::string name{state.get_end_phase_name(j)};
+		if (state.find_abbr_phase_name(name) == soln_names[i]) {
+		  std::vector<double> composition{state.get_end_phase_composition(j)};
+		  for (unsigned int k = 0; k < state.get_n_composition_components(); ++k)
+		    particle_properties[pos+k] = composition[k];
 
-	      for (unsigned int j = 0; j < perplex_solver.get_composition().size(); ++j) {
-		particle_properties[pos+j] = res.phases[i].composition[j];
+		  pos += state.get_n_composition_components();
+		  break;
+		}
 	      }
-	      pos += perplex_solver.get_composition().size();
 	    }
 	  }
 
@@ -125,15 +129,16 @@ namespace aspect
            * this property requires.
            *
            * @return A vector that contains pairs of the property names and the
-           * number of components this property plugin defines.
+           *         number of components this property plugin defines.
            */
           std::vector<std::pair<std::string, unsigned int>>
           get_property_information() const override
 	  {
+	    perplex::State state{perplex::State::get_instance()};
 	    std::vector<std::pair<std::string,unsigned int>> property_information;
 
-	    std::vector<std::string> comp_names = perplex_solver.get_composition_component_names();
-	    std::vector<std::string> phase_names = perplex_solver.get_solution_phase_names();
+	    std::vector<std::string> comp_names(state.get_composition_component_names());
+	    std::vector<std::string> phase_names(state.get_abbr_soln_phase_names());
 
 	    // bulk composition
 	    for (unsigned int i = 0; i < comp_names.size(); ++i)
@@ -187,7 +192,9 @@ namespace aspect
 		  // specify phases to measure, defaulting to 'all'
 		  // have different ways of specifying the initial composition (default: from file)
 		  perplex_dat_filename = prm.get("PerpleX file name");
-		  perplex_solver.init(perplex_dat_filename);
+		  perplex::State state{perplex::State::get_instance()};
+		    
+		  state.initialize(perplex_dat_filename);
 		prm.leave_subsection();
 	      }
 	      prm.leave_subsection();

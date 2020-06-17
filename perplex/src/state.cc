@@ -220,9 +220,4 @@ namespace perplex
     }
     throw std::invalid_argument("The phase name was not found.");
   }
-
-  State::State()
-  {
-    status = 1;
-  }
 }

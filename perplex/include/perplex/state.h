@@ -168,6 +168,6 @@ namespace perplex
        *
        * @remark This constructor is private to enforce the singleton pattern.
        */
-      State();
+      State() {};
   };
 }
