@@ -48,6 +48,9 @@ namespace perplex
     const int fd = disable_stdout();
     solver_init(filename.c_str());
     enable_stdout(fd);
+
+    // save that initialization is complete
+    initialized = true;
   }
 
   void State::minimize(const double pressure, const double temperature)
@@ -60,6 +63,9 @@ namespace perplex
     /* const int fd = disable_stdout(); */
     solver_minimize();
     /* enable_stdout(fd); */
+
+    // save that the minimization is complete
+    minimized = true;
   }
 
   size_t State::get_n_composition_components() const
