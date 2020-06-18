@@ -1,4 +1,4 @@
-690 DO NOT DELETE THIS LINE
+689 DO NOT DELETE THIS LINE
 
                             ---------------------------------------------------------------------------
                              FOR MODEL DEFINITIONS AND REFERENCES READ THE MODEL COMMENTARY OR REFER TO
@@ -253,55 +253,6 @@
 
                              perplex.ethz.ch/Perple_X_generic_hyrbid_fluid_EoS.html
                             ---------------------------------------------------------------------------
-begin_model                
-                      Ti-Mg-F Clinohumite after Duffy & Greenwood, Am Min 64:1156-1174, 1979. With
-                      Ad-hoc Ti
-TiCh(B)
-abbreviation TiCh
-full_name    clinohumite
-
-688                                | model type: 688 format standard model
- 
-1                                  | number of polytopes
-2                                  | number of simplices
-2 2                                | number of vertices on each simplex
-chu      fchu
-tchu     ftchu
-
-0. 1   .1   0                      | X(F), imod = 0 -> cartesian subdivision
-0. 1   .1   0                      | X(Ti), imod = 0 -> cartesian subdivision
-
-begin_dependent_endmembers
-ftchu   = 1 tchu + 1/2 fchu - 1/2 chu
-end_dependent_endmembers
-
-begin_excess_function
-W(chu  chu  fchu)   -21572
-W(chu  tchu fchu)   -21572
-W(tchu tchu fchu)    -5293
-W(chu  fchu fchu)   -59120
-W(fchu fchu tchu)   -29560
-end_excess_function 
-
-2                                   | number of sites in configurational entropy model
-
-M                                   | site name
-2 1 1                               | number of species, effective multiplicity, true multiplicity
-z(Ti,M)  = 1/2 tchu
-z(Mg,M)  = 1 fchu + 1 chu + 1/2 tchu
-
-OH                                  | site name
-3 2 2                               | number of species, effective multiplicity, true multiplicity
-z(OH,OH) = 1 chu + 1/2 tchu
-z(F,OH)  = 1 fchu
-z(O,OH)  = 1 tchu
-
-[Mg8Si4O16]                         | formula suffix, enter "none" for no suffix.
-
-reach_increment 3
-
-end_of_model
-                      --------------------------------------------------------
 begin_model
 
                              Ti-Fe3+ Biotite from Tajcmanova et al., JMG 2009;
@@ -685,10 +636,10 @@ cumm       grun                    | M-Ca divalent amphibole
 tr         ftr_d
 
                                    | First (1d) simplex
-X_Mg     .2  .7   .1  0            | X(1,1) = bulk Mg/M
+X_Mg     .5  .7   .1  0            | X(1,1) = bulk Mg/M
 X_Fe     by difference
                                    | Second (1d) simplex
-X_M_M2   0   1   .1  0            | X(2,1) = M/[Ca + M] on M4
+X_M_M2   0   .4   .1  0            | X(2,1) = M/[Ca + M] on M4
 X_C_M2   by difference
 
                                    | Third simplex 
@@ -1402,12 +1353,12 @@ mats_d  fats_d
 cenjh   cfsg
 di      hed_d
                                   | Simplex 1
-X_Mg     .1  .8   .1  0           | X(1,1) => bulk Mg/M
+X_Mg     .3  .8   .1  0           | X(1,1) => bulk Mg/M
 X_Fe     by difference
                                   | Simplex 2
 X_MFeTs  0  .2  .1  0             | X(2,1) - M-Fe3+
 X_MAlTs  0  .1  .1  0             | X(2,2) - M-Ts
-X_MMPx   0   1  .1  0             | X(2,3) - M-M
+X_MMPx   0  .2  .1  0             | X(2,3) - M-M
 X-MCPx   by difference 
 
 begin_ordered_endmembers
@@ -1868,7 +1819,7 @@ woL      q8L      h2oL
 0    .4   .1  0                     | range and resolution of X(sil), 1 => asymmetric subdivision
 0    .6   .1  0                     | range and resolution of X(ksp), 1 => asymmetric subdivision
 0    .4   .1  0                     | range and resolution of X(wo),  1 => asymmetric subdivision
-0    .8   .1  0                     | range and resolution of X(q), 0 => cartesian subdivision
+0    .6   .1  0                     | range and resolution of X(q), 0 => cartesian subdivision
 
 
 begin_ordered_endmembers
@@ -5921,7 +5872,7 @@ end_excess function
 
 3 1                         | 3 species on A, 1 site per formula unit.
 
-z(a,k) = 1 mu  + 1 cel + 1 fcel + 1 tip
+z(a,k) = 1 mu  + 1 cel + 1 fcel
 z(a,na) = 1 pa
 
 3 1                         | 3 species on M2a, 1 site per formula unit.
@@ -6043,7 +5994,7 @@ end_excess function
 
 3 1                         | 3 species on A, 1 site per formula unit.
 
-z(a,k) = 1 mu  + 1 cel + 1 fcel + 1 tip
+z(a,k) = 1 mu  + 1 cel + 1 fcel
 z(a,na) = 1 pa
 
 3 1                         | 3 species on M2a, 1 site per formula unit.
@@ -10407,7 +10358,7 @@ abbreviation F
 full_name    fluid
 
 39                          | model type: Generic Hybrid EoS
-10
+9
 CO2
 CH4
 H2S
@@ -10416,13 +10367,11 @@ H2
 CO
 N2
 NH3
-HF
 H2O
 
 
-0 0 0 0 0 0 0 0 0 0        | endmember flags
+0 0 0 0 0 0 0 0 0          | endmember flags
 
-0  1   .1  0               | subdivision ranges, imod = 0 -> cartesian subdivision
 0  1   .1  0               | subdivision ranges, imod = 0 -> cartesian subdivision
 0  1   .1  0               | subdivision ranges, imod = 0 -> cartesian subdivision
 0  1   .1  0               | subdivision ranges, imod = 0 -> cartesian subdivision
@@ -10437,6 +10386,8 @@ ideal                      | the fluid is non-ideal, this tag means only no exce
 0
 
 reach_increment 0
+
+refine_endmembers
 
 end_of_model
                       --------------------------------------------------------
@@ -10456,25 +10407,24 @@ abbreviation F
 full_name    fluid
 
 39                          | model type: Generic Hybrid EoS
-8
+7
 CO2
 CH4
 H2S
 SO2
 H2
 CO
-HF
 H2O
 
-0 0 0 0 0 0 0 0 0           | endmember flags
 
-1e-6   5e-1      .1       1        | subdivision ranges, imod = 1 -> non-linear subdivision
-1e-6   1e-2      .1       1        | subdivision ranges, imod = 1 -> non-linear subdivision
-1e-6   1e-3      .1       1        | H2S subdivision ranges, imod = 1 -> non-linear subdivision
-1e-6   2.5e-5    .1       1        | SO2 subdivision ranges, imod = 1 -> non-linear subdivision
-1e-6   1e-2      .1       1        | subdivision ranges, imod = 1 -> non-linear subdivision
-1e-6   1e-2      .1       1        | subdivision ranges, imod = 1 -> non-linear subdivision
-1e-6   1e-2      .1       1        | subdivision ranges, imod = 1 -> non-linear subdivision
+0 0 0 0 0 0 0 0             | endmember flags
+
+1e-4   5e-1      .1       1        | subdivision ranges, imod = 1 -> non-linear subdivision
+1e-5   1         .1       1        | subdivision ranges, imod = 1 -> non-linear subdivision
+1e-5   1e-3      .1       1        | H2S subdivision ranges, imod = 1 -> non-linear subdivision
+1e-5   2.5e-5    .1       1        | SO2 subdivision ranges, imod = 1 -> non-linear subdivision
+1e-5   1e-2      .1       1        | subdivision ranges, imod = 1 -> non-linear subdivision
+1e-5   1e-2      .1       1        | subdivision ranges, imod = 1 -> non-linear subdivision
 
 ideal
 
@@ -11425,11 +11375,6 @@ begin_model
 
                                   Make definitions corrected from the raw thermocalc versions. JADC, Jun 19, 2013.
 
-                                  The geikielite and most of the pyrhophanite excess terms were accidentally deleted
-                                  (by me) ca Feb 6, 2017 at the same time that the Ilm(W) and Ilm(WPH0) equivalents
-                                  of Ilm(WPH) were deleted from this file. Correction courtesy of Bob Myhill and 
-                                  the perplex discussion group (groups.io/g/PerpleX/topic/74420499). JADC, May 27, 2020.
-
 Ilm(WPH)
 abbreviation Ilm
 full_name    ilmenite
@@ -11451,17 +11396,12 @@ oilm = 1 dilm   enthalpy_of_ordering = -15600 + 11.52565132 T_K
 1d-3 .2  .1 1              | subdivision range, X(geik)
 0     1  .1 0              | subdivision range, X(hem)
 
+
 begin_excess_function
 W(oilm dilm)    15600
 W(oilm hem)     26600
-W(oilm geik)      4000
-W(oilm pnt)      2000
 W(dilm hem)     11000
-W(dilm geik)     4000
-W(dilm pnt)       2000
-W(hem geik)     36000
-W(hem pnt)       25000
-W(geik pnt)        4000
+W(oilm pnt)      1760
 end_excess_function
 
 2                          | 2 site model
@@ -13280,8 +13220,6 @@ z(mg,m4) = 1 afchl
 z(al,T2)= 1 ames + 1/2 clin + 1/2 daph + 1/2 mnchl
 
 site_check_override
-
-reject_bad_compositions
 
 end_of_model
                               --------------------------------------------------------
