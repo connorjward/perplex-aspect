@@ -27,7 +27,7 @@ include(FetchContent)
 FetchContent_Declare(
   perplexcpp
   GIT_REPOSITORY https://github.com/cward97/perplex-cpp.git
-  GIT_TAG        v1.0.0
+  GIT_TAG        origin/master
 )
 
 FetchContent_GetProperties(perplexcpp)
