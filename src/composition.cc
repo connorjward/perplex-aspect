@@ -1,6 +1,5 @@
 /*
- Copyright (C) 2015 - 2018 by the authors of the ASPECT code.
- Copyright (C) 2020 Connor Ward.
+ Copyright (C) 2020 by the authors of the ASPECT code.
 
  This file is part of ASPECT.
 
@@ -20,8 +19,7 @@
  */
 
 #include <aspect/particle/property/interface.h>
-
-#include <perplex/state.h>
+#include <perplexcpp/wrapper.h>
 
 namespace aspect
 {
@@ -57,9 +55,9 @@ namespace aspect
           initialize_one_particle_property(const Point<dim>&,
                                            std::vector<double> &particle_properties) const override
 	  {
-	    perplex::State state{perplex::State::get_instance()};
-	    for (unsigned int i = 0; i < state.get_n_soln_phases() + 1; ++i)
-	      for (unsigned int j = 0; j < state.get_n_composition_components(); ++j)
+	    auto wrapper = perplexcpp::Wrapper::get_instance();
+	    for (unsigned int i = 0; i < wrapper.get_n_phases() + 1; ++i)
+	      for (unsigned int j = 0; j < wrapper.get_n_composition_components(); ++j)
 		particle_properties.push_back(0.0);
 	  }
 
@@ -91,36 +89,29 @@ namespace aspect
                                         const std::vector<Tensor<1,dim>>&,
                                         const ArrayView<double> &particle_properties) const override
 	  {
-	    perplex::State state{perplex::State::get_instance()};
+	    auto wrapper = perplexcpp::Wrapper::get_instance();
 
 	    const double pressure = solution[this->introspection().component_indices.pressure];
 	    const double temperature = solution[this->introspection().component_indices.temperature];
 
-	    state.minimize(pressure, temperature);
+	    wrapper.minimize(pressure, temperature);
 
 	    // store as property
 	    unsigned int pos { data_position };
 
-	    std::vector<double> bulk_composition{state.get_bulk_composition()};
-	    for (unsigned int i = 0; i < state.get_n_composition_components(); ++i) {
+	    std::vector<double> bulk_composition{wrapper.get_bulk_composition()};
+	    for (unsigned int i = 0; i < wrapper.get_n_composition_components(); ++i) {
 	      particle_properties[pos+i] = bulk_composition[i];
 	    }
-	    pos += state.get_n_composition_components();
+	    pos += wrapper.get_n_composition_components();
 
 	    // phase compositions
-	    std::vector<std::string> soln_names{state.get_abbr_soln_phase_names()};
-	    for (unsigned int i = 0; i < state.get_n_soln_phases(); ++i) {
-	      for (unsigned int j = 0; j < state.get_n_end_phases(); ++j) {
-		std::string name{state.get_end_phase_name(j)};
-		if (state.find_abbr_phase_name(name) == soln_names[i]) {
-		  std::vector<double> composition{state.get_end_phase_composition(j)};
-		  for (unsigned int k = 0; k < state.get_n_composition_components(); ++k)
-		    particle_properties[pos+k] = composition[k];
+	    auto compositions = wrapper.get_phase_compositions();
+	    for (unsigned int i = 0; i < wrapper.get_n_phases(); ++i) {
+	      for (unsigned int j = 0; j < wrapper.get_n_composition_components(); ++j)
+		particle_properties[pos+j] = compositions[i][j];
 
-		  pos += state.get_n_composition_components();
-		  break;
-		}
-	      }
+	      pos += wrapper.get_n_composition_components();
 	    }
 	  }
 
@@ -134,20 +125,20 @@ namespace aspect
           std::vector<std::pair<std::string, unsigned int>>
           get_property_information() const override
 	  {
-	    perplex::State state{perplex::State::get_instance()};
+	    auto wrapper = perplexcpp::Wrapper::get_instance();
 	    std::vector<std::pair<std::string,unsigned int>> property_information;
 
-	    std::vector<std::string> comp_names(state.get_composition_component_names());
-	    std::vector<std::string> phase_names(state.get_abbr_soln_phase_names());
+	    auto composition_names = wrapper.get_composition_component_names();
+	    auto phase_names = wrapper.get_abbr_phase_names();
 
 	    // bulk composition
-	    for (unsigned int i = 0; i < comp_names.size(); ++i)
-	      property_information.push_back(std::make_pair("bulk::"+comp_names[i], 1));
+	    for (unsigned int i = 0; i < composition_names.size(); ++i)
+	      property_information.push_back(std::make_pair("bulk::"+composition_names[i], 1));
 
 	    // phase compositions
 	    for (unsigned int i = 0; i < phase_names.size(); ++i)
-	      for (unsigned int j = 0; j < comp_names.size(); ++j) 
-		property_information.push_back(std::make_pair(phase_names[i]+"::"+comp_names[j], 1));
+	      for (unsigned int j = 0; j < composition_names.size(); ++j) 
+		property_information.push_back(std::make_pair(phase_names[i]+"::"+composition_names[j], 1));
       
 	    return property_information;
 	  }
@@ -192,9 +183,7 @@ namespace aspect
 		  // specify phases to measure, defaulting to 'all'
 		  // have different ways of specifying the initial composition (default: from file)
 		  perplex_dat_filename = prm.get("PerpleX file name");
-		  perplex::State state{perplex::State::get_instance()};
-		    
-		  state.initialize(perplex_dat_filename);
+		  perplexcpp::Wrapper::get_instance().initialize(perplex_dat_filename);
 		prm.leave_subsection();
 	      }
 	      prm.leave_subsection();
