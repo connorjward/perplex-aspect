@@ -115,6 +115,25 @@ namespace aspect
 	    }
 	  }
 
+	  /**
+	   * This implementation tells the particle manager that
+	   * we need to update particle properties over time.
+	   */
+	  UpdateTimeFlags need_update() const override
+	  {
+	    return update_output_step;
+	  }
+
+	  /**
+	   * Return which data has to be provided to update the property.
+	   * The pressure and temperature need the values of their variables.
+	   */
+	  UpdateFlags get_needed_update_flags () const override
+	  {
+	    return update_values;
+	  }
+
+
           /**
            * Set up the information about the names and number of components
            * this property requires.
