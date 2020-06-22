@@ -1,10 +1,8 @@
 # PerpleX-ASPECT
 
-This repository contains two libraries: 
+An [ASPECT](https://aspect.geodynamics.org/) plugin that analyses phase compositions using [Perple_X](http://www.perplex.ethz.ch/).
 
-- `perplex` : A C++ wrapper for the thermodynamic code [Perple_X](perplex.ethz.ch) (written in Fortran 77).
-
-- `phaseinfo` : A plugin for the geodynamical code [ASPECT](aspect.geodynamics.org) that can analyse phase (mineral) amounts and composition.
+This repository contains the source code for interfacing with ASPECT. The Perple_X interface code can be found [here](https://github.com/cward97/perplex-cpp) (and it is built as part of this project).
 
 ## Prerequisites
 
