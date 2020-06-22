@@ -156,8 +156,9 @@ namespace aspect
 	      {
 		prm.enter_subsection("Phase composition");
 		{
-		  prm.declare_entry("PerpleX file name", "",
-		                    Patterns::FileName(),
+		  prm.declare_entry("Data directory", ".", Patterns::DirectoryName(),
+				    "The location of the Perple_X data files.");
+		  prm.declare_entry("Problem definition file", "", Patterns::FileName(),
 				    "The name of the PerpleX .dat file in use.");
 		}
 		prm.leave_subsection();
@@ -182,8 +183,10 @@ namespace aspect
 		  // Add decent assertions here to catch errors.
 		  // specify phases to measure, defaulting to 'all'
 		  // have different ways of specifying the initial composition (default: from file)
-		  perplex_dat_filename = prm.get("PerpleX file name");
-		  perplexcpp::Wrapper::get_instance().initialize(perplex_dat_filename);
+		  auto data_dirname = prm.get("Data directory");
+		  auto problem_filename = prm.get("Problem definition file");
+
+		  perplexcpp::Wrapper::get_instance().initialize(problem_filename, data_dirname);
 		prm.leave_subsection();
 	      }
 	      prm.leave_subsection();
