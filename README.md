@@ -14,17 +14,7 @@ This repository contains two libraries:
 
 - A Fortran 2003 compatible Fortran compiler (e.g. `gfortran`)
 
-- A C++ 2011 compatible C++ compiler (e.g. `gcc`)
-
-- A MPI library (e.g. `openmpi`)
-
-- LAPACK
-
-- BLAS
-
-- Git
-
-- zlib
+- A C++ 2017 compatible C++ compiler (e.g. `gcc`)
 
 ## Installation instructions
 
@@ -43,27 +33,19 @@ The `phaseinfo` library produces a shared library `phaseinfo.so` that can be dyn
 	set Additional shared libraries = /path/to/libphaseinfo.so
 	...
 	
-A basic example implementation of the plugin can be found in `data/aspect-prm-files/example.prm`.
+The plugin-specific input parameters can then be specified in the rest of the file. These are explained in more detail [here](https://github.com/cward97/perplex-aspect/wiki/ASPECT-input-parameters).
 
-The input parameters enabled by this shared library are explained in more detail [here](https://github.com/cward97/perplex-aspect/wiki/ASPECT-input-parameters).
+## Cookbooks
 
-## Testing
-
-To compile the code with tests enabled, the `PERPLEX_BUILD_TESTING` and `PHASEINFO_BUILD_TESTING` options have to be set to `ON` (default is `OFF`). The tests may then be run with CTest. For example:
-
-	cmake -DAspect_DIR=/path/to/aspect \
-	      -DPERPLEX_BUILD_TESTING=ON -DPHASEINFO_BUILD_TESTING=ON \
-	      ..
-	make -j<N>
-	ctest
+Example parameter files may be found in the `cookbooks` directory. The most straightforward way to run them is to execute the following commands:
+	
+	cd build
+	make setup_cookbooks
+	cd ../cookbooks
+	./aspect parameter-file.prm
 
 ## Project layout
 
-	data/		ASPECT parameter files and Perple_X data files
-	perplex/	Perple_X wrapper
-	  extern/	Perple_X source code
-	  include/	public header files
-	  src/		source code
-	  test/		unit tests
-	phaseinfo/	ASPECT plugin
-	  src/		source code
+	cookbooks/	example parameter files
+	data/perplex	Perple_X data files
+	source/		source code
