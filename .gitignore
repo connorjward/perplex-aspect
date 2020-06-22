@@ -1,6 +1,12 @@
 # build files
 /build/
+aspect
+*.so
 
 # temporary files
 /tags
 *.swp
+
+# Output files
+output-*/
+*.zip
