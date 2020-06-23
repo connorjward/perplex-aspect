@@ -19,6 +19,9 @@
  */
 
 #include <aspect/particle/property/interface.h>
+
+#include <aspect/utilities.h>
+#include <deal.II/base/exceptions.h>
 #include <perplexcpp/wrapper.h>
 
 namespace aspect
@@ -36,9 +39,6 @@ namespace aspect
       template <int dim>
       class PhaseComposition : public Interface<dim>, public ::aspect::SimulatorAccess<dim>
       {
-        private:
-	  std::string perplex_dat_filename;
-
         public:
           /**
            * Initialization function. This function is called once at the
@@ -198,13 +198,15 @@ namespace aspect
 	      prm.enter_subsection("Particles");
 	      {
 		prm.enter_subsection("Phase information");
-		  // TODO
-		  // Add decent assertions here to catch errors.
-		  // specify phases to measure, defaulting to 'all'
-		  // have different ways of specifying the initial composition (default: from file)
 		  auto data_dirname = prm.get("Data directory");
 		  auto problem_filename = prm.get("Problem definition file");
 
+		  AssertThrow(Utilities::fexists(data_dirname + "/" + problem_filename),
+		              ExcMessage("The Perple_X problem file could not be found."));
+
+		  // The Perple_X wrapper must be initialized in this method rather than in the
+		  // (optional) initialize() because initialize() is called after get_property_information()
+		  // which requires Perple_X to have been already initialized.
 		  perplexcpp::Wrapper::get_instance().initialize(problem_filename, data_dirname);
 		prm.leave_subsection();
 	      }
