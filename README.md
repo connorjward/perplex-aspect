@@ -25,13 +25,14 @@ An out of source build is recommended:
 	
 ## Running instructions
 
-The `phaseinfo` library produces a shared library `phaseinfo.so` that can be dynamically linked to when running ASPECT. To enable linking, just add the following line to the ASPECT input parameter file:
+The code produces a shared library `libperplexparticle.so` that can be dynamically linked to when running ASPECT. To enable linking, just add the following line to the ASPECT input parameter file:
 
 	...
-	set Additional shared libraries = /path/to/libphaseinfo.so
+	set Additional shared libraries = /path/to/libperplexparticle.so
 	...
 	
-The plugin-specific input parameters can then be specified in the rest of the file. These are explained in more detail [here](https://github.com/cward97/perplex-aspect/wiki/ASPECT-input-parameters).
+The plugin-specific input parameters can then be specified in the rest of the file. 
+These are explained in more detail in the [source code](https://github.com/cward97/perplex-aspect/blob/master/source/perplex_particle.cc).
 
 ## Cookbooks
 
