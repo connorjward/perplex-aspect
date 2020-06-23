@@ -173,7 +173,7 @@ namespace aspect
 	    {
 	      prm.enter_subsection("Particles");
 	      {
-		prm.enter_subsection("Phase composition");
+		prm.enter_subsection("Phase information");
 		{
 		  prm.declare_entry("Data directory", ".", Patterns::DirectoryName(),
 				    "The location of the Perple_X data files.");
@@ -197,7 +197,7 @@ namespace aspect
 	    {
 	      prm.enter_subsection("Particles");
 	      {
-		prm.enter_subsection("Phase composition");
+		prm.enter_subsection("Phase information");
 		  // TODO
 		  // Add decent assertions here to catch errors.
 		  // specify phases to measure, defaulting to 'all'

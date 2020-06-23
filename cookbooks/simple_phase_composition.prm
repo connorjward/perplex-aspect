@@ -69,7 +69,7 @@ subsection Postprocess
     set List of particle properties = phase composition, pT path
     set Time between data output    = 1e6
 
-    subsection Phase composition
+    subsection Phase information
       set Data directory          = ../data/perplex/simple
       set Problem definition file = simple.dat
     end
