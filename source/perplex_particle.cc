@@ -1,21 +1,19 @@
 /*
- Copyright (C) 2020 by the authors of the ASPECT code.
-
- This file is part of ASPECT.
-
- ASPECT is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2, or (at your option)
- any later version.
-
- ASPECT is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with ASPECT; see the file LICENSE.  If not see
- <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2020 Connor Ward
+ *
+ * This file is part of PerpleX-ASPECT.
+ * PerpleX-ASPECT is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PerpleX-ASPECT is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with PerpleX-ASPECT. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include <aspect/particle/property/interface.h>
@@ -31,26 +29,13 @@ namespace aspect
     namespace Property
     {
       /**
-       * A class that initializes particle properties based on a
-       * functional description provided in the input file.
-       *
-       * @ingroup ParticleProperties
+       * A class that calculates phase and system properties using the thermodynamical 
+       * code Perple_X.
        */
       template <int dim>
-      class PhaseComposition : public Interface<dim>, public ::aspect::SimulatorAccess<dim>
+      class PerpleXParticle : public Interface<dim>, public ::aspect::SimulatorAccess<dim>
       {
         public:
-          /**
-           * Initialization function. This function is called once at the
-           * creation of every particle for every property to initialize its
-           * value.
-           *
-           * @param [in] position The current particle position.
-           * @param [in,out] particle_properties The properties of the particle
-           * that is initialized within the call of this function. The purpose
-           * of this function should be to extend this vector by a number of
-           * properties.
-           */
           void
           initialize_one_particle_property(const Point<dim>&,
                                            std::vector<double> &particle_properties) const override
@@ -61,27 +46,6 @@ namespace aspect
 		particle_properties.push_back(0.0);
 	  }
 
-          /**
-           * Update function. This function is called every time an update is
-           * request by need_update() for every particle for every property.
-           *
-           * @param [in] data_position An unsigned integer that denotes which
-           * component of the particle property vector is associated with the
-           * current property. For properties that own several components it
-           * denotes the first component of this property, all other components
-           * fill consecutive entries in the @p particle_properties vector.
-           *
-           * @param [in] position The current particle position.
-           *
-           * @param [in] solution The values of the solution variables at the
-           * current particle position.
-           *
-           * @param [in] gradients The gradients of the solution variables at
-           * the current particle position.
-           *
-           * @param [in,out] particle_properties The properties of the particle
-           * that is updated within the call of this function.
-           */
 	  void
           update_one_particle_property (const unsigned int data_position,
                                         const Point<dim>&,
@@ -115,32 +79,16 @@ namespace aspect
 	    }
 	  }
 
-	  /**
-	   * This implementation tells the particle manager that
-	   * we need to update particle properties over time.
-	   */
 	  UpdateTimeFlags need_update() const override
 	  {
 	    return update_output_step;
 	  }
 
-	  /**
-	   * Return which data has to be provided to update the property.
-	   * The pressure and temperature need the values of their variables.
-	   */
 	  UpdateFlags get_needed_update_flags () const override
 	  {
 	    return update_values;
 	  }
 
-
-          /**
-           * Set up the information about the names and number of components
-           * this property requires.
-           *
-           * @return A vector that contains pairs of the property names and the
-           *         number of components this property plugin defines.
-           */
           std::vector<std::pair<std::string, unsigned int>>
           get_property_information() const override
 	  {
@@ -162,9 +110,6 @@ namespace aspect
 	    return property_information;
 	  }
 
-          /**
-           * Declare the parameters this class takes through input files.
-           */
           static
           void
           declare_parameters(ParameterHandler &prm)
@@ -173,7 +118,7 @@ namespace aspect
 	    {
 	      prm.enter_subsection("Particles");
 	      {
-		prm.enter_subsection("Phase information");
+		prm.enter_subsection("Perple_X particle");
 		{
 		  prm.declare_entry("Data directory", ".", Patterns::DirectoryName(),
 				    "The location of the Perple_X data files.");
@@ -187,9 +132,6 @@ namespace aspect
 	    prm.leave_subsection();
 	  }
 
-          /**
-           * Read the parameters this class declares from the parameter file.
-           */
           void
           parse_parameters(ParameterHandler &prm) override
 	  {
@@ -197,17 +139,20 @@ namespace aspect
 	    {
 	      prm.enter_subsection("Particles");
 	      {
-		prm.enter_subsection("Phase information");
+		prm.enter_subsection("Perple_X particle");
 		  auto data_dirname = prm.get("Data directory");
 		  auto problem_filename = prm.get("Problem definition file");
 
 		  AssertThrow(Utilities::fexists(data_dirname + "/" + problem_filename),
-		              ExcMessage("The Perple_X problem file could not be found."));
+		              ExcMessage("The Perple_X problem file "
+			                 "could not be found."));
 
-		  // The Perple_X wrapper must be initialized in this method rather than in the
-		  // (optional) initialize() because initialize() is called after get_property_information()
-		  // which requires Perple_X to have been already initialized.
-		  perplexcpp::Wrapper::get_instance().initialize(problem_filename, data_dirname);
+		  // The Perple_X wrapper must be initialized in this method rather than 
+		  // in the (optional) initialize() because initialize() is called after 
+		  // get_property_information() which requires Perple_X to have been 
+		  // already initialized.
+		  perplexcpp::Wrapper::get_instance().initialize(problem_filename, 
+		                                                 data_dirname);
 		prm.leave_subsection();
 	      }
 	      prm.leave_subsection();
@@ -226,10 +171,11 @@ namespace aspect
   {
     namespace Property
     {
-      ASPECT_REGISTER_PARTICLE_PROPERTY(PhaseComposition,
-                                        "phase composition",
-                                        "Information about plugin.")
+      ASPECT_REGISTER_PARTICLE_PROPERTY(PerpleXParticle,
+                                        "perplex particle",
+                                        "A plugin that calls MEEMUM from Perple_X in "
+					"order to track properties such as phase "
+					"compositions and amounts.")
     }
   }
 }
-

@@ -25,9 +25,9 @@ if(NOT perplexcpp_POPULATED)
   add_subdirectory(${perplexcpp_SOURCE_DIR} ${perplexcpp_BINARY_DIR})
 endif()
 
-add_library(phaseinfo SHARED composition.cc)
-target_link_libraries(phaseinfo perplexcpp)
-ASPECT_SETUP_PLUGIN(phaseinfo)
+add_library(perplexparticle SHARED perplex_particle.cc)
+target_link_libraries(perplexparticle perplexcpp)
+ASPECT_SETUP_PLUGIN(perplexparticle)
 
 # To allow the cookbooks to be straightforwardly run, the ASPECT executable 
 # (linked to the current directory via ASPECT_SETUP_PLUGIN) and phaseinfo 
@@ -35,13 +35,13 @@ ASPECT_SETUP_PLUGIN(phaseinfo)
 set(COOKBOOKS_DIR ${PROJECT_SOURCE_DIR}/cookbooks)
 
 add_custom_command(
-  OUTPUT ${COOKBOOKS_DIR}/aspect ${COOKBOOKS_DIR}/libphaseinfo.so
+  OUTPUT ${COOKBOOKS_DIR}/aspect ${COOKBOOKS_DIR}/libperplexparticle.so
   COMMAND ${CMAKE_COMMAND} -E create_symlink 
 	  ${CMAKE_CURRENT_BINARY_DIR}/aspect ${COOKBOOKS_DIR}/aspect
   COMMAND ${CMAKE_COMMAND} -E create_symlink 
-	  ${CMAKE_CURRENT_BINARY_DIR}/libphaseinfo.so ${COOKBOOKS_DIR}/libphaseinfo.so)
+	  ${CMAKE_CURRENT_BINARY_DIR}/libperplexparticle.so ${COOKBOOKS_DIR}/libperplexparticle.so)
 
 add_custom_target(setup_cookbooks
-  DEPENDS ${COOKBOOKS_DIR}/aspect ${COOKBOOKS_DIR}/libphaseinfo.so)
+  DEPENDS ${COOKBOOKS_DIR}/aspect ${COOKBOOKS_DIR}/libperplexparticle.so)
 
-add_dependencies(setup_cookbooks phaseinfo)
+add_dependencies(setup_cookbooks perplexparticle)

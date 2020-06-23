@@ -1,4 +1,4 @@
-set Additional shared libraries            = ./libphaseinfo.so
+set Additional shared libraries            = ./libperplexparticle.so
 
 set Dimension                              = 2
 set Adiabatic surface temperature          = 1600
@@ -66,15 +66,16 @@ subsection Postprocess
 
   subsection Particles
     set Number of particles         = 100
-    set List of particle properties = phase composition, pT path
+    set List of particle properties = perplex particle
     set Time between data output    = 1e6
 
-    subsection Phase information
+    subsection Perple_X particle
       set Data directory          = ../data/perplex/simple
       set Problem definition file = simple.dat
     end
   end
 
+  # Track the temperature just so there is something to look at.
   subsection Visualization
     set List of output variables      = nonadiabatic temperature
     set Number of grouped files       = 0

@@ -4,9 +4,9 @@
 # obvious. The model was chosen because it is relatively fast to run and it 
 # represents a region where partial melting occurs.
 
-# Include the 'phaseinfo' shared library. Otherwise the later sections will
+# Include the 'perplexparticle' shared library. Otherwise the later sections will
 # not be recognised.
-set Additional shared libraries            = ./libphaseinfo.so
+set Additional shared libraries            = ./libperplexparticle.so
 
 set Dimension                              = 2
 set Adiabatic surface temperature          = 1600
@@ -130,10 +130,10 @@ subsection Postprocess
   # results to be valid AT ALL.
   subsection Particles
     set Number of particles         = 100
-    set List of particle properties = phase composition
+    set List of particle properties = perplex particle
     set Time between data output    = 6e5
 
-    subsection Phase information
+    subsection Perple_X particle
       set Data directory          = ../data/perplex/simple
       set Problem definition file = simple.dat
     end
