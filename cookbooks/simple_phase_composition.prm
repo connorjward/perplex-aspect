@@ -5,7 +5,7 @@ set Adiabatic surface temperature          = 1600
 set Maximum time step                      = 1e6
 set Use years in output instead of seconds = true
 set Output directory                       = output-simple_phase_composition
-set End time                               = 1e8
+set End time                               = 1e7
 
 subsection Boundary velocity model
   set Tangential velocity boundary indicators = left, right, top, bottom
@@ -72,6 +72,8 @@ subsection Postprocess
     subsection Perple_X particle
       set Data directory          = ../data/perplex/simple
       set Problem definition file = simple.dat
+
+      set List of tracked phases  = liquid, olivine
     end
   end
 

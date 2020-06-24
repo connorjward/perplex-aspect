@@ -136,6 +136,8 @@ subsection Postprocess
     subsection Perple_X particle
       set Data directory          = ../data/perplex/simple
       set Problem definition file = simple.dat
+
+      set List of tracked phases  = olivine, liquid
     end
   end
 end
