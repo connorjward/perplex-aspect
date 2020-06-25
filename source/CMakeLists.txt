@@ -12,19 +12,6 @@ endif()
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
-include(FetchContent)
-FetchContent_Declare(
-  perplexcpp
-  GIT_REPOSITORY https://github.com/cward97/perplex-cpp.git
-  GIT_TAG        origin/master
-)
-
-FetchContent_GetProperties(perplexcpp)
-if(NOT perplexcpp_POPULATED)
-  FetchContent_Populate(perplexcpp)
-  add_subdirectory(${perplexcpp_SOURCE_DIR} ${perplexcpp_BINARY_DIR})
-endif()
-
 add_library(perplexparticle SHARED perplex_particle.cc)
 target_link_libraries(perplexparticle perplexcpp)
 ASPECT_SETUP_PLUGIN(perplexparticle)

@@ -1,0 +1,3 @@
+[submodule "external/perplex-cpp"]
+	path = external/perplex-cpp
+	url = git@github.com:cward97/perplex-cpp.git
