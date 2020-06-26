@@ -53,9 +53,15 @@ namespace aspect
                                            std::vector<double> &particle_properties) const override
 	  {
 	    auto wrapper = perplexcpp::Wrapper::get_instance();
-	    for (unsigned int i = 0; i < tracked_phases.size() + 1; ++i)
+
+	    for (unsigned int i = 0; i < tracked_phases.size(); ++i)
 	      for (unsigned int j = 0; j < wrapper.get_n_composition_components(); ++j)
 		particle_properties.push_back(0.0);
+
+	    if (track_bulk_composition)
+	      for (unsigned int i = 0; i < wrapper.get_n_composition_components(); ++i)
+		particle_properties.push_back(0.0);
+
 	  }
 
 	  void
@@ -69,25 +75,26 @@ namespace aspect
 
 	    const double pressure = solution[this->introspection().component_indices.pressure];
 	    const double temperature = solution[this->introspection().component_indices.temperature];
-
 	    wrapper.minimize(pressure, temperature);
 
-	    // store as property
-	    unsigned int pos { data_position };
+	    // Track the current data position.
+	    unsigned int current_position = data_position;
 
-	    std::vector<double> bulk_composition{wrapper.get_bulk_composition()};
-	    for (unsigned int i = 0; i < wrapper.get_n_composition_components(); ++i) {
-	      particle_properties[pos+i] = bulk_composition[i];
-	    }
-	    pos += wrapper.get_n_composition_components();
-
-	    // phase compositions
-	    auto compositions = wrapper.get_phase_compositions();
+	    std::vector<std::vector<double>> phase_compositions = wrapper.get_phase_compositions();
 	    for (unsigned int phase_index : tracked_phases) {
-	      for (unsigned int j = 0; j < wrapper.get_n_composition_components(); ++j)
-		particle_properties[pos+j] = compositions[phase_index][j];
+	      for (double composition_component : phase_compositions[phase_index]) {
+		particle_properties[current_position] = composition_component;
+		current_position++;
+	      }
+	    }
 
-	      pos += wrapper.get_n_composition_components();
+	    if (track_bulk_composition) {
+	      std::vector<double> bulk_composition = wrapper.get_bulk_composition();
+
+	      for (double composition_component : bulk_composition) {
+		particle_properties[current_position] = composition_component;
+		current_position++;
+	      }
 	    }
 	  }
 
@@ -104,21 +111,19 @@ namespace aspect
           std::vector<std::pair<std::string, unsigned int>>
           get_property_information() const override
 	  {
-	    auto wrapper = perplexcpp::Wrapper::get_instance();
 	    std::vector<std::pair<std::string,unsigned int>> property_information;
 
-	    auto composition_names = wrapper.get_composition_component_names();
-	    auto phase_names = wrapper.get_full_phase_names();
+	    auto wrapper = perplexcpp::Wrapper::get_instance();
 
-	    // bulk composition
-	    for (unsigned int i = 0; i < composition_names.size(); ++i)
-	      property_information.push_back(std::make_pair("bulk::"+composition_names[i], 1));
-
-	    // phase compositions
+	    const std::vector<std::string> phase_names = wrapper.get_full_phase_names();
 	    for (unsigned int phase_index : tracked_phases)
-	      for (unsigned int i = 0; i < composition_names.size(); ++i) 
-		property_information.push_back(std::make_pair(phase_names[phase_index] + " " + 
-					                      composition_names[i], 1));
+	      for (std::string composition_name : wrapper.get_composition_component_names())
+		property_information.push_back(std::make_pair(composition_name + " (" + 
+		                                              phase_names[phase_index] + ")", 1));
+
+	    if (track_bulk_composition)
+	      for (std::string name : wrapper.get_composition_component_names())
+		property_information.push_back(std::make_pair(name + " (bulk)", 1));
       
 	    return property_information;
 	  }
@@ -141,7 +146,8 @@ namespace aspect
 		  prm.declare_entry("Problem definition file", 
 		                    "", 
 				    Patterns::FileName(),
-				    "The name of the PerpleX .dat file in use.", true);
+				    "The name of the PerpleX .dat file in use.",
+				    true);
 
 		  prm.declare_entry("List of tracked phases",
 		                    "all", 
@@ -151,6 +157,12 @@ namespace aspect
 				    "the Perple_X problem definition file (e.g. melt(HGP)). These can "
 				    "be in any of the three formats supported by Perple_X (e.g. "
 				    "melt can be written as 'melt(HGP)', 'Melt' or 'liquid').");
+
+		  prm.declare_entry("Track bulk composition",
+		                    "false",
+				    Patterns::Bool(),
+				    "Whether to track the evolution of the bulk composition. In "
+				    "bulk melting this will be constant.");
 		}
 		prm.leave_subsection();
 	      }
@@ -220,6 +232,8 @@ namespace aspect
 				         "Particle/Perple_X particle/List of tracked phases' "
 					 "has multiple entries referring to the same phase. This "
 					 "is not allowed. Please check your parameter file."));
+
+		  track_bulk_composition = prm.get_bool("Track bulk composition");
 
 		  prm.leave_subsection();
 	      }

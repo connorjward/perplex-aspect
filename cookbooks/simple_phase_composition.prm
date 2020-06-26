@@ -74,6 +74,7 @@ subsection Postprocess
       set Problem definition file = simple.dat
 
       set List of tracked phases  = liquid, olivine
+      set Track bulk composition  = false
     end
   end
 
