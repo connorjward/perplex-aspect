@@ -16,12 +16,17 @@ This repository contains the source code for interfacing with ASPECT. The Perple
 
 ## Installation instructions
 
-An out of source build is recommended:
+Clone the repository (including submodules):
 
-	mkdir build
-	cd build
-	cmake -DAspect_DIR=/path/to/aspect/ ..
-	make -j<N>
+	$ git clone --recurse-submodules https://github.com/cward97/perplex-aspect.git
+	$ cd perplex-aspect
+
+Compile the code with CMake (an out of source build as shown below is recommended):
+
+	$ mkdir build
+	$ cd build
+	$ cmake -DAspect_DIR=/path/to/aspect/ ..
+	$ make -j<N>
 	
 ## Running instructions
 
@@ -45,6 +50,7 @@ Example parameter files may be found in the `cookbooks` directory. The most stra
 
 ## Project layout
 
-	cookbooks/	example parameter files
-	data/perplex	Perple_X data files
-	source/		source code
+	cookbooks/		example parameter files
+	data/perplex		Perple_X data files
+	external/perplex-cpp	git submodule containing the Perple_X wrapper code	
+	source/			source code
