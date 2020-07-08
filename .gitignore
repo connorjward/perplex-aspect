@@ -9,4 +9,6 @@ aspect
 
 # Output files
 output-*/
+*.err
+*.out
 *.zip

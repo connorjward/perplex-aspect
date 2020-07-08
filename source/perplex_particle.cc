@@ -17,6 +17,7 @@
  * along with PerpleX-ASPECT. If not, see <https://www.gnu.org/licenses/>.
  */
 
+
 #include <aspect/particle/property/interface.h>
 
 #include <aspect/utilities.h>
@@ -28,45 +29,6 @@
 namespace aspect
 {
   using perplexcpp::Wrapper;
-
-
-
-  namespace
-  {
-    /**
-     * ???
-     */
-    perplexcpp::Phase
-    find_phase(const std::vector<perplexcpp::Phase> phases, 
-               const std::string name)
-    {
-      for (auto phase : phases) {
-	if (name == phase.name.standard ||
-	    name == phase.name.abbreviated ||
-	    name == phase.name.full)
-	  return phase;
-      }
-      AssertThrow(false, ExcMessage("The name '" + name + "' could not be found."));
-    }
-
-
-    /**
-     * ???
-     */
-    perplexcpp::PhaseName
-    find_phase(const std::vector<perplexcpp::PhaseName> phase_names, 
-               const std::string name)
-    {
-      for (auto phase_name : phase_names) {
-	if (name == phase_name.standard ||
-	    name == phase_name.abbreviated ||
-	    name == phase_name.full)
-	  return phase_name;
-      }
-      AssertThrow(false, ExcMessage("The name '" + name + "' could not be found."));
-    }
-  }
-
 
 
   namespace Particle
@@ -144,12 +106,12 @@ namespace aspect
 	    unsigned int current_position = data_position;
 
 	    for (std::string name : tracked_phases) {
-	      perplexcpp::Phase phase = find_phase(result.phases, name);
+	      perplexcpp::Phase phase = perplexcpp::find_phase(result.phases, name);
 
 	      for (std::string property : tracked_phase_properties) {
 		if (property == "composition") {
-		  for (auto comp : phase.composition) {
-		    particle_properties[current_position] = comp.amount;
+		  for (double comp : phase.composition) {
+		    particle_properties[current_position] = comp;
 		    current_position++;
 		  }
 		} 
@@ -176,8 +138,8 @@ namespace aspect
 	    }
 
 	    if (track_bulk_composition) {
-	      for (auto comp : result.composition) {
-		particle_properties[current_position] = comp.amount;
+	      for (double comp : result.composition) {
+		particle_properties[current_position] = comp;
 		current_position++;
 	      }
 	    }
@@ -301,58 +263,75 @@ namespace aspect
 	      prm.enter_subsection("Particles");
 	      {
 		prm.enter_subsection("Perple_X particle");
-		
-		const auto data_dirname = prm.get("Data directory");
-		const auto problem_filename = prm.get("Problem definition file");
-
-		AssertThrow(Utilities::fexists(data_dirname + "/" + problem_filename),
-		            ExcMessage("The Perple_X problem file could not be found."));
-
-		// The Perple_X wrapper must be initialized in this method rather than 
-		// in the (optional) initialize() because initialize() is called after 
-		// get_property_information() which requires Perple_X to have been 
-		// already initialized.
-		Wrapper::initialize(problem_filename, data_dirname);
-		Wrapper& perplex_wrapper = perplexcpp::Wrapper::get_instance();
-
-		tracked_phases = Utilities::split_string_list(prm.get("List of phases"));
-
-		// See if 'all' was selected (only valid if no other phases are included). 
-		// If so simply replace the list with one that contains all the phases. If not,
-		// find the phase indices that correspond to the submitted phase names.
-		if (std::find(tracked_phases.begin(), tracked_phases.end(), "all") 
-		              != tracked_phases.end()) 
 		{
-		  AssertThrow(tracked_phases.size() == 1, 
-		              ExcMessage("'all' specified for the parameter " 
-			                 "'List of tracked phases' but other phases are also "
-			                 "specified. Please check your parameter file."));
+		  
+		  const auto data_dirname = prm.get("Data directory");
+		  const auto problem_filename = prm.get("Problem definition file");
 
-		  tracked_phases.clear();
-		  for (perplexcpp::PhaseName name : perplex_wrapper.phase_names)
-		    tracked_phases.push_back(name.full);
+		  AssertThrow(Utilities::fexists(data_dirname + "/" + problem_filename),
+			      ExcMessage("The Perple_X problem file could not be found."));
+
+		  // The Perple_X wrapper must be initialized in this method rather than 
+		  // in the (optional) initialize() because initialize() is called after 
+		  // get_property_information() which requires Perple_X to have been 
+		  // already initialized.
+		  Wrapper::initialize(problem_filename, data_dirname);
+		  Wrapper& perplex_wrapper = perplexcpp::Wrapper::get_instance();
+
+		  tracked_phases = Utilities::split_string_list(prm.get("List of phases"));
+
+		  // See if 'all' was selected (only valid if no other phases are included). 
+		  // If so simply replace the list with one that contains all the phases. If not,
+		  // find the phase indices that correspond to the submitted phase names.
+		  if (std::find(tracked_phases.begin(), tracked_phases.end(), "all") 
+				!= tracked_phases.end()) 
+		  {
+		    AssertThrow(tracked_phases.size() == 1, 
+				ExcMessage("'all' specified for the parameter " 
+					   "'List of tracked phases' but other phases are also "
+					   "specified. Please check your parameter file."));
+
+		    tracked_phases.clear();
+		    for (perplexcpp::PhaseName name : perplex_wrapper.phase_names)
+		      tracked_phases.push_back(name.full);
+		  }
+
+		  // Check that all of the specified phase names actually exist.
+		  for (std::string tracked_name : tracked_phases) {
+		    bool found = false;
+
+		    for (perplexcpp::PhaseName name : perplex_wrapper.phase_names) {
+		      if (tracked_name == name.standard ||
+			  tracked_name == name.abbreviated ||
+			  tracked_name == name.full)
+		      {
+			found = true;
+			break;
+		      }
+		    }
+
+		    AssertThrow(found, ExcMessage("The phase '" + 
+			                          tracked_name + 
+						  "' could not be found."));
+		  }
+
+		  tracked_phase_properties = Utilities::split_string_list(prm.get("List of phase "
+										  "properties"));
+		  AssertThrow(Utilities::has_unique_entries(tracked_phase_properties),
+			      ExcMessage("The list of strings for the parameter "
+					 "'Postprocess/Particles/Perple_X particle/Phase properties "
+					 "contains entries more than once. "
+					 "This is not allowed. Please check your parameter file."));
+
+		  track_bulk_composition = prm.get_bool("Track bulk composition");
+
+		  prm.leave_subsection();
 		}
-
-		// Check that all of the specified phase names actually exist.
-		for (std::string name : tracked_phases)
-		  find_phase(perplex_wrapper.phase_names, name);
-
-		tracked_phase_properties = Utilities::split_string_list(prm.get("List of phase "
-										"properties"));
-		AssertThrow(Utilities::has_unique_entries(tracked_phase_properties),
-			    ExcMessage("The list of strings for the parameter "
-				       "'Postprocess/Particles/Perple_X particle/Phase properties "
-				       "contains entries more than once. "
-				       "This is not allowed. Please check your parameter file."));
-
-		track_bulk_composition = prm.get_bool("Track bulk composition");
-
-		prm.leave_subsection();
+	      }
+	      prm.leave_subsection();
 	    }
 	    prm.leave_subsection();
 	  }
-	  prm.leave_subsection();
-	}
       };
     }
   }

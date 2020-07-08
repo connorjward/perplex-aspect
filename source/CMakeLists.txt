@@ -12,9 +12,10 @@ endif()
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
-add_library(perplexparticle SHARED perplex_particle.cc)
-target_link_libraries(perplexparticle perplexcpp)
-ASPECT_SETUP_PLUGIN(perplexparticle)
+# add_library(perplexaspect SHARED perplex_melt_global.cc perplex_particle.cc)
+add_library(perplexaspect SHARED perplex_melt_simple.cc)
+target_link_libraries(perplexaspect perplexcpp)
+ASPECT_SETUP_PLUGIN(perplexaspect)
 
 # To allow the cookbooks to be straightforwardly run, the ASPECT executable 
 # (linked to the current directory via ASPECT_SETUP_PLUGIN) and phaseinfo 
@@ -22,13 +23,13 @@ ASPECT_SETUP_PLUGIN(perplexparticle)
 set(COOKBOOKS_DIR ${PROJECT_SOURCE_DIR}/cookbooks)
 
 add_custom_command(
-  OUTPUT ${COOKBOOKS_DIR}/aspect ${COOKBOOKS_DIR}/libperplexparticle.so
+  OUTPUT ${COOKBOOKS_DIR}/aspect ${COOKBOOKS_DIR}/libperplexaspect.so
   COMMAND ${CMAKE_COMMAND} -E create_symlink 
 	  ${CMAKE_CURRENT_BINARY_DIR}/aspect ${COOKBOOKS_DIR}/aspect
   COMMAND ${CMAKE_COMMAND} -E create_symlink 
-	  ${CMAKE_CURRENT_BINARY_DIR}/libperplexparticle.so ${COOKBOOKS_DIR}/libperplexparticle.so)
+	  ${CMAKE_CURRENT_BINARY_DIR}/libperplexaspect.so ${COOKBOOKS_DIR}/libperplexaspect.so)
 
 add_custom_target(setup_cookbooks
-  DEPENDS ${COOKBOOKS_DIR}/aspect ${COOKBOOKS_DIR}/libperplexparticle.so)
+  DEPENDS ${COOKBOOKS_DIR}/aspect ${COOKBOOKS_DIR}/libperplexaspect.so)
 
-add_dependencies(setup_cookbooks perplexparticle)
+add_dependencies(setup_cookbooks perplexaspect)
