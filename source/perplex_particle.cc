@@ -98,8 +98,18 @@ namespace aspect
 	  {
 	    auto& wrapper = perplexcpp::Wrapper::get_instance();
 
-	    const double pressure = solution[this->introspection().component_indices.pressure];
-	    const double temperature = solution[this->introspection().component_indices.temperature];
+	    double pressure = solution[this->introspection().component_indices.pressure];
+	    double temperature = solution[this->introspection().component_indices.temperature];
+
+	    if (pressure < wrapper.min_pressure)
+	      pressure = wrapper.min_pressure;
+	    else if (pressure > wrapper.max_pressure)
+	      pressure = wrapper.max_pressure;
+	    if (temperature < wrapper.min_temperature)
+	      temperature = wrapper.min_temperature;
+	    if (temperature > wrapper.max_temperature)
+	      temperature = wrapper.max_temperature;
+
 	    perplexcpp::MinimizeResult result = wrapper.minimize(pressure, temperature);
 
 	    // Track the current data position.
@@ -110,21 +120,21 @@ namespace aspect
 
 	      for (std::string property : tracked_phase_properties) {
 		if (property == "composition") {
-		  for (double comp : phase.composition) {
+		  for (double comp : phase.composition_ratio) {
 		    particle_properties[current_position] = comp;
 		    current_position++;
 		  }
 		} 
 		else if (property == "molar amount") {
-		  particle_properties[current_position] = phase.amount;
+		  particle_properties[current_position] = phase.n_moles;
 		  current_position++;
 		} 
 		else if (property == "molar fraction") {
-		  particle_properties[current_position] = phase.mol_frac;
+		  particle_properties[current_position] = phase.molar_frac;
 		  current_position++;
 		} 
 		else if (property == "volume fraction") {
-		  particle_properties[current_position] = phase.vol_frac;
+		  particle_properties[current_position] = phase.volume_frac;
 		  current_position++;
 		} 
 		else if (property == "weight fraction") {

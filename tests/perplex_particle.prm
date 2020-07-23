@@ -1,0 +1,121 @@
+# This test can be used to verify the output from the 'perplex particle' plugin.
+# It is based on the global_no_melt.prm file from the main ASPECT repository.
+
+set Additional shared libraries            = ./libperplexaspect.so
+
+set Dimension                              = 2
+set Adiabatic surface temperature          = 1600
+set Maximum time step                      = 1e6
+set Output directory                       = output-perplex_particle
+set Use years in output instead of seconds = true
+
+set End time                               = 1e6
+
+subsection Solver parameters
+  subsection Stokes solver parameters
+    set Linear solver tolerance = 1e-8
+    set Number of cheap Stokes solver steps = 100
+  end
+end
+
+subsection Boundary velocity model
+  set Tangential velocity boundary indicators = left, right, top, bottom
+end
+
+subsection Discretization
+  subsection Stabilization parameters
+    set beta  = 0.5
+    set cR    = 1
+  end
+end
+
+subsection Initial temperature model
+  set List of model names = adiabatic, function
+  subsection Adiabatic
+    set Age bottom boundary layer = 5e8
+    set Age top boundary layer    = 3e8
+
+    subsection Function
+      set Function expression       = 0;0
+    end
+  end
+
+  subsection Function
+    set Function constants        = r=350000, amplitude=50
+    set Function expression       = if((x-2900000)*(x-2900000)+y*y<r,amplitude,0)
+  end
+end
+
+subsection Boundary temperature model
+  set Fixed temperature boundary indicators = top, bottom
+  set List of model names = initial temperature
+
+  subsection Initial temperature
+    set Minimal temperature = 293 
+    set Maximal temperature = 3700
+  end
+end
+
+subsection Geometry model
+  set Model name = box
+
+  subsection Box
+    set X extent = 8700000
+    set Y extent = 2900000
+    set X repetitions = 3
+  end
+
+end
+
+subsection Gravity model
+  set Model name = vertical
+
+  subsection Vertical
+    set Magnitude = 9.81
+  end
+end
+
+subsection Material model
+
+  set Model name = melt global 
+  subsection Melt global
+    set Thermal conductivity              = 4.7
+    set Reference solid density           = 3400
+    set Thermal expansion coefficient     = 2e-5
+    set Reference shear viscosity         = 5e21
+    set Thermal viscosity exponent        = 7
+    set Reference temperature             = 1600
+    set Solid compressibility             = 4.2e-12
+  end
+end
+
+subsection Mesh refinement
+  set Initial adaptive refinement              = 0
+  set Initial global refinement                = 4
+  set Time steps between mesh refinement       = 0
+end
+
+subsection Heating model
+  set List of model names = adiabatic heating
+end 
+
+subsection Postprocess
+  set List of postprocessors = particles
+
+  subsection Particles
+    set Number of particles         = 100
+    set List of particle properties = perplex particle
+    set Time between data output    = 0
+    set Data output format          = ascii
+
+    subsection Perple_X particle
+      set Data directory           = ../data/perplex/simple
+      set Problem definition file  = simple.dat
+
+      set List of phases           = all
+      set List of phase properties = composition, molar amount
+
+      set Track bulk composition = true
+    end
+  end
+end

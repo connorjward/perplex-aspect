@@ -1,3 +1,21 @@
+# Copyright (C) 2015 - 2020 by the authors of the ASPECT code.
+# Copyright (C) 2020 Connor Ward
+#
+# This file is part of PerpleX-ASPECT.
+# PerpleX-ASPECT is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PerpleX-ASPECT is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with PerpleX-ASPECT. If not, see <https://www.gnu.org/licenses/>.
+
+
 find_package(Aspect 2.1.0 QUIET HINTS ${Aspect_DIR} ../ ../../ $ENV{ASPECT_DIR})
 
 if(NOT Aspect_FOUND)
@@ -12,8 +30,7 @@ endif()
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
-# add_library(perplexaspect SHARED perplex_melt_global.cc perplex_particle.cc)
-add_library(perplexaspect SHARED perplex_melt_simple.cc)
+add_library(perplexaspect SHARED perplex_melt_simple.cc perplex_particle.cc)
 target_link_libraries(perplexaspect perplexcpp)
 ASPECT_SETUP_PLUGIN(perplexaspect)
 
@@ -33,3 +50,19 @@ add_custom_target(setup_cookbooks
   DEPENDS ${COOKBOOKS_DIR}/aspect ${COOKBOOKS_DIR}/libperplexaspect.so)
 
 add_dependencies(setup_cookbooks perplexaspect)
+
+
+# Do the same for the tests.
+set(TESTS_DIR ${PROJECT_SOURCE_DIR}/tests)
+
+add_custom_command(
+  OUTPUT ${TESTS_DIR}/aspect ${TESTS_DIR}/libperplexaspect.so
+  COMMAND ${CMAKE_COMMAND} -E create_symlink 
+	  ${CMAKE_CURRENT_BINARY_DIR}/aspect ${TESTS_DIR}/aspect
+  COMMAND ${CMAKE_COMMAND} -E create_symlink 
+	  ${CMAKE_CURRENT_BINARY_DIR}/libperplexaspect.so ${TESTS_DIR}/libperplexaspect.so)
+
+add_custom_target(setup_tests
+  DEPENDS ${TESTS_DIR}/aspect ${TESTS_DIR}/libperplexaspect.so)
+
+add_dependencies(setup_tests perplexaspect)

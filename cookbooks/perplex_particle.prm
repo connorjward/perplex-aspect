@@ -4,14 +4,14 @@
 # obvious. The model was chosen because it is relatively fast to run and it 
 # represents a region where partial melting occurs.
 
-# Include the 'perplexparticle' shared library. Otherwise the later sections will
+# Include the 'perplexaspect' shared library. Otherwise the later sections will
 # not be recognised.
-set Additional shared libraries            = ./libperplexparticle.so
+set Additional shared libraries            = ./libperplexaspect.so
 
 set Dimension                              = 2
 set Adiabatic surface temperature          = 1600
 set Maximum time step                      = 1e6
-set Output directory                       = output-phase_composition
+set Output directory                       = output-perplex_particle
 set Use years in output instead of seconds = true
 
 set End time                               = 1.4e8
@@ -56,8 +56,8 @@ subsection Boundary temperature model
   set List of model names = initial temperature
 
   subsection Initial temperature
-    set Minimal temperature = 293 # default: 6000
-    set Maximal temperature = 3700  # default: 0
+    set Minimal temperature = 293 
+    set Maximal temperature = 3700
   end
 end
 
@@ -137,7 +137,7 @@ subsection Postprocess
       set Data directory           = ../data/perplex/simple
       set Problem definition file  = simple.dat
 
-      set List of phases   = liquid, olivine
+      set List of phases           = liquid, olivine
       set List of phase properties = composition, molar amount
 
       set Track bulk composition = true
