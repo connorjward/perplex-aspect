@@ -9,7 +9,7 @@ set Dimension                              = 2
 set Adiabatic surface temperature          = 1570
 
 set Nonlinear solver scheme                = iterated Advection and Stokes
-set Output directory                       = output-perplex_melt_simple_fast
+set Output directory                       = output-perplex_melt_simple
 
 set End time                               = 3e6
 

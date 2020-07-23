@@ -1,23 +1,26 @@
 /*
-  Copyright (C) 2015 - 2020 by the authors of the ASPECT code.
+ * Copyright (C) 2011 - 2020 by the authors of the ASPECT code.
+ * Copyright (C) 2020 Connor Ward
+ *
+ * This file is part of PerpleX-ASPECT.
+ * PerpleX-ASPECT is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PerpleX-ASPECT is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with PerpleX-ASPECT. If not, see <https://www.gnu.org/licenses/>.
+ */
 
-  This file is part of ASPECT.
-
-  ASPECT is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
-  any later version.
-
-  ASPECT is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with ASPECT; see the file LICENSE.  If not see
-  <http://www.gnu.org/licenses/>.
-*/
-
+/*
+ * The following code was copied from aspect/material_model/melt_simple.cc
+ * and edited as needed. Any changes are annotated as 'ADDED'.
+ */
 
 #include <perplexaspect/perplex_melt_simple.h>
 
@@ -325,17 +328,14 @@ namespace aspect
                   out.reaction_terms[i][c] = 0.0;
                 }
 
-	      // ***************************************
-	      // START ADDED
-	      // ***************************************
+	      // start ADDED section
 	      auto& perplex_wrapper = perplexcpp::Wrapper::get_instance();
 
 	      std::vector<double> composition;
 	      {
-		auto melt_composition = get_composition(in.composition[i], "melt");
-		auto residue_composition = get_composition(in.composition[i], "residue");
+		auto melt_composition = this->get_composition(in.composition[i], "melt");
+		auto residue_composition = this->get_composition(in.composition[i], "residue");
 
-		// Determine the composition to pass into Perple_X.
 		for (unsigned int c = 0; 
 		     c < perplexcpp::Wrapper::get_instance().n_composition_components; 
 		     ++c)
@@ -344,22 +344,13 @@ namespace aspect
 		}
 	      }
 
-	      // These are necessary to ensure that sensible pT values are given to Perple_X.
-	      /* double pressure = this->get_adiabatic_conditions().pressure(in.position[i]); */
 	      double pressure = in.pressure[i];
-	      /* double temperature = this->get_adiabatic_conditions().temperature(in.position[i]); */
-	      // Adding 200 to make sure that melt is created.
-	      double temperature = in.temperature[i] + 200;
+	      double temperature = in.temperature[i];
 
-	      // start debug
-	      /* std::cout << "pressure" << std::endl; */
-	      /* std::cout << "adiabatic: " << this->get_adiabatic_conditions().pressure(in.position[i]) << std::endl; */
-	      /* std::cout << in.pressure[i] << std::endl; */
-
-	      /* std::cout << "temperature" << std::endl; */
-	      /* std::cout << "adiabatic: " << this->get_adiabatic_conditions().temperature(in.position[i]) << std::endl; */
-	      /* std::cout << in.temperature[i] << std::endl; */
-	      // end debug
+	      // 200K is added to the temperature to make the results more consistent
+	      // between Perple_X and ASPECT. This is a hack. In order to avoid this
+	      // the porosity value should really be calculated from Perple_X too.
+	      temperature += 200;
 
 	      if (pressure < perplex_wrapper.min_pressure)
 		pressure = perplex_wrapper.min_pressure;
@@ -371,14 +362,17 @@ namespace aspect
 	      if (temperature > perplex_wrapper.max_temperature)
 		temperature = perplex_wrapper.max_temperature;
 
-	      const perplexcpp::MinimizeResult result = perplex_wrapper.minimize(pressure, temperature, composition);
+	      const auto result = perplex_wrapper.minimize(pressure, 
+		                                           temperature,
+							   composition);
 	      
 	      // Make sure that the melt amount is non-negative.
 	      const double melt_frac = old_porosity > 0 ? old_porosity : 0.0;
 
-
+	      // Get the melt composition.
 	      const std::vector<double> melt_composition = this->calc_melt_composition(melt_frac, result);
 
+	      // Determine the composition changes and alter the reaction rates accordingly.
 	      for (unsigned int c = 0; c < perplex_wrapper.n_composition_components; ++c) 
 	      {
 		const std::string comp_name = perplex_wrapper.composition_component_names[c];
@@ -389,13 +383,6 @@ namespace aspect
 		const unsigned int residue_comp_idx = 
 		  this->introspection().compositional_index_for_name("residue_" + comp_name);
 
-		// START DEBUG
-		/* std::cout << "melt.composition[" << c << "]: " << melt.composition[c] << std::endl; */
-		/* std::cout << "result.composition[" << c << "]: " << result.composition[c] << std::endl; */
-		/* std::cout << "in.comp[i][melt]: " << in.composition[i][melt_comp_idx] << std::endl; */
-		/* std::cout << "in.comp[i][res]: " << in.composition[i][residue_comp_idx] << std::endl; */
-		// END DEBUG
-		
 		const double melt_comp_change = 
 		  melt_composition[c] - in.composition[i][melt_comp_idx];
 
@@ -403,12 +390,7 @@ namespace aspect
 		  result.composition[c] - melt_composition[c]
 		  - in.composition[i][residue_comp_idx];
 
-		// start DEBUG
-		/* std::cout << "melt_comp_change: " << melt_comp_change << std::endl; */
-		/* std::cout << "residue_comp_change: " << residue_comp_change << std::endl; */
-		/* std::cout << "melting_time_scale: " << this->melting_time_scale << std::endl; */
-		// end DEBUG
-
+		// Populate the reaction rates.
 		if (reaction_rate_out != nullptr && this->get_timestep_number() > 0)
 		{
 		  reaction_rate_out->reaction_rates[i][melt_comp_idx] = 
@@ -418,10 +400,7 @@ namespace aspect
 		    residue_comp_change / this->melting_time_scale;
 		}
 	      }
-
-	      // ***************************************
-	      // END ADDED
-	      // ***************************************
+	      // end ADDED section
 
               const double porosity = std::min(1.0, std::max(in.composition[i][porosity_idx],0.0));
               out.viscosities[i] = eta_0 * exp(- alpha_phi * porosity);
@@ -860,9 +839,10 @@ namespace aspect
       }
       prm.leave_subsection();
 
-      // start ADDED
+      // ADDED
+      // Initialize the Perple_X wrapper with the simple data set and a cache with 
+      // 100 entries and 0.1% rtol.
       perplexcpp::Wrapper::initialize("simple.dat", "../data/perplex/simple", 100, 1e-3);
-      // end ADDED
     }
 
 
@@ -879,11 +859,13 @@ namespace aspect
     }
 
 
+    
     // ADDED
     template <int dim>
     std::vector<double>
-    PerplexMeltSimple<dim>::get_composition(const std::vector<double>& comp_fields, 
-	                              const std::string& name) const
+    PerplexMeltSimple<dim>::
+    get_composition(const std::vector<double>& comp_fields, 
+	            const std::string& name) const
     { 
       std::vector<double> composition;
       for (std::string comp_name : 
@@ -899,20 +881,18 @@ namespace aspect
 
 
 
+    // ADDED
     template <int dim>
     std::vector<double> 
-    PerplexMeltSimple<dim>:: calc_melt_composition(const double porosity, const perplexcpp::MinimizeResult &result) 
-    const
+    PerplexMeltSimple<dim>::
+    calc_melt_composition(const double porosity, 
+	                  const perplexcpp::MinimizeResult &result) const
     {
-      //TODO px.find_phase_molar_mass(melt.id)
       Assert(porosity >= 0, ExcInternalError("The porosity must be non-negative"));
       
       auto& px = perplexcpp::Wrapper::get_instance();
 
       perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
-
-      /* std::cout << "n moles melt: " << melt.n_moles << std::endl; */
-      
 
       // If no melt is present return a vector of zeros.
       if (porosity == 0 || melt.n_moles == 0)
@@ -938,14 +918,10 @@ namespace aspect
       const double phase_weight_frac = 
 	porosity * melt.density / phase_densities_sum;
 
-      // What do I do here? Explain.
+      // Populate the melt composition.
       std::vector<double> melt_composition;
       for (unsigned int c = 0; c < px.n_composition_components; ++c)
       {
-	// TODO Note that this can be simplified and even done on one line.
-	/* const double phase_comp_mol_frac = melt.composition_ratio[c] / melt_comp_ratio_sum; */
-	/* const double phase_comp_weight_frac = phase_comp_mol_frac * px.composition_molar_masses[c] / melt_mol_mass_sum; */
-
 	const double melt_comp_weight_frac = melt.composition_ratio[c] * px.composition_molar_masses[c] / melt_mol_mass_sum;
 
 	// The weight fraction of the composition component in the melt is the weight fraction 

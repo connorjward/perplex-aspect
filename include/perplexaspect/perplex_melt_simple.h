@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015 - 2019 by the authors of the ASPECT code.
+  Copyright (C) 2015 - 2020 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -17,6 +17,12 @@
   along with ASPECT; see the file LICENSE.  If not see
   <http://www.gnu.org/licenses/>.
 */
+
+/*
+ * The following code was copied from aspect/material_model/melt_simple.h
+ * and edited as needed. Any changes are annotated as 'ADDED'.
+ */
+
 
 #ifndef PERPLEXASPECT_PERPLEXMELTSIMPLE_H
 #define PERPLEXASPECT_PERPLEXMELTSIMPLE_H
@@ -199,14 +205,20 @@ namespace aspect
                         const double maximum_melt_fraction,
                         const NonlinearDependence::Dependence dependence) const;
 
-	//ADDED
+	/**
+	 * ADDED
+	 * Retrieve the composition from the input compositional fields given
+	 * the phase name.
+	 */
 	std::vector<double>
         get_composition(const std::vector<double>& comp_fields, 
 	                              const std::string& name) const;
 
 
 	/**
-	 * ???
+	 * ADDED
+	 * Calculate the melt composition (number of moles of each component) 
+	 * from the porosity (melt volume fraction) and melt composition ratio.
 	 */
 	std::vector<double> 
 	calc_melt_composition(const double porosity, const perplexcpp::MinimizeResult &result)
