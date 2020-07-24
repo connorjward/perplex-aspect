@@ -1,0 +1,175 @@
+# This model is an exact copy of the global_no_melt.prm cookbook from the
+# ASPECT repository apart from the added particles tracking the phase 
+# composition. The comments have also been removed to make the changes more
+# obvious. The model was chosen because it is relatively fast to run and it 
+# represents a region where partial melting occurs.
+
+# Include the 'perplexaspect' shared library. Otherwise the later sections will
+# not be recognised.
+set Additional shared libraries            = ./libperplexaspect.so
+
+set Dimension                              = 2
+set Adiabatic surface temperature          = 1600
+set Maximum time step                      = 1e6
+set Output directory                       = output-frac_melt
+set Use years in output instead of seconds = true
+
+set End time                               = 1.4e8
+
+subsection Solver parameters
+  subsection Stokes solver parameters
+    set Linear solver tolerance = 1e-8
+    set Number of cheap Stokes solver steps = 100
+  end
+end
+
+subsection Boundary velocity model
+  set Tangential velocity boundary indicators = left, right, top, bottom
+end
+
+subsection Discretization
+  subsection Stabilization parameters
+    set beta  = 0.5
+    set cR    = 1
+  end
+end
+
+# Something new.
+subsection Compositional fields
+  set Number of fields		  = 4
+  set Names of fields             = SiO2, CaO, MgO, FeO
+  set Compositional field methods = particles, particles, particles, particles
+  set Mapped particle properties  = SiO2:bulk SiO2, CaO:bulk CaO, MgO:bulk MgO, FeO:bulk FeO
+end
+
+subsection Initial temperature model
+  set List of model names = adiabatic, function
+  subsection Adiabatic
+    set Age bottom boundary layer = 5e8
+    set Age top boundary layer    = 3e8
+
+    subsection Function
+      # This needs to be the same length as the number of compositional fields.
+      set Function expression       = 0; 0; 0; 0
+    end
+  end
+
+  subsection Function
+    set Function constants        = r=350000, amplitude=50
+    set Function expression       = if((x-2900000)*(x-2900000)+y*y<r,amplitude,0)
+  end
+end
+
+subsection Initial composition model
+  set Model name = function
+
+  subsection Function
+    set Function expression = 38.5; 2.82; 50.5; 5.88
+  end
+end
+
+subsection Boundary composition model
+  set Fixed composition boundary indicators   = bottom
+  set List of model names = initial composition
+end
+
+subsection Boundary temperature model
+  set Fixed temperature boundary indicators = top, bottom
+  set List of model names = initial temperature
+
+  subsection Initial temperature
+    set Minimal temperature = 293 
+    set Maximal temperature = 3700
+  end
+end
+
+subsection Geometry model
+  set Model name = box
+
+  subsection Box
+    set X extent = 8700000
+    set Y extent = 2900000
+    set X repetitions = 3
+  end
+
+end
+
+subsection Gravity model
+  set Model name = vertical
+
+  subsection Vertical
+    set Magnitude = 9.81
+  end
+end
+
+subsection Material model
+
+  set Model name = melt global 
+  subsection Melt global
+    set Thermal conductivity              = 4.7
+    set Reference solid density           = 3400
+    set Thermal expansion coefficient     = 2e-5
+    set Reference shear viscosity         = 5e21
+    set Thermal viscosity exponent        = 7
+    set Reference temperature             = 1600
+    set Solid compressibility             = 4.2e-12
+  end
+end
+
+subsection Mesh refinement
+  set Initial adaptive refinement              = 0
+  set Initial global refinement                = 3
+  set Time steps between mesh refinement       = 0
+end
+
+subsection Heating model
+  set List of model names = adiabatic heating
+end 
+
+subsection Postprocess
+  # 'particles' added to the list of postprocessors.
+  set List of postprocessors = visualization, composition statistics, velocity statistics, temperature statistics, melt statistics, depth average, particles
+
+  subsection Visualization
+    set List of output variables      = material properties, nonadiabatic temperature
+
+    subsection Material properties
+      set List of material properties = density, viscosity, melt fraction
+    end
+
+    set Number of grouped files       = 0
+    set Output format                 = vtu
+    set Time between graphical output = 6e5
+  end
+
+  subsection Depth average
+    set Number of zones = 12
+    set Time between graphical output = 6e5
+  end
+
+  # Additional subsection detailing particle properties. The 'simple' data
+  # set is used because it is extremely fast to run. Do not consider the 
+  # results to be valid AT ALL.
+  subsection Particles
+    set Number of particles           = 1000
+    set List of particle properties   = perplex particle
+    set Time between data output      = 6e5
+
+    # This is important to avoid weird side effects.
+    set Allow cells without particles = false
+
+    subsection Perple_X particle
+      set Data directory           = ../data/perplex/simple
+      set Problem definition file  = simple.dat
+
+      # set List of phases           = liquid, olivine
+      # set List of phase properties = composition, molar amount
+
+      set Track bulk composition = true
+    end
+  end
+end
+
+subsection Checkpointing
+  set Time between checkpoint = 1700
+end

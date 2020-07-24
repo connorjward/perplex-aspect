@@ -30,7 +30,6 @@ namespace aspect
 {
   using perplexcpp::Wrapper;
 
-
   namespace Particle
   {
     namespace Property
@@ -56,10 +55,43 @@ namespace aspect
 	  std::vector<std::string> tracked_phase_properties;
 
 
+
 	  /**
 	   * Flag indicating whether or not to report the bulk composition.
 	   */
 	  bool track_bulk_composition;
+
+
+
+	  /**
+	   * ???
+	   */
+	  std::vector<double>
+	  get_composition(const Vector<double> &solution) const
+	  { 
+	    // Retrieve the compositional fields from the solution.
+	    std::vector<double> compositional_fields(this->introspection().n_compositional_fields);
+	    solution.extract_subvector_to(this->introspection().component_indices.compositional_fields,
+		                          compositional_fields);
+
+	    // Load the composition in the correct order for Perple_X.
+	    std::vector<double> composition;
+	    for (std::string comp_name : Wrapper::get_instance().composition_component_names) 
+	    {
+	      const unsigned int idx = 
+		this->introspection().compositional_index_for_name(comp_name);
+
+	      const double n_moles = compositional_fields[idx];
+
+	      // Some values end up being just below zero. 
+	      // Zeroing them allows Perple_X to work.
+	      if (n_moles >= 0)
+		composition.push_back(n_moles);
+	      else
+		composition.push_back(0.0);
+	    }
+	    return composition;
+	  }
 
 
         public:
@@ -84,8 +116,10 @@ namespace aspect
 
 	    if (track_bulk_composition)
 	      for (unsigned int i = 0; i < wrapper.n_composition_components; ++i)
-		particle_properties.push_back(0.0);
+		// TODO: Make this work for more general initial compositions.
+		particle_properties.push_back(wrapper.initial_bulk_composition[i]);
 	  }
+
 
 
 	  void
@@ -110,47 +144,127 @@ namespace aspect
 	    if (temperature > wrapper.max_temperature)
 	      temperature = wrapper.max_temperature;
 
-	    perplexcpp::MinimizeResult result = wrapper.minimize(pressure, temperature);
+	    const std::vector<double> composition = get_composition(solution);
+
+	    // Do not calculate if the composition is less than 1 mole of the original amount
+	    // (i.e. almost all of the material has been removed).
+	    double sum = 0.0;
+	    for (double c : composition)
+	      sum += c;
+
+	    /* for (double c : composition) */
+	    /*   std::cout << c << std::endl; */
+	    /* std::cout << std::endl; */
 
 	    // Track the current data position.
 	    unsigned int current_position = data_position;
 
-	    for (std::string name : tracked_phases) {
-	      perplexcpp::Phase phase = perplexcpp::find_phase(result.phases, name);
+	    /* if (is_active) */
+	    if (sum > 1)
+	    {
+	      const perplexcpp::MinimizeResult result = 
+		wrapper.minimize(pressure, temperature, composition);
 
-	      for (std::string property : tracked_phase_properties) {
-		if (property == "composition") {
-		  for (double comp : phase.composition_ratio) {
-		    particle_properties[current_position] = comp;
+	      for (std::string name : tracked_phases) 
+	      {
+		perplexcpp::Phase phase = perplexcpp::find_phase(result.phases, name);
+
+		for (std::string property : tracked_phase_properties) {
+		  if (property == "composition") {
+		    for (double comp : phase.composition_ratio) {
+		      particle_properties[current_position] = comp;
+		      current_position++;
+		    }
+		  } 
+		  else if (property == "molar amount") {
+		    particle_properties[current_position] = phase.n_moles;
 		    current_position++;
+		  } 
+		  else if (property == "molar fraction") {
+		    particle_properties[current_position] = phase.molar_frac;
+		    current_position++;
+		  } 
+		  else if (property == "volume fraction") {
+		    particle_properties[current_position] = phase.volume_frac;
+	 	    current_position++;
+		  } 
+		  else if (property == "weight fraction") {
+		    particle_properties[current_position] = phase.weight_frac;
+		    current_position++;
+		  } 
+		  else {
+		    Assert(false, ExcInternalError(property + " could not be found."));
 		  }
-		} 
-		else if (property == "molar amount") {
-		  particle_properties[current_position] = phase.n_moles;
+		}
+	      }
+
+	      std::vector<double> residue_composition = result.composition;
+
+	      /* if (this->extract_melt) */
+	      if (true)
+	      {
+		const perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
+
+		for (unsigned int c = 0; c < this->n_compositional_fields(); c++)
+		{
+		  Assert(melt.composition_ratio[c] * melt.n_moles >= 0,
+		         ExcInternalError("The extracted melt should be non-negative"));
+		  residue_composition[c] -= melt.composition_ratio[c] * melt.n_moles;
+
+		  if (residue_composition[c] < 0)
+		    residue_composition[c] = 0.0;
+		}
+	      }
+
+	      if (track_bulk_composition) {
+		for (double comp : residue_composition) 
+		{
+		  /* std::cout << comp << std::endl; */
+		  Assert(comp >=0, ExcInternalError("The new composition should be non-negative"));
+		  particle_properties[current_position] = comp;
 		  current_position++;
-		} 
-		else if (property == "molar fraction") {
-		  particle_properties[current_position] = phase.molar_frac;
-		  current_position++;
-		} 
-		else if (property == "volume fraction") {
-		  particle_properties[current_position] = phase.volume_frac;
-		  current_position++;
-		} 
-		else if (property == "weight fraction") {
-		  particle_properties[current_position] = phase.weight_frac;
-		  current_position++;
-		} 
-		else {
-		  Assert(false, ExcInternalError(property + " could not be found."));
 		}
 	      }
 	    }
+	    else
+	    {
+	      for (std::string name : tracked_phases) 
+	      {
+		for (std::string property : tracked_phase_properties) {
+		  if (property == "composition") {
+		    for (unsigned int c = 0; c < wrapper.n_composition_components; c++) 
+		    {
+		      particle_properties[current_position] = 0.0;
+		      current_position++;
+		    }
+		  } 
+		  else if (property == "molar amount") {
+		    particle_properties[current_position] = 0.0;
+		    current_position++;
+		  } 
+		  else if (property == "molar fraction") {
+		    particle_properties[current_position] = 0.0;
+		    current_position++;
+		  } 
+		  else if (property == "volume fraction") {
+		    particle_properties[current_position] = 0.0;
+	 	    current_position++;
+		  } 
+		  else if (property == "weight fraction") {
+		    particle_properties[current_position] = 0.0;
+		    current_position++;
+		  } 
+		  else {
+		    Assert(false, ExcInternalError(property + " could not be found."));
+		  }
+		}
+	      }
 
-	    if (track_bulk_composition) {
-	      for (double comp : result.composition) {
-		particle_properties[current_position] = comp;
-		current_position++;
+	      if (track_bulk_composition) {
+		for (unsigned int c = 0; c < this->n_compositional_fields(); c++) {
+		  particle_properties[current_position] = 0.0;
+		  current_position++;
+		}
 	      }
 	    }
 	  }
@@ -207,7 +321,7 @@ namespace aspect
 
 	    if (track_bulk_composition)
 	      for (std::string name : wrapper.composition_component_names)
-		property_information.push_back(std::make_pair("bulk composition " + name, 1));
+		property_information.push_back(std::make_pair("bulk " + name, 1));
 
 	    return property_information;
 	  }
