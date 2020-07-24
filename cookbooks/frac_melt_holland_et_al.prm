@@ -11,7 +11,7 @@ set Additional shared libraries            = ./libperplexaspect.so
 set Dimension                              = 2
 set Adiabatic surface temperature          = 1600
 set Maximum time step                      = 1e6
-set Output directory                       = output-frac_melt
+set Output directory                       = output-frac_melt_holland_et_al
 set Use years in output instead of seconds = true
 
 set End time                               = 1.4e8
@@ -36,10 +36,13 @@ end
 
 # Something new.
 subsection Compositional fields
-  set Number of fields		  = 4
-  set Names of fields             = SiO2, CaO, MgO, FeO
-  set Compositional field methods = particles, particles, particles, particles
-  set Mapped particle properties  = SiO2:bulk SiO2, CaO:bulk CaO, MgO:bulk MgO, FeO:bulk FeO
+  set Number of fields		  = 10
+  set Names of fields             = K2O, Na2O, SiO2, Al2O3, CaO, MgO, FeO, TiO2, Cr2O3, O2
+  set Compositional field methods = particles, particles, particles, particles, particles, \
+                                    particles, particles, particles, particles, particles
+  set Mapped particle properties  = K2O:bulk K2O, Na2O:bulk Na2O, SiO2:bulk SiO2, Al2O3:bulk Al2O3, \
+                                    CaO:bulk CaO, MgO:bulk MgO, FeO:bulk FeO, TiO2: bulk TiO2, \
+                                    Cr2O3:bulk Cr2O3, O2:bulk O2
 end
 
 subsection Initial temperature model
@@ -50,7 +53,7 @@ subsection Initial temperature model
 
     subsection Function
       # This needs to be the same length as the number of compositional fields.
-      set Function expression       = 0; 0; 0; 0
+      set Function expression       = 0; 0; 0; 0; 0; 0; 0; 0; 0; 0
     end
   end
 
@@ -58,19 +61,6 @@ subsection Initial temperature model
     set Function constants        = r=350000, amplitude=50
     set Function expression       = if((x-2900000)*(x-2900000)+y*y<r,amplitude,0)
   end
-end
-
-subsection Initial composition model
-  set Model name = function
-
-  subsection Function
-    set Function expression = 38.5; 2.82; 50.5; 5.88
-  end
-end
-
-subsection Boundary composition model
-  set Fixed composition boundary indicators   = bottom
-  set List of model names = initial composition
 end
 
 subsection Boundary temperature model
@@ -103,8 +93,8 @@ subsection Gravity model
 end
 
 subsection Material model
-
   set Model name = melt global 
+
   subsection Melt global
     set Thermal conductivity              = 4.7
     set Reference solid density           = 3400
@@ -118,7 +108,7 @@ end
 
 subsection Mesh refinement
   set Initial adaptive refinement              = 0
-  set Initial global refinement                = 3
+  set Initial global refinement                = 0
   set Time steps between mesh refinement       = 0
 end
 
@@ -147,25 +137,27 @@ subsection Postprocess
     set Time between graphical output = 6e5
   end
 
-  # Additional subsection detailing particle properties. The 'simple' data
-  # set is used because it is extremely fast to run. Do not consider the 
-  # results to be valid AT ALL.
+  # Additional subsection detailing particle properties. 
   subsection Particles
-    set Number of particles           = 1000
+    set Number of particles           = 10
     set List of particle properties   = perplex particle
-    set Time between data output      = 6e5
+    set Time between data output      = 2e6
 
-    # This is important to avoid weird side effects.
+    # This is important to avoid some strange effects.
     set Allow cells without particles = false
 
     subsection Perple_X particle
-      set Data directory           = ../data/perplex/simple
-      set Problem definition file  = simple.dat
+      set Data directory           = ../data/perplex/holland-et-al-2018/klb-1-fast
+      set Problem definition file  = khgp.dat
 
-      # set List of phases           = liquid, olivine
-      # set List of phase properties = composition, molar amount
+      set List of phases           = liquid, olivine
+      set List of phase properties = composition, molar amount
 
-      set Track bulk composition = true
+      set Track bulk composition   = true
+
+      set Extract melt             = true
+      set Melt extraction threshold   = 0.08
+      set Minimum amount of substance = 0.5
     end
   end
 end

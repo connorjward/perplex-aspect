@@ -28,8 +28,6 @@
 
 namespace aspect
 {
-  using perplexcpp::Wrapper;
-
   namespace Particle
   {
     namespace Property
@@ -66,6 +64,26 @@ namespace aspect
 	  /**
 	   * ???
 	   */
+	  bool extract_melt;
+
+
+
+	  /**
+	   * ???
+	   */
+	  double melt_extraction_threshold;
+
+
+	  /**
+	   * ???
+	   */
+	  double min_amount_of_substance;
+
+
+
+	  /**
+	   * ???
+	   */
 	  std::vector<double>
 	  get_composition(const Vector<double> &solution) const
 	  { 
@@ -76,7 +94,7 @@ namespace aspect
 
 	    // Load the composition in the correct order for Perple_X.
 	    std::vector<double> composition;
-	    for (std::string comp_name : Wrapper::get_instance().composition_component_names) 
+	    for (std::string comp_name : perplexcpp::Wrapper::get_instance().composition_component_names) 
 	    {
 	      const unsigned int idx = 
 		this->introspection().compositional_index_for_name(comp_name);
@@ -116,8 +134,7 @@ namespace aspect
 
 	    if (track_bulk_composition)
 	      for (unsigned int i = 0; i < wrapper.n_composition_components; ++i)
-		// TODO: Make this work for more general initial compositions.
-		particle_properties.push_back(wrapper.initial_bulk_composition[i]);
+		particle_properties.push_back(0.0);
 	  }
 
 
@@ -130,40 +147,29 @@ namespace aspect
                                         const ArrayView<double> &particle_properties) 
 	  const override
 	  {
-	    auto& wrapper = perplexcpp::Wrapper::get_instance();
+	    auto& px = perplexcpp::Wrapper::get_instance();
 
 	    double pressure = solution[this->introspection().component_indices.pressure];
 	    double temperature = solution[this->introspection().component_indices.temperature];
 
-	    if (pressure < wrapper.min_pressure)
-	      pressure = wrapper.min_pressure;
-	    else if (pressure > wrapper.max_pressure)
-	      pressure = wrapper.max_pressure;
-	    if (temperature < wrapper.min_temperature)
-	      temperature = wrapper.min_temperature;
-	    if (temperature > wrapper.max_temperature)
-	      temperature = wrapper.max_temperature;
+	    if (pressure < px.min_pressure)
+	      pressure = px.min_pressure;
+	    else if (pressure > px.max_pressure)
+	      pressure = px.max_pressure;
+	    if (temperature < px.min_temperature)
+	      temperature = px.min_temperature;
+	    if (temperature > px.max_temperature)
+	      temperature = px.max_temperature;
 
 	    const std::vector<double> composition = get_composition(solution);
-
-	    // Do not calculate if the composition is less than 1 mole of the original amount
-	    // (i.e. almost all of the material has been removed).
-	    double sum = 0.0;
-	    for (double c : composition)
-	      sum += c;
-
-	    /* for (double c : composition) */
-	    /*   std::cout << c << std::endl; */
-	    /* std::cout << std::endl; */
 
 	    // Track the current data position.
 	    unsigned int current_position = data_position;
 
-	    /* if (is_active) */
-	    if (sum > 1)
+	    if (std::accumulate(composition.begin(), composition.end(), 0) > this->min_amount_of_substance)
 	    {
 	      const perplexcpp::MinimizeResult result = 
-		wrapper.minimize(pressure, temperature, composition);
+		px.minimize(pressure, temperature, composition);
 
 	      for (std::string name : tracked_phases) 
 	      {
@@ -200,26 +206,27 @@ namespace aspect
 
 	      std::vector<double> residue_composition = result.composition;
 
-	      /* if (this->extract_melt) */
-	      if (true)
+	      if (this->extract_melt)
 	      {
 		const perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
 
-		for (unsigned int c = 0; c < this->n_compositional_fields(); c++)
+		if (melt.volume_frac > this->melt_extraction_threshold)
 		{
-		  Assert(melt.composition_ratio[c] * melt.n_moles >= 0,
-		         ExcInternalError("The extracted melt should be non-negative"));
-		  residue_composition[c] -= melt.composition_ratio[c] * melt.n_moles;
+		  for (unsigned int c = 0; c < px.n_composition_components; c++)
+		  {
+		    Assert(melt.composition_ratio[c] * melt.n_moles >= 0,
+			   ExcInternalError("The extracted melt should be non-negative"));
+		    residue_composition[c] -= melt.composition_ratio[c] * melt.n_moles;
 
-		  if (residue_composition[c] < 0)
-		    residue_composition[c] = 0.0;
+		    if (residue_composition[c] < 0)
+		      residue_composition[c] = 0.0;
+		  }
 		}
 	      }
 
 	      if (track_bulk_composition) {
 		for (double comp : residue_composition) 
 		{
-		  /* std::cout << comp << std::endl; */
 		  Assert(comp >=0, ExcInternalError("The new composition should be non-negative"));
 		  particle_properties[current_position] = comp;
 		  current_position++;
@@ -232,7 +239,7 @@ namespace aspect
 	      {
 		for (std::string property : tracked_phase_properties) {
 		  if (property == "composition") {
-		    for (unsigned int c = 0; c < wrapper.n_composition_components; c++) 
+		    for (unsigned int c = 0; c < px.n_composition_components; c++) 
 		    {
 		      particle_properties[current_position] = 0.0;
 		      current_position++;
@@ -261,7 +268,7 @@ namespace aspect
 	      }
 
 	      if (track_bulk_composition) {
-		for (unsigned int c = 0; c < this->n_compositional_fields(); c++) {
+		for (unsigned int c = 0; c < px.n_composition_components; c++) {
 		  particle_properties[current_position] = 0.0;
 		  current_position++;
 		}
@@ -270,16 +277,19 @@ namespace aspect
 	  }
 
 
+
 	  UpdateTimeFlags need_update() const override
 	  {
 	    return update_output_step;
 	  }
 
 
+
 	  UpdateFlags get_needed_update_flags () const override
 	  {
 	    return update_values;
 	  }
+
 
 
 	  std::vector<std::pair<std::string, unsigned int>>
@@ -294,8 +304,8 @@ namespace aspect
 	      for (std::string property : tracked_phase_properties) {
 		if (property == "composition") {
 		  for (std::string composition_name : wrapper.composition_component_names)
-		    property_information.push_back(std::make_pair("composition " + composition_name + 
-			  " " + phase_name, 1));
+		    property_information.push_back(std::make_pair(phase_name + " " 
+			                                          + composition_name, 1));
 		} 
 		else if (property == "molar amount") {
 		  property_information.push_back(std::make_pair("molar amount " +
@@ -327,6 +337,7 @@ namespace aspect
 	  }
 
 
+
 	  static
 	  void
 	  declare_parameters(ParameterHandler &prm)
@@ -337,38 +348,72 @@ namespace aspect
 	      {
 		prm.enter_subsection("Perple_X particle");
 		{
-		  prm.declare_entry("Data directory", 
-		      ".", 
-		      Patterns::DirectoryName(),
-		      "The location of the Perple_X data files.");
+		  prm.declare_entry(
+		    "Data directory", 
+		    ".", 
+		    Patterns::DirectoryName(),
+		    "The location of the Perple_X data files."
+		  );
 
-		  prm.declare_entry("Problem definition file", 
-		      "", 
-		      Patterns::FileName(),
-		      "The name of the PerpleX .dat file in use.",
-		      true);
+		  prm.declare_entry(
+		    "Problem definition file", 
+		    "", 
+		    Patterns::FileName(),
+		    "The name of the PerpleX .dat file in use.",
+		    true
+		  );
 
-		  prm.declare_entry("List of phases",
-		      "all", 
-		      Patterns::List(Patterns::Anything()),
-		      "The phases that will be tracked during the simulation. "
-		      "Possible options are: 'all' or any solution phase listed in "
-		      "the Perple_X problem definition file (e.g. melt(HGP)). These can "
-		      "be in any of the three formats supported by Perple_X (e.g. "
-		      "melt can be written as 'melt(HGP)', 'Melt' or 'liquid').");
+		  prm.declare_entry(
+		    "List of phases",
+		    "all", 
+		    Patterns::List(Patterns::Anything()),
+		    "The phases that will be tracked during the simulation. "
+		    "Possible options are: 'all' or any solution phase listed in "
+		    "the Perple_X problem definition file (e.g. melt(HGP)). These can "
+		    "be in any of the three formats supported by Perple_X (e.g. "
+		    "melt can be written as 'melt(HGP)', 'Melt' or 'liquid')."
+		  );
 
-		  prm.declare_entry("List of phase properties",
-		      "molar amount",
-		      Patterns::MultipleSelection("composition|molar amount|"
-			"molar fraction|volume fraction|"
-			"weight fraction"),
-		      "The phase properties to track during the simulation.");
+		  prm.declare_entry(
+		    "List of phase properties",
+		    "molar amount",
+		    Patterns::MultipleSelection("composition|molar amount|"
+		                                "molar fraction|volume fraction|"
+		                                "weight fraction"),
+		    "The phase properties to track during the simulation."
+		  );
 
-		  prm.declare_entry("Track bulk composition",
-		      "false",
-		      Patterns::Bool(),
-		      "Whether to track the evolution of the bulk composition. In "
-		      "bulk melting this will be constant.");
+		  prm.declare_entry(
+		    "Track bulk composition",
+		    "false",
+		    Patterns::Bool(),
+		    "Whether to track the evolution of the bulk composition. In batch "
+		    "melting this will be constant. Required for fractional melting."
+		  );
+
+		  prm.declare_entry(
+		    "Extract melt",
+		    "false",
+		    Patterns::Bool(),
+		    "Whether to extract the melt composition as the simulation "
+		    "progresses or not."
+		  );
+
+		  prm.declare_entry(
+		    "Melt extraction threshold",
+		    "0.05",
+		    Patterns::Double(0.0, 1.0),
+		    "The volume fraction of the bulk material that must be melt "
+		    "in order to trigger melt extraction."
+		  );
+
+		  prm.declare_entry(
+		    "Minimum amount of substance",
+		    "1.0",
+		    Patterns::Double(0.0),
+		    "The minimum number of moles of material necessary for a valid "
+		    "Perple_X call."
+		  );
 		}
 		prm.leave_subsection();
 	      }
@@ -376,6 +421,7 @@ namespace aspect
 	    }
 	    prm.leave_subsection();
 	  }
+
 
 
 	  void
@@ -388,40 +434,36 @@ namespace aspect
 	      {
 		prm.enter_subsection("Perple_X particle");
 		{
-		  
-		  const auto data_dirname = prm.get("Data directory");
-		  const auto problem_filename = prm.get("Problem definition file");
+		  const std::string data_dirname = prm.get("Data directory");
+		  const std::string problem_filename = prm.get("Problem definition file");
 
 		  AssertThrow(Utilities::fexists(data_dirname + "/" + problem_filename),
 			      ExcMessage("The Perple_X problem file could not be found."));
 
-		  // The Perple_X wrapper must be initialized in this method rather than 
-		  // in the (optional) initialize() because initialize() is called after 
-		  // get_property_information() which requires Perple_X to have been 
-		  // already initialized.
-		  Wrapper::initialize(problem_filename, data_dirname);
-		  Wrapper& perplex_wrapper = perplexcpp::Wrapper::get_instance();
+		  perplexcpp::Wrapper::initialize(problem_filename, data_dirname);
+		  auto& perplex_wrapper = perplexcpp::Wrapper::get_instance();
 
-		  tracked_phases = Utilities::split_string_list(prm.get("List of phases"));
+		  this->tracked_phases = Utilities::split_string_list(prm.get("List of phases"));
 
 		  // See if 'all' was selected (only valid if no other phases are included). 
 		  // If so simply replace the list with one that contains all the phases. If not,
 		  // find the phase indices that correspond to the submitted phase names.
-		  if (std::find(tracked_phases.begin(), tracked_phases.end(), "all") 
-				!= tracked_phases.end()) 
+		  if (std::find(this->tracked_phases.begin(), this->tracked_phases.end(), "all") 
+		      != this->tracked_phases.end()) 
 		  {
-		    AssertThrow(tracked_phases.size() == 1, 
+		    AssertThrow(this->tracked_phases.size() == 1, 
 				ExcMessage("'all' specified for the parameter " 
 					   "'List of tracked phases' but other phases are also "
 					   "specified. Please check your parameter file."));
 
-		    tracked_phases.clear();
+		    this->tracked_phases.clear();
 		    for (perplexcpp::PhaseName name : perplex_wrapper.phase_names)
-		      tracked_phases.push_back(name.full);
+		      this->tracked_phases.push_back(name.full);
 		  }
 
 		  // Check that all of the specified phase names actually exist.
-		  for (std::string tracked_name : tracked_phases) {
+		  for (std::string tracked_name : tracked_phases) 
+		  {
 		    bool found = false;
 
 		    for (perplexcpp::PhaseName name : perplex_wrapper.phase_names) {
@@ -434,12 +476,12 @@ namespace aspect
 		      }
 		    }
 
-		    AssertThrow(found, ExcMessage("The phase '" + 
-			                          tracked_name + 
-						  "' could not be found."));
+		    AssertThrow(found, 
+			        ExcMessage("The phase '" + tracked_name 
+				           + "' could not be found."));
 		  }
 
-		  tracked_phase_properties = Utilities::split_string_list(prm.get("List of phase "
+		  this->tracked_phase_properties = Utilities::split_string_list(prm.get("List of phase "
 										  "properties"));
 		  AssertThrow(Utilities::has_unique_entries(tracked_phase_properties),
 			      ExcMessage("The list of strings for the parameter "
@@ -447,10 +489,19 @@ namespace aspect
 					 "contains entries more than once. "
 					 "This is not allowed. Please check your parameter file."));
 
-		  track_bulk_composition = prm.get_bool("Track bulk composition");
+		  this->track_bulk_composition = prm.get_bool("Track bulk composition");
 
-		  prm.leave_subsection();
+		  this->extract_melt = prm.get_bool("Extract melt");
+
+		  if (this->extract_melt)
+		    AssertThrow(this->track_bulk_composition,
+			        ExcMessage("In order to be able to extract melt from the "
+				           "simulation 'Track bulk composition' must be enabled."));
+
+		  this->melt_extraction_threshold = prm.get_double("Melt extraction threshold");
+		  this->min_amount_of_substance = prm.get_double("Minimum amount of substance");
 		}
+		prm.leave_subsection();
 	      }
 	      prm.leave_subsection();
 	    }
