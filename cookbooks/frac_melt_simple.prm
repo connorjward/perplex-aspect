@@ -11,7 +11,7 @@ set Additional shared libraries            = ./libperplexaspect.so
 set Dimension                              = 2
 set Adiabatic surface temperature          = 1600
 set Maximum time step                      = 1e6
-set Output directory                       = output-frac_melt
+set Output directory                       = output-frac_melt_simple
 set Use years in output instead of seconds = true
 
 set End time                               = 1.4e8
@@ -61,18 +61,13 @@ subsection Initial temperature model
   end
 end
 
-# subsection Initial composition model
-#   set Model name = function
+subsection Initial composition model
+  set Model name = function
 
-#   subsection Function
-#     set Function expression = 38.5; 2.82; 50.5; 5.88
-#   end
-# end
-
-# subsection Boundary composition model
-#   set Fixed composition boundary indicators   = bottom
-#   set List of model names = initial composition
-# end
+  subsection Function
+    set Function expression = 38.5; 2.82; 50.5; 5.88; 0.0
+  end
+end
 
 subsection Boundary temperature model
   set Fixed temperature boundary indicators = top, bottom
@@ -160,8 +155,6 @@ subsection Postprocess
     set Allow cells without particles = false
 
     subsection Perple_X particle
-      # set Data directory           = ../data/perplex/holland-et-al-2018/klb-1-fast
-      # set Problem definition file  = khgp.dat
       set Data directory           = ../data/perplex/simple
       set Problem definition file  = simple.dat
 

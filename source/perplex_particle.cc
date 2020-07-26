@@ -20,6 +20,7 @@
 
 #include <aspect/particle/property/interface.h>
 
+#include <aspect/initial_composition/interface.h>
 #include <aspect/utilities.h>
 #include <deal.II/base/exceptions.h>
 #include <perplexcpp/wrapper.h>
@@ -87,6 +88,8 @@ namespace aspect
 	  std::vector<double>
 	  get_composition(const Vector<double> &solution) const
 	  { 
+	    const auto& px = perplexcpp::Wrapper::get_instance();
+
 	    // Retrieve the compositional fields from the solution.
 	    std::vector<double> compositional_fields(this->introspection().n_compositional_fields);
 	    solution.extract_subvector_to(this->introspection().component_indices.compositional_fields,
@@ -94,19 +97,11 @@ namespace aspect
 
 	    // Load the composition in the correct order for Perple_X.
 	    std::vector<double> composition;
-	    for (std::string comp_name : perplexcpp::Wrapper::get_instance().composition_component_names) 
+	    for (std::string cname : px.composition_component_names) 
 	    {
-	      const unsigned int idx = 
-		this->introspection().compositional_index_for_name(comp_name);
-
-	      const double n_moles = compositional_fields[idx];
-
-	      // Some values end up being just below zero. 
-	      // Zeroing them allows Perple_X to work.
-	      if (n_moles >= 0)
-		composition.push_back(n_moles);
-	      else
-		composition.push_back(0.0);
+	      const unsigned int idx = this->introspection().compositional_index_for_name(cname);
+	      composition.push_back(compositional_fields[idx] >= 0 
+		                    ? compositional_fields[idx] : 0.0);
 	    }
 	    return composition;
 	  }
@@ -115,26 +110,39 @@ namespace aspect
         public:
 
           void
-          initialize_one_particle_property(const Point<dim>&,
-                                           std::vector<double> &particle_properties) 
+          initialize_one_particle_property(const Point<dim> &position,
+                                           std::vector<double> &properties) 
 	  const override
 	  {
-	    auto& wrapper = perplexcpp::Wrapper::get_instance();
+	    const auto& px = perplexcpp::Wrapper::get_instance();
 
-	    for (unsigned int i = 0; i < tracked_phases.size(); ++i) {
-	      for (std::string property : tracked_phase_properties) {
-		if (property == "composition") {
-		  for (unsigned int j = 0; j < wrapper.n_composition_components; ++j)
-		    particle_properties.push_back(0.0);
-		} else {
-		  particle_properties.push_back(0.0);
+	    for (unsigned int i = 0; i < tracked_phases.size(); ++i) 
+	    {
+	      for (std::string property : tracked_phase_properties) 
+	      {
+		if (property == "composition") 
+		{
+		  for (unsigned int c = 0; c < px.n_composition_components; ++c)
+		    properties.push_back(0.0);
+		} 
+		else 
+		{
+		  properties.push_back(0.0);
 		}
 	      }
 	    }
 
+	    // Load the initial composition specified in the parameter file.
 	    if (track_bulk_composition)
-	      for (unsigned int i = 0; i < wrapper.n_composition_components; ++i)
-		particle_properties.push_back(0.0);
+	    {
+	      for (std::string cname : px.composition_component_names)
+	      {
+		const unsigned int idx = this->introspection().compositional_index_for_name(cname);
+		properties.push_back(
+		  this->get_initial_composition_manager().initial_composition(position, idx)
+		);
+	      }
+	    }
 	  }
 
 
