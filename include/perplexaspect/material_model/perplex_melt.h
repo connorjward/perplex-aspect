@@ -1,33 +1,29 @@
 /*
-  Copyright (C) 2015 - 2020 by the authors of the ASPECT code.
-
-  This file is part of ASPECT.
-
-  ASPECT is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
-  any later version.
-
-  ASPECT is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with ASPECT; see the file LICENSE.  If not see
-  <http://www.gnu.org/licenses/>.
-*/
-
-/*
- * The following code was copied from aspect/material_model/melt_simple.h
- * and edited as needed. Any changes are annotated as 'ADDED'.
+ * Copyright (C) 2011 - 2020 by the authors of the ASPECT code.
+ * Copyright (C) 2020 Connor Ward
+ *
+ * This file is part of PerpleX-ASPECT.
+ * PerpleX-ASPECT is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PerpleX-ASPECT is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with PerpleX-ASPECT. If not, see <https://www.gnu.org/licenses/>.
  */
 
 
-#ifndef PERPLEXASPECT_PERPLEXMELTSIMPLE_H
-#define PERPLEXASPECT_PERPLEXMELTSIMPLE_H
+#ifndef _perplexaspect_material_model_perplex_melt_h
+#define _perplexaspect_material_model_perplex_melt_h
+
 
 #include <aspect/material_model/interface.h>
+
 #include <aspect/simulator_access.h>
 #include <aspect/postprocess/melt_statistics.h>
 #include <aspect/melt.h>
@@ -42,28 +38,15 @@ namespace aspect
     using namespace dealii;
 
     /**
-     * A material model that implements a simple formulation of the
-     * material parameters required for the modelling of melt transport,
-     * including a source term for the porosity according to the melting
-     * model for dry peridotite of Katz, 2003. This also includes a
-     * computation of the latent heat of melting (if the latent heat
-     * heating model is active).
-     *
-     * Most of the material properties are constant, except for the shear,
-     * compaction and melt viscosities and the permeability, which depend on
-     * the porosity; and the solid and melt densities, which depend on
-     * temperature and pressure.
-     *
-     * The model is compressible (following the definition described in
-     * Interface::is_compressible) only if this is specified in the input file,
-     * and contains compressibility for both solid and melt.
-     *
-     * @ingroup MaterialModels
+     * ???
      */
     template <int dim>
-    class PerplexMeltSimple : public MaterialModel::MeltInterface<dim>, public ::aspect::SimulatorAccess<dim>, public MaterialModel::MeltFractionModel<dim>
+    class PerplexMelt : public MaterialModel::MeltInterface<dim>, 
+	                public ::aspect::SimulatorAccess<dim>, 
+			public MaterialModel::MeltFractionModel<dim>
     {
       public:
+
         /**
          * Return whether the model is compressible or not.  Incompressibility
          * does not necessarily imply that the density is constant; rather, it
@@ -74,6 +57,7 @@ namespace aspect
          */
         bool is_compressible () const override;
 
+
         /**
          * Initialization function. This function is called once at the
          * beginning of the program after parse_parameters is run and after
@@ -82,11 +66,14 @@ namespace aspect
         void
         initialize () override;
 
+
         void evaluate(const typename Interface<dim>::MaterialModelInputs &in,
                       typename Interface<dim>::MaterialModelOutputs &out) const override;
 
+
         void melt_fractions (const MaterialModel::MaterialModelInputs<dim> &in,
                              std::vector<double> &melt_fractions) const override;
+
 
         /**
          * @name Reference quantities
@@ -94,16 +81,10 @@ namespace aspect
          */
         double reference_viscosity () const override;
 
+
         double reference_darcy_coefficient () const override;
 
-        /**
-         * @}
-         */
 
-        /**
-         * @name Functions used in dealing with run-time parameters
-         * @{
-         */
         /**
          * Declare the parameters this class takes through input files.
          */
@@ -117,9 +98,6 @@ namespace aspect
         void
         parse_parameters (ParameterHandler &prm) override;
 
-        /**
-         * @}
-         */
 
         void
         create_additional_named_outputs (MaterialModel::MaterialModelOutputs<dim> &out) const override;
@@ -227,5 +205,6 @@ namespace aspect
 
   }
 }
+
 
 #endif
