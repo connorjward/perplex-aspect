@@ -124,7 +124,7 @@ end
 
 subsection Postprocess
   # 'particles' added to the list of postprocessors.
-  set List of postprocessors = visualization, composition statistics, velocity statistics, temperature statistics, melt statistics, depth average, particles
+  set List of postprocessors = visualization, composition statistics, velocity statistics, temperature statistics, melt statistics, depth average, particles, perplex cache statistics
 
   subsection Visualization
     set List of output variables      = material properties, nonadiabatic temperature

@@ -448,7 +448,7 @@ namespace aspect
 		  AssertThrow(Utilities::fexists(data_dirname + "/" + problem_filename),
 			      ExcMessage("The Perple_X problem file could not be found."));
 
-		  perplexcpp::Wrapper::initialize(problem_filename, data_dirname);
+		  perplexcpp::Wrapper::initialize(problem_filename, data_dirname, 1000, 1e-3);
 		  auto& perplex_wrapper = perplexcpp::Wrapper::get_instance();
 
 		  this->tracked_phases = Utilities::split_string_list(prm.get("List of phases"));

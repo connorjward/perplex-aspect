@@ -16,6 +16,7 @@
 # along with PerpleX-ASPECT. If not, see <https://www.gnu.org/licenses/>.
 
 
+# Find ASPECT.
 find_package(Aspect 2.1.0 QUIET HINTS ${Aspect_DIR} ../ ../../ $ENV{ASPECT_DIR})
 
 if(NOT Aspect_FOUND)
@@ -30,9 +31,20 @@ endif()
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
-add_library(perplexaspect SHARED perplex_melt_simple.cc perplex_particle.cc)
+
+# Build the main library.
+add_library(
+  perplexaspect 
+  SHARED 
+  perplex_melt_simple.cc 
+  perplex_particle.cc
+  postprocess/perplex_cache_statistics.cc
+)
+
 target_link_libraries(perplexaspect perplexcpp)
+
 ASPECT_SETUP_PLUGIN(perplexaspect)
+
 
 # To allow the cookbooks to be straightforwardly run, the ASPECT executable 
 # (linked to the current directory via ASPECT_SETUP_PLUGIN) and phaseinfo 
