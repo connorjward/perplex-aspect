@@ -37,7 +37,7 @@ add_library(
   perplexaspect 
   SHARED 
   perplex_melt_simple.cc 
-  perplex_particle.cc
+  particle/property/perplex_composition.cc
   postprocess/perplex_cache_statistics.cc
 )
 
