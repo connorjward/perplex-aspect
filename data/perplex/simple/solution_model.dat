@@ -1707,7 +1707,7 @@ ctL = 1 woL + 1 silL - 1/4 qHL        Delta(enthalpy)   = -113995 + 55*TK+ .4702
 0     .8   .1  0                     | range and resolution of X(jd)
 0     .3   .1  0                     | range and resolution of X(sil)
 0     .4   .1  0                     | range and resolution of X(kj)
-0     .5   .1  0                     | range and resolution of X(wo)
+0     .69   .1  0                     | range and resolution of X(wo)
 0     .1   .1  0                     | range and resolution of X(ek)
 0     .1   .1  0                     | range and resolution of X(hm)
 0     .1   .1  0                     | range and resolution of X(ti)
