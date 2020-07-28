@@ -47,7 +47,7 @@ subsection Compositional fields
   set Names of fields             = SiO2, CaO, MgO, FeO, melt_SiO2
   set Compositional field methods = particles, particles, particles, particles, particles
   set Mapped particle properties  = SiO2:bulk SiO2, CaO:bulk CaO, MgO:bulk MgO, FeO:bulk FeO, \
-                                    melt_SiO2:liquid SiO2
+                                    melt_SiO2:composition liquid SiO2
 end
 
 subsection Initial temperature model

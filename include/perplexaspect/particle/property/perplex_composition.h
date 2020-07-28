@@ -20,6 +20,8 @@
 
 #include <aspect/particle/property/interface.h>
 
+#include <perplexcpp/wrapper.h>
+
 
 namespace aspect
 {
@@ -139,6 +141,22 @@ namespace aspect
 	   */
 	  std::vector<double>
 	  get_composition(const Vector<double> &solution) const;
+
+
+
+	  /**
+	   *
+	   */
+	  std::vector<double>
+	  get_properties(const perplexcpp::MinimizeResult &result) const;
+
+
+
+	  /**
+	   *
+	   */
+	  std::vector<double>
+	  get_zero_properties() const;
       };
     }
   }
