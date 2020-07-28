@@ -34,6 +34,13 @@ subsection Discretization
   end
 end
 
+subsection Perple_X
+  set Data directory  = ../data/perplex/simple
+  set Problem file    = simple.dat
+  set Cache capacity  = 1000
+  set Cache tolerance = 1e-3
+end
+
 # Something new.
 subsection Compositional fields
   set Number of fields		  = 5
@@ -157,9 +164,6 @@ subsection Postprocess
     set Allow cells without particles = false
 
     subsection Perple_X composition
-      set Data directory           = ../data/perplex/simple
-      set Problem definition file  = simple.dat
-
       set List of phases           = liquid, olivine
       set List of phase properties = composition, molar amount
 

@@ -49,6 +49,10 @@ namespace aspect
       class PerplexComposition : public Interface<dim>, public ::aspect::SimulatorAccess<dim>
       {
         public:
+	  void
+	  initialize() override;
+
+
 
           void
           initialize_one_particle_property(const Point<dim> &position,

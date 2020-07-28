@@ -30,6 +30,19 @@ namespace aspect
   {
     namespace Property
     {
+
+      template <int dim>
+      void
+      PerplexComposition<dim>::initialize()
+      {
+	if (this->extract_melt)
+	  AssertThrow(this->track_bulk_composition,
+		      ExcMessage("In order to be able to extract melt from the "
+				 "simulation 'Track bulk composition' must be enabled."));
+      }
+
+
+
       template <int dim>
       void
       PerplexComposition<dim>::
@@ -268,27 +281,47 @@ namespace aspect
       void
       PerplexComposition<dim>::declare_parameters(ParameterHandler &prm)
       {
+	prm.enter_subsection("Perple_X");
+	{
+	  prm.declare_entry(
+	    "Data directory", 
+	    ".", 
+	    Patterns::DirectoryName(),
+	    "The location of the Perple_X data files."
+	  );
+
+	  prm.declare_entry(
+	    "Problem file", 
+	    "", 
+	    Patterns::FileName(),
+	    "The name of the PerpleX .dat file in use.",
+	    true
+	  );
+
+	  prm.declare_entry(
+	    "Cache capacity",
+	    "0",
+	    Patterns::Integer(0),
+	    "The number of results held in the cache."
+	  );
+
+	  prm.declare_entry(
+	    "Cache tolerance",
+	    "0.0",
+	    Patterns::Double(0.0, 1.0),
+	    "The relative tolerance accepted by the cache. A result will only be returned if all "
+	    "of the input parameters (temperature, pressure and composition) vary by less than "
+	    "this amount."
+	  );
+	}
+	prm.leave_subsection();
+
 	prm.enter_subsection("Postprocess");
 	{
 	  prm.enter_subsection("Particles");
 	  {
 	    prm.enter_subsection("Perple_X composition");
 	    {
-	      prm.declare_entry(
-		"Data directory", 
-		".", 
-		Patterns::DirectoryName(),
-		"The location of the Perple_X data files."
-	      );
-
-	      prm.declare_entry(
-		"Problem definition file", 
-		"", 
-		Patterns::FileName(),
-		"The name of the PerpleX .dat file in use.",
-		true
-	      );
-
 	      prm.declare_entry(
 		"List of phases",
 		"all", 
@@ -350,115 +383,142 @@ namespace aspect
 
 
 
+      namespace
+      {
+	void
+	initialize_perplex(const ParameterHandler &prm)
+	{
+	  const std::string dirname = prm.get("Data directory");
+	  const std::string fname = prm.get("Problem file");
+	  const unsigned int cache_capacity = prm.get_integer("Cache capacity");
+	  const double cache_rtol = prm.get_double("Cache tolerance");
+
+	  AssertThrow(Utilities::fexists(dirname + "/" + fname),
+		      ExcMessage("The Perple_X problem file could not be found."));
+
+	  perplexcpp::Wrapper::initialize(fname, dirname, cache_capacity, cache_rtol);
+	}
+
+
+
+	std::vector<std::string>
+	parse_phase_names(const ParameterHandler &prm)
+	{
+	  const auto& px = perplexcpp::Wrapper::get_instance();
+
+	  std::vector<std::string> phase_names = 
+	    Utilities::split_string_list(prm.get("List of phases"));
+
+	  // See if 'all' was selected.
+	  if (std::find(phase_names.begin(), phase_names.end(), "all") != phase_names.end()) 
+	  {
+	    AssertThrow(phase_names.size() == 1, 
+			ExcMessage("'all' specified for the parameter 'Postprocess/Particle/"
+			           "Perple_X composition/List of tracked phases' but other phases "
+				   "are also specified. This is not allowed. Please check your "
+				   "parameter file."));
+
+	    // Return a list containing all of the possible phase names.
+	    phase_names.clear();
+	    for (perplexcpp::PhaseName pname : px.phase_names)
+	      phase_names.push_back(pname.full);
+	    return phase_names;
+	  }
+
+	  // Check that all of the specified phase names actually exist.
+	  for (std::string pname : phase_names) 
+	  {
+	    bool found = false;
+
+	    for (perplexcpp::PhaseName pname_real : px.phase_names) {
+	      if (pname == pname_real.standard ||
+		  pname == pname_real.abbreviated ||
+		  pname == pname_real.full)
+	      {
+		found = true;
+		break;
+	      }
+	    }
+
+	    AssertThrow(found, ExcMessage("The phase '" + pname + "' could not be found."));
+	  }
+
+	  return phase_names;
+	}
+
+
+
+	std::vector<PhaseProperty>
+	parse_phase_properties(const ParameterHandler &prm)
+	{
+	  static const std::unordered_map<std::string,PhaseProperty> pprop_map = {
+	    { "composition", PhaseProperty::composition },
+	    { "molar amount", PhaseProperty::n_moles },
+	    { "molar fraction", PhaseProperty::molar_fraction },
+	    { "volume fraction", PhaseProperty::volume_fraction },
+	    { "weight fraction", PhaseProperty::weight_fraction },
+	  };
+
+	  const std::vector<std::string> pprops_str = 
+	    Utilities::split_string_list(prm.get("List of phase properties"));
+
+	  AssertThrow(Utilities::has_unique_entries(pprops_str),
+		      ExcMessage("The list of strings for the parameter "
+				 "'Postprocess/Particles/Perple_X particle/Phase properties "
+				 "contains entries more than once. "
+				 "This is not allowed. Please check your parameter file."));
+
+
+	  // Check for 'none' option.
+	  if (std::find(pprops_str.begin(), pprops_str.end(), "none") != pprops_str.end())
+	  {
+	    AssertThrow(pprops_str.size() == 1,
+			ExcMessage("The list of strings for the parameter 'Postprocess/"
+				   "Particles/Perple_X composition/Phase properties' "
+				   "contains the option 'none' alongside other options. "
+				   "This is not allowed. Please check your parameter file."));
+
+	    // Return an empty vector.
+	    return std::vector<PhaseProperty>();
+	  }
+
+	  std::vector<PhaseProperty> pprops;
+	  for (std::string pprop_str : pprops_str)
+	  {
+	    try {
+	      pprops.push_back(pprop_map.at(pprop_str));
+	    }
+	    catch (const std::out_of_range &e) {
+	      AssertThrow(false, ExcMessage(pprop_str + " is not a valid option. "
+					    "Check your parameter file."));
+	    }
+	  }
+
+	  return pprops;
+	}
+      }
+
+
       template <int dim>
       void
       PerplexComposition<dim>::parse_parameters(ParameterHandler &prm) 
       {
+	prm.enter_subsection("Perple_X");
+	{
+	  initialize_perplex(prm);
+	}
+	prm.leave_subsection();
+
 	prm.enter_subsection("Postprocess");
 	{
 	  prm.enter_subsection("Particles");
 	  {
 	    prm.enter_subsection("Perple_X composition");
 	    {
-	      const std::string data_dirname = prm.get("Data directory");
-	      const std::string problem_filename = prm.get("Problem definition file");
-
-	      AssertThrow(Utilities::fexists(data_dirname + "/" + problem_filename),
-			  ExcMessage("The Perple_X problem file could not be found."));
-
-	      perplexcpp::Wrapper::initialize(problem_filename, data_dirname, 1000, 1e-3);
-	      const auto& px = perplexcpp::Wrapper::get_instance();
-
-	      this->phase_names = Utilities::split_string_list(prm.get("List of phases"));
-
-	      // See if 'all' was selected (only valid if no other phases are included). 
-	      // If so simply replace the list with one that contains all the phases. If not,
-	      // find the phase indices that correspond to the submitted phase names.
-	      if (std::find(this->phase_names.begin(), this->phase_names.end(), "all") 
-		  != this->phase_names.end()) 
-	      {
-		AssertThrow(this->phase_names.size() == 1, 
-			    ExcMessage("'all' specified for the parameter " 
-				       "'List of tracked phases' but other phases are also "
-				       "specified. Please check your parameter file."));
-
-		this->phase_names.clear();
-		for (perplexcpp::PhaseName name : px.phase_names)
-		  this->phase_names.push_back(name.full);
-	      }
-
-	      // Check that all of the specified phase names actually exist.
-	      for (std::string pname : phase_names) 
-	      {
-		bool found = false;
-
-		for (perplexcpp::PhaseName pname_real : px.phase_names) {
-		  if (pname == pname_real.standard ||
-		      pname == pname_real.abbreviated ||
-		      pname == pname_real.full)
-		  {
-		    found = true;
-		    break;
-		  }
-		}
-
-		AssertThrow(found, 
-			    ExcMessage("The phase '" + pname 
-				       + "' could not be found."));
-	      }
-
-	      {
-		static const std::unordered_map<std::string,PhaseProperty> property_map = {
-		  { "composition", PhaseProperty::composition },
-		  { "molar amount", PhaseProperty::n_moles },
-		  { "molar fraction", PhaseProperty::molar_fraction },
-		  { "volume fraction", PhaseProperty::volume_fraction },
-		  { "weight fraction", PhaseProperty::weight_fraction },
-		};
-
-		const std::vector<std::string> pprops_str = 
-		  Utilities::split_string_list(prm.get("List of phase properties"));
-
-		AssertThrow(Utilities::has_unique_entries(pprops_str),
-			    ExcMessage("The list of strings for the parameter "
-				       "'Postprocess/Particles/Perple_X particle/Phase properties "
-				       "contains entries more than once. "
-				       "This is not allowed. Please check your parameter file."));
-
-		this->phase_properties.clear();
-		// Check for 'none' option.
-		if (std::find(pprops_str.begin(), pprops_str.end(), "none") != pprops_str.end())
-		{
-		  AssertThrow(pprops_str.size() == 1,
-			      ExcMessage("The list of strings for the parameter 'Postprocess/"
-				         "Particles/Perple_X composition/Phase properties' "
-					 "contains the option 'none' alongside other options. "
-					 "This is not allowed. Please check your parameter file."));
-		}
-		else
-		{
-		  for (std::string pprop_str : pprops_str)
-		  {
-		    try {
-		      this->phase_properties.push_back(property_map.at(pprop_str));
-		    }
-		    catch (const std::out_of_range &e) {
-		      AssertThrow(false, ExcMessage(pprop_str + " is not a valid option. "
-						    "Check your parameter file."));
-		    }
-		  }
-		}
-	      }
-
+	      this->phase_names = parse_phase_names(prm);
+	      this->phase_properties = parse_phase_properties(prm);
 	      this->track_bulk_composition = prm.get_bool("Track bulk composition");
-
 	      this->extract_melt = prm.get_bool("Extract melt");
-
-	      if (this->extract_melt)
-		AssertThrow(this->track_bulk_composition,
-			    ExcMessage("In order to be able to extract melt from the "
-				       "simulation 'Track bulk composition' must be enabled."));
-
 	      this->melt_extraction_threshold = prm.get_double("Melt extraction threshold");
 	      this->min_amount_of_substance = prm.get_double("Minimum amount of substance");
 	    }
