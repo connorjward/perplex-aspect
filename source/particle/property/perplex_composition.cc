@@ -21,8 +21,6 @@
 #include <perplexaspect/particle/property/perplex_composition.h>
 
 #include <aspect/initial_composition/interface.h>
-/* #include <aspect/utilities.h> */
-/* #include <deal.II/base/exceptions.h> */
 #include <perplexcpp/wrapper.h>
 
 
@@ -40,18 +38,19 @@ namespace aspect
       {
 	const auto& px = perplexcpp::Wrapper::get_instance();
 
-	for (unsigned int i = 0; i < tracked_phases.size(); ++i) 
+	for (std::string pname : phase_names) 
 	{
-	  for (std::string property : tracked_phase_properties) 
+	  for (PhaseProperty pprop : phase_properties) 
 	  {
-	    if (property == "composition") 
+	    switch (pprop)
 	    {
-	      for (unsigned int c = 0; c < px.n_composition_components; ++c)
+	      case PhaseProperty::composition:
+		for (unsigned int c = 0; c < px.n_composition_components; c++)
+		  properties.push_back(0.0);
+		break;
+
+	      default:
 		properties.push_back(0.0);
-	    } 
-	    else 
-	    {
-	      properties.push_back(0.0);
 	    }
 	  }
 	}
@@ -80,7 +79,7 @@ namespace aspect
 				    const std::vector<Tensor<1,dim>>&,
 				    const ArrayView<double> &particle_properties) const
       {
-	auto& px = perplexcpp::Wrapper::get_instance();
+	const auto& px = perplexcpp::Wrapper::get_instance();
 
 	double pressure = solution[this->introspection().component_indices.pressure];
 	double temperature = solution[this->introspection().component_indices.temperature];
@@ -104,36 +103,37 @@ namespace aspect
 	  const perplexcpp::MinimizeResult result = 
 	    px.minimize(pressure, temperature, composition);
 
-	  for (std::string name : tracked_phases) 
+	  for (std::string pname : this->phase_names) 
 	  {
-	    perplexcpp::Phase phase = perplexcpp::find_phase(result.phases, name);
+	    perplexcpp::Phase phase = perplexcpp::find_phase(result.phases, pname);
 
-	    for (std::string property : tracked_phase_properties) {
-	      if (property == "composition") {
-		for (double comp : phase.composition_ratio) {
-		  particle_properties[current_position] = comp;
-		  current_position++;
-		}
-	      } 
-	      else if (property == "molar amount") {
-		particle_properties[current_position] = phase.n_moles;
-		current_position++;
-	      } 
-	      else if (property == "molar fraction") {
-		particle_properties[current_position] = phase.molar_frac;
-		current_position++;
-	      } 
-	      else if (property == "volume fraction") {
-		particle_properties[current_position] = phase.volume_frac;
-		current_position++;
-	      } 
-	      else if (property == "weight fraction") {
-		particle_properties[current_position] = phase.weight_frac;
-		current_position++;
-	      } 
-	      else {
-		Assert(false, ExcInternalError(property + " could not be found."));
+	    for (PhaseProperty pprop : phase_properties) 
+	    {
+	      switch (pprop)
+	      {
+		case PhaseProperty::composition:
+		  for (double comp : phase.composition_ratio) 
+		  {
+		    particle_properties[current_position] = comp;
+		    current_position++;
+		  }
+		  current_position--;
+		  break;
+
+		case PhaseProperty::n_moles:
+		  particle_properties[current_position] = phase.n_moles;
+		  break;
+		case PhaseProperty::molar_fraction:
+		  particle_properties[current_position] = phase.molar_frac;
+		  break;
+		case PhaseProperty::volume_fraction:
+		  particle_properties[current_position] = phase.volume_frac;
+		  break;
+		case PhaseProperty::weight_fraction:
+		  particle_properties[current_position] = phase.weight_frac;
+		  break;
 	      }
+	      current_position++;
 	    }
 	  }
 
@@ -168,35 +168,29 @@ namespace aspect
 	}
 	else
 	{
-	  for (std::string name : tracked_phases) 
+	  for (std::string pname : phase_names) 
 	  {
-	    for (std::string property : tracked_phase_properties) {
-	      if (property == "composition") {
-		for (unsigned int c = 0; c < px.n_composition_components; c++) 
-		{
+	    for (PhaseProperty pprop : phase_properties)
+	    {
+	      switch (pprop)
+	      {
+		case PhaseProperty::composition:
+		  for (unsigned int c = 0; c < px.n_composition_components; c++) 
+		  {
+		    particle_properties[current_position] = 0.0;
+		    current_position++;
+		  }
+		  current_position--;
+		  break;
+
+		case PhaseProperty::n_moles:
+		case PhaseProperty::molar_fraction:
+		case PhaseProperty::volume_fraction:
+		case PhaseProperty::weight_fraction:
 		  particle_properties[current_position] = 0.0;
-		  current_position++;
-		}
-	      } 
-	      else if (property == "molar amount") {
-		particle_properties[current_position] = 0.0;
-		current_position++;
-	      } 
-	      else if (property == "molar fraction") {
-		particle_properties[current_position] = 0.0;
-		current_position++;
-	      } 
-	      else if (property == "volume fraction") {
-		particle_properties[current_position] = 0.0;
-		current_position++;
-	      } 
-	      else if (property == "weight fraction") {
-		particle_properties[current_position] = 0.0;
-		current_position++;
-	      } 
-	      else {
-		Assert(false, ExcInternalError(property + " could not be found."));
+		  break;
 	      }
+	      current_position++;
 	    }
 	  }
 
@@ -233,45 +227,39 @@ namespace aspect
       std::vector<std::pair<std::string, unsigned int>>
       PerplexComposition<dim>::get_property_information() const 
       {
-	std::vector<std::pair<std::string,unsigned int>> property_information;
+	static const std::unordered_map<PhaseProperty,std::string> pprop_map = {
+	  { PhaseProperty::composition, "composition" },
+	  { PhaseProperty::n_moles, "n moles" },
+	  { PhaseProperty::molar_fraction, "molar fraction" },
+	  { PhaseProperty::volume_fraction, "volume fraction" },
+	  { PhaseProperty::weight_fraction, "weight fraction" },
+	};
 
-	const auto& wrapper = perplexcpp::Wrapper::get_instance();
+	const auto& px = perplexcpp::Wrapper::get_instance();
 
-	// Iterate through the tracked phases and the selected phase properties for each.
-	for (std::string phase_name : tracked_phases) {
-	  for (std::string property : tracked_phase_properties) {
-	    if (property == "composition") {
-	      for (std::string composition_name : wrapper.composition_component_names)
-		property_information.push_back(std::make_pair(phase_name + " " 
-							      + composition_name, 1));
-	    } 
-	    else if (property == "molar amount") {
-	      property_information.push_back(std::make_pair("molar amount " +
-		    phase_name, 1));
-	    } 
-	    else if (property == "molar fraction") {
-	      property_information.push_back(std::make_pair("molar fraction " +
-		    phase_name, 1));
-	    } 
-	    else if (property == "volume fraction") {
-	      property_information.push_back(std::make_pair("volume fraction " +
-		    phase_name, 1));
-	    } 
-	    else if (property == "weight fraction") {
-	      property_information.push_back(std::make_pair("weight fraction " +
-		    phase_name, 1));
-	    } 
-	    else {
-	      Assert(false, ExcInternalError("Could not find phase property '" + property + "'."));
+	std::vector<std::pair<std::string,unsigned int>> prop_info;
+	for (std::string pname : phase_names) 
+	{
+	  for (PhaseProperty pprop : phase_properties) 
+	  {
+	    switch (pprop)
+	    {
+	      case PhaseProperty::composition:
+		for (std::string cname : px.composition_component_names)
+		  prop_info.push_back(std::make_pair(pname + " " + cname, 1));
+		break;
+	      default:
+		prop_info.push_back(std::make_pair(pprop_map.at(pprop) + " " + pname, 1));
+		break;
 	    }
 	  }
 	}
 
 	if (track_bulk_composition)
-	  for (std::string name : wrapper.composition_component_names)
-	    property_information.push_back(std::make_pair("bulk " + name, 1));
+	  for (std::string cname : px.composition_component_names)
+	    prop_info.push_back(std::make_pair("bulk " + cname, 1));
 
-	return property_information;
+	return prop_info;
       }
 
 
@@ -284,7 +272,7 @@ namespace aspect
 	{
 	  prm.enter_subsection("Particles");
 	  {
-	    prm.enter_subsection("Perple_X particle");
+	    prm.enter_subsection("Perple_X composition");
 	    {
 	      prm.declare_entry(
 		"Data directory", 
@@ -314,8 +302,8 @@ namespace aspect
 
 	      prm.declare_entry(
 		"List of phase properties",
-		"molar amount",
-		Patterns::MultipleSelection("composition|molar amount|"
+		"none",
+		Patterns::MultipleSelection("none|composition|molar amount|"
 					    "molar fraction|volume fraction|"
 					    "weight fraction"),
 		"The phase properties to track during the simulation."
@@ -370,7 +358,7 @@ namespace aspect
 	{
 	  prm.enter_subsection("Particles");
 	  {
-	    prm.enter_subsection("Perple_X particle");
+	    prm.enter_subsection("Perple_X composition");
 	    {
 	      const std::string data_dirname = prm.get("Data directory");
 	      const std::string problem_filename = prm.get("Problem definition file");
@@ -379,35 +367,35 @@ namespace aspect
 			  ExcMessage("The Perple_X problem file could not be found."));
 
 	      perplexcpp::Wrapper::initialize(problem_filename, data_dirname, 1000, 1e-3);
-	      auto& perplex_wrapper = perplexcpp::Wrapper::get_instance();
+	      const auto& px = perplexcpp::Wrapper::get_instance();
 
-	      this->tracked_phases = Utilities::split_string_list(prm.get("List of phases"));
+	      this->phase_names = Utilities::split_string_list(prm.get("List of phases"));
 
 	      // See if 'all' was selected (only valid if no other phases are included). 
 	      // If so simply replace the list with one that contains all the phases. If not,
 	      // find the phase indices that correspond to the submitted phase names.
-	      if (std::find(this->tracked_phases.begin(), this->tracked_phases.end(), "all") 
-		  != this->tracked_phases.end()) 
+	      if (std::find(this->phase_names.begin(), this->phase_names.end(), "all") 
+		  != this->phase_names.end()) 
 	      {
-		AssertThrow(this->tracked_phases.size() == 1, 
+		AssertThrow(this->phase_names.size() == 1, 
 			    ExcMessage("'all' specified for the parameter " 
 				       "'List of tracked phases' but other phases are also "
 				       "specified. Please check your parameter file."));
 
-		this->tracked_phases.clear();
-		for (perplexcpp::PhaseName name : perplex_wrapper.phase_names)
-		  this->tracked_phases.push_back(name.full);
+		this->phase_names.clear();
+		for (perplexcpp::PhaseName name : px.phase_names)
+		  this->phase_names.push_back(name.full);
 	      }
 
 	      // Check that all of the specified phase names actually exist.
-	      for (std::string tracked_name : tracked_phases) 
+	      for (std::string pname : phase_names) 
 	      {
 		bool found = false;
 
-		for (perplexcpp::PhaseName name : perplex_wrapper.phase_names) {
-		  if (tracked_name == name.standard ||
-		      tracked_name == name.abbreviated ||
-		      tracked_name == name.full)
+		for (perplexcpp::PhaseName pname_real : px.phase_names) {
+		  if (pname == pname_real.standard ||
+		      pname == pname_real.abbreviated ||
+		      pname == pname_real.full)
 		  {
 		    found = true;
 		    break;
@@ -415,17 +403,52 @@ namespace aspect
 		}
 
 		AssertThrow(found, 
-			    ExcMessage("The phase '" + tracked_name 
+			    ExcMessage("The phase '" + pname 
 				       + "' could not be found."));
 	      }
 
-	      this->tracked_phase_properties = Utilities::split_string_list(prm.get("List of phase "
-									      "properties"));
-	      AssertThrow(Utilities::has_unique_entries(tracked_phase_properties),
-			  ExcMessage("The list of strings for the parameter "
-				     "'Postprocess/Particles/Perple_X particle/Phase properties "
-				     "contains entries more than once. "
-				     "This is not allowed. Please check your parameter file."));
+	      {
+		static const std::unordered_map<std::string,PhaseProperty> property_map = {
+		  { "composition", PhaseProperty::composition },
+		  { "molar amount", PhaseProperty::n_moles },
+		  { "molar fraction", PhaseProperty::molar_fraction },
+		  { "volume fraction", PhaseProperty::volume_fraction },
+		  { "weight fraction", PhaseProperty::weight_fraction },
+		};
+
+		const std::vector<std::string> pprops_str = 
+		  Utilities::split_string_list(prm.get("List of phase properties"));
+
+		AssertThrow(Utilities::has_unique_entries(pprops_str),
+			    ExcMessage("The list of strings for the parameter "
+				       "'Postprocess/Particles/Perple_X particle/Phase properties "
+				       "contains entries more than once. "
+				       "This is not allowed. Please check your parameter file."));
+
+		this->phase_properties.clear();
+		// Check for 'none' option.
+		if (std::find(pprops_str.begin(), pprops_str.end(), "none") != pprops_str.end())
+		{
+		  AssertThrow(pprops_str.size() == 1,
+			      ExcMessage("The list of strings for the parameter 'Postprocess/"
+				         "Particles/Perple_X composition/Phase properties' "
+					 "contains the option 'none' alongside other options. "
+					 "This is not allowed. Please check your parameter file."));
+		}
+		else
+		{
+		  for (std::string pprop_str : pprops_str)
+		  {
+		    try {
+		      this->phase_properties.push_back(property_map.at(pprop_str));
+		    }
+		    catch (const std::out_of_range &e) {
+		      AssertThrow(false, ExcMessage(pprop_str + " is not a valid option. "
+						    "Check your parameter file."));
+		    }
+		  }
+		}
+	      }
 
 	      this->track_bulk_composition = prm.get_bool("Track bulk composition");
 

@@ -20,11 +20,6 @@
 
 #include <aspect/particle/property/interface.h>
 
-/* #include <aspect/initial_composition/interface.h> */
-/* #include <aspect/utilities.h> */
-/* #include <deal.II/base/exceptions.h> */
-/* #include <perplexcpp/wrapper.h> */
-
 
 namespace aspect
 {
@@ -32,6 +27,20 @@ namespace aspect
   {
     namespace Property
     {
+      /**
+       * An enum enumerating the different possible properties that can be tracked.
+       */
+      enum class PhaseProperty
+      {
+	composition,
+	n_moles,
+	molar_fraction,
+	volume_fraction,
+	weight_fraction,
+      };
+
+
+
       /**
        * A class that calculates phase and system properties using the thermodynamical 
        * code Perple_X.
@@ -84,13 +93,13 @@ namespace aspect
 	  /**
 	   * A vector containing the names of the tracked Perple_X phases.
 	   */
-	  std::vector<std::string> tracked_phases;
+	  std::vector<std::string> phase_names;
 
 
 	  /**
 	   * A vector containing the selected phase properties to report.
 	   */
-	  std::vector<std::string> tracked_phase_properties;
+	  std::vector<PhaseProperty> phase_properties;
 
 
 

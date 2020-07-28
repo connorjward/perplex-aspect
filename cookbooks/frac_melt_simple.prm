@@ -123,8 +123,10 @@ subsection Heating model
 end 
 
 subsection Postprocess
-  # 'particles' added to the list of postprocessors.
-  set List of postprocessors = visualization, composition statistics, velocity statistics, temperature statistics, melt statistics, depth average, particles, perplex cache statistics
+  # 'particles' and 'perplex cache statistics' added to the list of postprocessors.
+  set List of postprocessors = visualization, composition statistics, velocity statistics, \
+                               temperature statistics, melt statistics, depth average, \
+                               particles, perplex cache statistics
 
   subsection Visualization
     set List of output variables      = material properties, nonadiabatic temperature
@@ -148,13 +150,13 @@ subsection Postprocess
   # results to be valid AT ALL.
   subsection Particles
     set Number of particles           = 1000
-    set List of particle properties   = perplex particle
+    set List of particle properties   = perplex composition
     set Time between data output      = 6e5
 
     # This is important to avoid some strange effects.
     set Allow cells without particles = false
 
-    subsection Perple_X particle
+    subsection Perple_X composition
       set Data directory           = ../data/perplex/simple
       set Problem definition file  = simple.dat
 
