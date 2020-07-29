@@ -28,14 +28,15 @@ subsection Solver parameters
 end
 
 subsection Material model
-  set Model name = perplex melt simple 
-  subsection Melt simple
-    set Reference permeability = 1e-7
-    set Melt extraction depth = 0.0
-    set Freezing rate         = 0.002
-    set Melting time scale for operator splitting = 5e2
-    set Exponential melt weakening factor = 20
-  end
+  set Model name = perplex melt
+
+  # subsection Perple_X melt
+  #   set Reference permeability = 1e-7
+  #   set Melt extraction depth = 0.0
+  #   set Freezing rate         = 0.002
+  #   set Melting time scale for operator splitting = 5e2
+  #   set Exponential melt weakening factor = 20
+  # end
 end
 
 subsection Geometry model
