@@ -33,11 +33,14 @@ namespace aspect
     PerplexMelt<dim>::initialize()
     {
       AssertThrow(this->include_melt_transport(),
-	          ExcMessage("Material model 'Perple_X melt' on works if melt "
+	          ExcMessage("Material model 'Perple_X melt' only works if melt "
 		             "transport is enabled."));
       AssertThrow(this->introspection().compositional_name_exists("porosity"),
 		  ExcMessage("Material model 'Perple_X melt' only works if "
 		             "there is a compositional field called 'porosity'."));
+      AssertThrow(this->get_parameters().use_operator_splitting,
+	          ExcMessage("Material model 'Perple_X melt' only works if "
+		             "operator splitting is enabled."));
     }
 
 
@@ -77,87 +80,72 @@ namespace aspect
 	out.specific_heat[i] = eos_outputs.specific_heat_capacities[0];
 	out.thermal_conductivities[i] = k_value;
 	out.compressibilities[i] = eos_outputs.compressibilities[0];
-
-	// Added to stop it breaking (same as melt_global).
 	out.entropy_derivative_pressure[i] = 0.0;
 	out.entropy_derivative_temperature[i] = 0.0;
+
+	// TODO: Set porosity.
+	ReactionRateOutputs<dim> *reaction_rate_out =
+	  out.template get_additional_output<ReactionRateOutputs<dim>>();
 
 	for (unsigned int c=0; c<in.composition[i].size(); ++c)
 	  out.reaction_terms[i][c] = 0.0;
 
-	    /* // start ADDED section */
-	    /* auto& perplex_wrapper = perplexcpp::Wrapper::get_instance(); */
+	    const auto& px = perplexcpp::Wrapper::get_instance();
 
-	    /* std::vector<double> composition; */
-	    /* { */
-	      /* auto melt_composition = this->get_composition(in.composition[i], "melt"); */
-	      /* auto residue_composition = this->get_composition(in.composition[i], "residue"); */
+	    std::vector<double> bulk = this->get_bulk_composition(in, i);
 
-	      /* for (unsigned int c = 0; */ 
-		   /* c < perplexcpp::Wrapper::get_instance().n_composition_components; */ 
-		   /* ++c) */
-	      /* { */
-		/* composition.push_back(melt_composition[c] + residue_composition[c]); */
-	      /* } */
-	    /* } */
+	    double pressure = in.pressure[i];
+	    double temperature = in.temperature[i];
 
-	    /* double pressure = in.pressure[i]; */
-	    /* double temperature = in.temperature[i]; */
+	    if (pressure < px.min_pressure)
+	      pressure = px.min_pressure;
+	    else if (pressure > px.max_pressure)
+	      pressure = px.max_pressure;
 
-	    /* // 200K is added to the temperature to make the results more consistent */
-	    /* // between Perple_X and ASPECT. This is a hack. In order to avoid this */
-	    /* // the porosity value should really be calculated from Perple_X too. */
-	    /* temperature += 200; */
+	    if (temperature < px.min_temperature)
+	      temperature = px.min_temperature;
+	    if (temperature > px.max_temperature)
+	      temperature = px.max_temperature;
 
-	    /* if (pressure < perplex_wrapper.min_pressure) */
-	      /* pressure = perplex_wrapper.min_pressure; */
-	    /* else if (pressure > perplex_wrapper.max_pressure) */
-	      /* pressure = perplex_wrapper.max_pressure; */
-
-	    /* if (temperature < perplex_wrapper.min_temperature) */
-	      /* temperature = perplex_wrapper.min_temperature; */
-	    /* if (temperature > perplex_wrapper.max_temperature) */
-	      /* temperature = perplex_wrapper.max_temperature; */
-
-	    /* const auto result = perplex_wrapper.minimize(pressure, */ 
-							 /* temperature, */
-							 /* composition); */
+	    const perplexcpp::MinimizeResult result =
+	      px.minimize(pressure, temperature, bulk);
 	    
-	    /* // Make sure that the melt amount is non-negative. */
-	    /* const double melt_frac = old_porosity > 0 ? old_porosity : 0.0; */
+	    // Make sure that the melt amount is non-negative.
+              const unsigned int porosity_idx = this->introspection().compositional_index_for_name("porosity");
+              const double old_porosity = in.composition[i][porosity_idx];
+	    const double melt_frac = old_porosity > 0 ? old_porosity : 0.0;
 
-	    /* // Get the melt composition. */
-	    /* const std::vector<double> melt_composition = this->calc_melt_composition(melt_frac, result); */
+	    // Get the melt composition.
+	    const std::vector<double> melt_composition = this->calc_melt_composition(melt_frac, result);
 
-	    /* // Determine the composition changes and alter the reaction rates accordingly. */
-	    /* for (unsigned int c = 0; c < perplex_wrapper.n_composition_components; ++c) */ 
-	    /* { */
-	      /* const std::string comp_name = perplex_wrapper.composition_component_names[c]; */
+	    // Determine the composition changes and alter the reaction rates accordingly.
+	    for (unsigned int c = 0; c < px.n_composition_components; ++c) 
+	    {
+	      const std::string comp_name = px.composition_component_names[c];
 
-	      /* const unsigned int melt_comp_idx = */ 
-		/* this->introspection().compositional_index_for_name("melt_" + comp_name); */
+	      const unsigned int melt_comp_idx = 
+		this->introspection().compositional_index_for_name("melt_" + comp_name);
 
-	      /* const unsigned int residue_comp_idx = */ 
-		/* this->introspection().compositional_index_for_name("residue_" + comp_name); */
+	      const unsigned int residue_comp_idx = 
+		this->introspection().compositional_index_for_name("residue_" + comp_name);
 
-	      /* const double melt_comp_change = */ 
-		/* melt_composition[c] - in.composition[i][melt_comp_idx]; */
+	      const double melt_comp_change = 
+		melt_composition[c] - in.composition[i][melt_comp_idx];
 
-	      /* const double residue_comp_change = */ 
-		/* result.composition[c] - melt_composition[c] */
-		/* - in.composition[i][residue_comp_idx]; */
+	      const double residue_comp_change = 
+		result.composition[c] - melt_composition[c]
+		- in.composition[i][residue_comp_idx];
 
-	      /* // Populate the reaction rates. */
-	      /* if (reaction_rate_out != nullptr && this->get_timestep_number() > 0) */
-	      /* { */
-		/* reaction_rate_out->reaction_rates[i][melt_comp_idx] = */ 
-		  /* melt_comp_change / this->melting_time_scale; */
+	      // Populate the reaction rates.
+	      if (reaction_rate_out != nullptr && this->get_timestep_number() > 0)
+	      {
+		reaction_rate_out->reaction_rates[i][melt_comp_idx] = 
+		  melt_comp_change / this->get_parameters().reaction_time_step;
 
-		/* reaction_rate_out->reaction_rates[i][residue_comp_idx] = */ 
-		  /* residue_comp_change / this->melting_time_scale; */
-	      /* } */
-	    /* } */
-	    /* // end ADDED section */
+		reaction_rate_out->reaction_rates[i][residue_comp_idx] = 
+		  residue_comp_change / this->get_parameters().reaction_time_step;
+	      }
+	    }
 
 	// Fill melt outputs if they exist.
 	MeltOutputs<dim> *melt_out = 
@@ -363,6 +351,105 @@ namespace aspect
 	}
 	melt_out->compaction_viscosities[i] *= visc_temperature_dependence;
       }
+    }
+
+
+
+    template <int dim>
+    std::vector<double>
+    PerplexMelt<dim>::
+    get_composition(const std::vector<double>& comp_fields, 
+	            const std::string& name) const
+    { 
+      std::vector<double> composition;
+      for (std::string comp_name : 
+	   perplexcpp::Wrapper::get_instance().composition_component_names) 
+      {
+	const unsigned int idx = 
+	  this->introspection().compositional_index_for_name(name + "_" + comp_name);
+
+	composition.emplace_back(comp_fields[idx]);
+      }
+      return composition;
+    }
+
+
+
+    template <int dim>
+    std::vector<double>
+    PerplexMelt<dim>::
+    get_bulk_composition(const MaterialModelInputs<dim> &in,
+	                 const unsigned int q) const
+    {
+      const auto& px = perplexcpp::Wrapper::get_instance();
+
+      std::vector<double> melt = this->get_composition(in.composition[q], "melt");
+      std::vector<double> residue = this->get_composition(in.composition[q], "residue");
+
+      std::vector<double> bulk;
+      for (unsigned int c = 0; c < px.n_composition_components; c++)
+	bulk.push_back(melt[c] + residue[c]);
+      return bulk;
+    }
+
+
+
+    template <int dim>
+    std::vector<double> 
+    PerplexMelt<dim>::
+    calc_melt_composition(const double porosity, 
+	                  const perplexcpp::MinimizeResult &result) const
+    {
+      Assert(porosity >= 0, ExcInternalError("The porosity must be non-negative"));
+      
+      auto& px = perplexcpp::Wrapper::get_instance();
+
+      perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
+
+      // If no melt is present return a vector of zeros.
+      if (porosity == 0 || melt.n_moles == 0)
+	return std::vector<double>(px.n_composition_components, 0.0);
+
+      // Initial calculations for readability later on.
+      double phase_densities_sum = 0.0;
+      for (auto p : result.phases)
+	phase_densities_sum += p.density;
+
+      double melt_mol_mass_sum = 0.0;
+      for (unsigned int c = 0; c < px.n_composition_components; ++c)
+	melt_mol_mass_sum += melt.composition_ratio[c] * px.composition_molar_masses[c];
+
+      double melt_comp_ratio_sum = 0.0;
+      for (double melt_comp_ratio : melt.composition_ratio)
+	melt_comp_ratio_sum += melt_comp_ratio;
+
+      double bulk_weight = 0.0;
+      for (unsigned int c = 0; c < px.n_composition_components; ++c)
+	bulk_weight += result.composition[c] * px.composition_molar_masses[c];
+
+      const double phase_weight_frac = 
+	porosity * melt.density / phase_densities_sum;
+
+      // Populate the melt composition.
+      std::vector<double> melt_composition;
+      for (unsigned int c = 0; c < px.n_composition_components; ++c)
+      {
+	const double melt_comp_weight_frac = melt.composition_ratio[c] * px.composition_molar_masses[c] / melt_mol_mass_sum;
+
+	// The weight fraction of the composition component in the melt is the weight fraction 
+	// of the melt multiplied by the weight fraction of the component inside the melt.
+	const double bulk_comp_weight_frac = phase_weight_frac * melt_comp_weight_frac;
+
+	// Turn the weight fraction into an actual weight.
+	const double bulk_comp_weight = bulk_comp_weight_frac * bulk_weight;
+
+	// Figure out the number of moles of the component.
+	const double bulk_comp_mol = bulk_comp_weight / px.composition_molar_masses[c];
+
+	melt_composition.push_back(bulk_comp_mol);
+      }
+
+      return melt_composition;
     }
   }
 }

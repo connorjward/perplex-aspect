@@ -27,6 +27,7 @@
 #include <aspect/material_model/equation_of_state/linearized_incompressible.h>
 #include <aspect/melt.h>
 #include <aspect/simulator_access.h>
+#include<perplexcpp/wrapper.h>
 
 
 namespace aspect
@@ -94,10 +95,24 @@ namespace aspect
 	double xi_0;
 
 
+	std::vector<double>
+	get_bulk_composition(const MaterialModelInputs<dim> &in,
+	                     const unsigned int q) const;
+
+	std::vector<double>
+    get_composition(const std::vector<double>& comp_fields, 
+	            const std::string& name) const;
+
+	std::vector<double>
+	calc_melt_composition(const double porosity, 
+	                      const perplexcpp::MinimizeResult &result) const;
+
 
 	void
 	fill_melt_outputs(const MaterialModelInputs<dim> &in, 
 			  MeltOutputs<dim> *melt_out) const;
+
+
     };
   }
 }
