@@ -66,6 +66,8 @@ namespace aspect
 	void
 	parse_parameters(ParameterHandler &prm) override;
 
+	void
+	create_additional_named_outputs(MaterialModelOutputs<dim> &out) const override;
 
 	void 
 	melt_fractions(const MaterialModelInputs<dim> &in,
