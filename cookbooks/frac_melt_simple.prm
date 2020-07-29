@@ -34,7 +34,7 @@ subsection Discretization
   end
 end
 
-subsection Perple_X
+subsection Perple_X configuration
   set Data directory  = ../data/perplex/simple
   set Problem file    = simple.dat
   set Cache capacity  = 1000

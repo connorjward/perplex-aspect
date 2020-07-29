@@ -30,7 +30,6 @@ namespace aspect
   {
     namespace Property
     {
-
       template <int dim>
       void
       PerplexComposition<dim>::initialize()
@@ -61,7 +60,6 @@ namespace aspect
 		for (unsigned int c = 0; c < px.n_composition_components; c++)
 		  properties.push_back(0.0);
 		break;
-
 	      default:
 		properties.push_back(0.0);
 	    }
@@ -83,25 +81,22 @@ namespace aspect
 
 
 
-      namespace
-      {
-      }
-
-
       template <int dim>
       void
       PerplexComposition<dim>::
-      update_one_particle_property (const unsigned int data_position,
-				    const Point<dim>&,
-				    const Vector<double> &solution,
-				    const std::vector<Tensor<1,dim>>&,
-				    const ArrayView<double> &particle_properties) const
+      update_one_particle_property(const unsigned int data_position,
+				   const Point<dim>&,
+				   const Vector<double> &solution,
+				   const std::vector<Tensor<1,dim>>&,
+				   const ArrayView<double> &particle_properties) const
       {
 	const auto& px = perplexcpp::Wrapper::get_instance();
 
 	double pressure = solution[this->introspection().component_indices.pressure];
 	double temperature = solution[this->introspection().component_indices.temperature];
 
+	// Adjust the pressure and temperature to lie within the bounds
+	// permitted by Perple_X.
 	if (pressure < px.min_pressure)
 	  pressure = px.min_pressure;
 	else if (pressure > px.max_pressure)
@@ -113,12 +108,10 @@ namespace aspect
 
 	const std::vector<double> composition = get_composition(solution);
 
-	// Create ... so doesn't need to track current position.
-	bool particle_active =
-	  std::accumulate(composition.begin(), composition.end(), 0) > this->min_amount_of_substance;
+	const double n_moles = std::accumulate(composition.begin(), composition.end(), 0);
 
 	std::vector<double> props;
-	if (particle_active)
+	if (n_moles > this->min_amount_of_substance)
 	{
 	  const perplexcpp::MinimizeResult result = 
 	    px.minimize(pressure, temperature, composition);
@@ -178,17 +171,19 @@ namespace aspect
 	    {
 	      case PhaseProperty::composition:
 		for (std::string cname : px.composition_component_names)
+		  // E.g. 'composition liquid SiO2'.
 		  prop_info.push_back(std::make_pair(pprop_map.at(pprop) + " " + pname + " " + cname, 1));
 		break;
 	      default:
+		// E.g. 'volume fraction olivine'.
 		prop_info.push_back(std::make_pair(pprop_map.at(pprop) + " " + pname, 1));
-		break;
 	    }
 	  }
 	}
 
 	if (track_bulk_composition)
 	  for (std::string cname : px.composition_component_names)
+	    // E.g. 'bulk SiO2'.
 	    prop_info.push_back(std::make_pair("bulk " + cname, 1));
 
 	return prop_info;
@@ -200,7 +195,7 @@ namespace aspect
       void
       PerplexComposition<dim>::declare_parameters(ParameterHandler &prm)
       {
-	prm.enter_subsection("Perple_X");
+	prm.enter_subsection("Perple_X configuration");
 	{
 	  prm.declare_entry(
 	    "Data directory", 
@@ -213,7 +208,8 @@ namespace aspect
 	    "Problem file", 
 	    "", 
 	    Patterns::FileName(),
-	    "The name of the PerpleX .dat file in use.",
+	    "The name of the PerpleX .dat file in use (within the specified "
+	    "directory).",
 	    true
 	  );
 
@@ -228,9 +224,9 @@ namespace aspect
 	    "Cache tolerance",
 	    "0.0",
 	    Patterns::Double(0.0, 1.0),
-	    "The relative tolerance accepted by the cache. A result will only be returned if all "
-	    "of the input parameters (temperature, pressure and composition) vary by less than "
-	    "this amount."
+	    "The relative tolerance accepted by the cache. A result will only "
+	    "be returned if all of the input parameters (temperature, pressure "
+	    "and composition) vary by less than this amount."
 	  );
 	}
 	prm.leave_subsection();
@@ -349,19 +345,17 @@ namespace aspect
 	  {
 	    bool found = false;
 
-	    for (perplexcpp::PhaseName pname_real : px.phase_names) {
-	      if (pname == pname_real.standard ||
-		  pname == pname_real.abbreviated ||
-		  pname == pname_real.full)
+	    for (perplexcpp::PhaseName pname_actual : px.phase_names) {
+	      if (pname == pname_actual.standard ||
+		  pname == pname_actual.abbreviated ||
+		  pname == pname_actual.full)
 	      {
 		found = true;
 		break;
 	      }
 	    }
-
-	    AssertThrow(found, ExcMessage("The phase '" + pname + "' could not be found."));
+	    AssertThrow(found, ExcMessage("The phase " + pname + " could not be found."));
 	  }
-
 	  return phase_names;
 	}
 
@@ -387,7 +381,6 @@ namespace aspect
 				 "contains entries more than once. "
 				 "This is not allowed. Please check your parameter file."));
 
-
 	  // Check for 'none' option.
 	  if (std::find(pprops_str.begin(), pprops_str.end(), "none") != pprops_str.end())
 	  {
@@ -412,7 +405,6 @@ namespace aspect
 					    "Check your parameter file."));
 	    }
 	  }
-
 	  return pprops;
 	}
       }
@@ -422,7 +414,7 @@ namespace aspect
       void
       PerplexComposition<dim>::parse_parameters(ParameterHandler &prm) 
       {
-	prm.enter_subsection("Perple_X");
+	prm.enter_subsection("Perple_X configuration");
 	{
 	  initialize_perplex(prm);
 	}
@@ -461,7 +453,8 @@ namespace aspect
 	solution.extract_subvector_to(this->introspection().component_indices.compositional_fields,
 				      compositional_fields);
 
-	// Load the composition in the correct order for Perple_X.
+	// Load the composition in the correct order for Perple_X. Set any
+	// negative values to zero.
 	std::vector<double> composition;
 	for (std::string cname : px.composition_component_names) 
 	{
@@ -482,12 +475,11 @@ namespace aspect
 	const auto& px = perplexcpp::Wrapper::get_instance();
 
 	std::vector<double> props;
-
 	for (std::string pname : this->phase_names) 
 	{
-	  perplexcpp::Phase phase = perplexcpp::find_phase(result.phases, pname);
+	  const perplexcpp::Phase phase = perplexcpp::find_phase(result.phases, pname);
 
-	  for (PhaseProperty pprop : phase_properties) 
+	  for (PhaseProperty pprop : this->phase_properties) 
 	  {
 	    switch (pprop)
 	    {
@@ -512,32 +504,18 @@ namespace aspect
 	}
 
 	std::vector<double> residue_composition = result.composition;
-
 	if (this->extract_melt)
 	{
 	  const perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
 
 	  if (melt.volume_frac > this->melt_extraction_threshold)
-	  {
 	    for (unsigned int c = 0; c < px.n_composition_components; c++)
-	    {
-	      const double cchange = melt.composition_ratio[c] * melt.n_moles;
-	      Assert(cchange >= 0, ExcInternalError("The extracted melt should be non-negative"));
-
-	      const double camount = residue_composition[c] - cchange;
-	      residue_composition[c] = camount >= 0.0 ? camount : 0.0;
-	    }
-	  }
+	      residue_composition[c] -= melt.composition_ratio[c] * melt.n_moles;	    
 	}
 
 	if (this->track_bulk_composition) 
-	{
 	  for (double camount : residue_composition) 
-	  {
-	    Assert(camount >=0, ExcInternalError("The new composition should be non-negative"));
 	    props.push_back(camount);
-	  }
-	}
 
 	return props;
       }
@@ -552,9 +530,9 @@ namespace aspect
 
 	std::vector<double> props;
 
-	for (std::string pname : phase_names) 
+	for (std::string pname : this->phase_names) 
 	{
-	  for (PhaseProperty pprop : phase_properties)
+	  for (PhaseProperty pprop : this->phase_properties)
 	  {
 	    switch (pprop)
 	    {
