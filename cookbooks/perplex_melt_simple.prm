@@ -94,8 +94,8 @@ subsection Boundary temperature model
   set List of model names = box
 
   subsection Box
-    set Top temperature = 293
-    set Bottom temperature = 1570
+    set Top temperature = 493
+    set Bottom temperature = 2000
   end
 end
 
