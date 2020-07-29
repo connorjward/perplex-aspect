@@ -41,6 +41,10 @@ namespace aspect
       AssertThrow(this->get_parameters().use_operator_splitting,
 	          ExcMessage("Material model 'Perple_X melt' only works if "
 		             "operator splitting is enabled."));
+      AssertThrow(perplexcpp::Wrapper::get_instance().get_cache().capacity > 0,
+	          ExcMessage("The result cache for the Perple_X wrapper should "
+		             "be greater than zero or every calculation will be "
+			     "done twice."));
     }
 
 
@@ -89,71 +93,77 @@ namespace aspect
 	  ReactionRateOutputs<dim> *reaction_rate_out =
 	    out.template get_additional_output<ReactionRateOutputs<dim>>();
 
+	  // Start by zeroing the reaction terms. Otherwise the fields are
+	  // set to NaN causing exceptions.
 	  for (unsigned int c=0; c<in.composition[i].size(); ++c)
+	  {
 	    out.reaction_terms[i][c] = 0.0;
+	    if (reaction_rate_out != nullptr)
+	      reaction_rate_out->reaction_rates[i][c] = 0.0;
+	  }
 
-	      const auto& px = perplexcpp::Wrapper::get_instance();
+	  const auto& px = perplexcpp::Wrapper::get_instance();
 
-	      std::vector<double> bulk = this->get_bulk_composition(in, i);
+	  std::vector<double> bulk = this->get_bulk_composition(in, i);
 
-	      double pressure = in.pressure[i];
-	      double temperature = in.temperature[i];
+	  double pressure = in.pressure[i];
+	  double temperature = in.temperature[i];
 
-	      if (pressure < px.min_pressure)
-		pressure = px.min_pressure;
-	      else if (pressure > px.max_pressure)
-		pressure = px.max_pressure;
+	  if (pressure < px.min_pressure)
+	    pressure = px.min_pressure;
+	  else if (pressure > px.max_pressure)
+	    pressure = px.max_pressure;
 
-	      if (temperature < px.min_temperature)
-		temperature = px.min_temperature;
-	      if (temperature > px.max_temperature)
-		temperature = px.max_temperature;
+	  if (temperature < px.min_temperature)
+	    temperature = px.min_temperature;
+	  if (temperature > px.max_temperature)
+	    temperature = px.max_temperature;
 
-	      const perplexcpp::MinimizeResult result =
-		px.minimize(pressure, temperature, bulk);
-	      
-	      const unsigned int porosity_idx =
-	       	this->introspection().compositional_index_for_name("porosity");
+	  const perplexcpp::MinimizeResult result =
+	    px.minimize(pressure, temperature, bulk);
+	  
+	  const unsigned int porosity_idx =
+	    this->introspection().compositional_index_for_name("porosity");
 
-      perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
-	      // Make sure that the melt amount is non-negative.
-	      const double porosity_change = 
-		std::max(melt.volume_frac - in.composition[i][porosity_idx],
-		         -in.composition[i][porosity_idx]);
+  perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
+	  // Make sure that the melt amount is non-negative.
+	  const double porosity_change = 
+	    std::max(melt.volume_frac - in.composition[i][porosity_idx],
+		     -in.composition[i][porosity_idx]);
 
-	      // Set the new porosity.
-	      if (reaction_rate_out != nullptr && this->get_timestep_number() > 0)
-		reaction_rate_out->reaction_rates[i][porosity_idx] = 
-		  porosity_change / this->get_parameters().reaction_time_step;
+	  // Set the new porosity.
+	  if (reaction_rate_out != nullptr && this->get_timestep_number() > 0)
+	    reaction_rate_out->reaction_rates[i][porosity_idx] = 
+	      porosity_change / this->get_parameters().reaction_time_step;
 
-	      // Determine the composition changes and alter the reaction rates accordingly.
-	      for (unsigned int c = 0; c < px.n_composition_components; ++c) 
-	      {
-		const std::string comp_name = px.composition_component_names[c];
+	  // Determine the composition changes and alter the reaction rates accordingly.
+	  for (unsigned int c = 0; c < px.n_composition_components; ++c) 
+	  {
+	    const std::string comp_name = px.composition_component_names[c];
 
-		const unsigned int melt_comp_idx = 
-		  this->introspection().compositional_index_for_name("melt_" + comp_name);
+	    const unsigned int melt_comp_idx = 
+	      this->introspection().compositional_index_for_name("melt_" + comp_name);
 
-		const unsigned int residue_comp_idx = 
-		  this->introspection().compositional_index_for_name("residue_" + comp_name);
+	    const unsigned int residue_comp_idx = 
+	      this->introspection().compositional_index_for_name("residue_" + comp_name);
 
-		const double melt_comp_change = 
-		  melt.composition_ratio[c] * melt.n_moles - in.composition[i][melt_comp_idx];
+	    const double melt_comp_change = 
+	      melt.composition_ratio[c] * melt.n_moles - in.composition[i][melt_comp_idx];
 
-		const double residue_comp_change = 
-		  result.composition[c] - melt.composition_ratio[c] * melt.n_moles
-		  - in.composition[i][residue_comp_idx];
+	    const double residue_comp_change = 
+	      result.composition[c] - melt.composition_ratio[c] * melt.n_moles
+	      - in.composition[i][residue_comp_idx];
 
-		// Populate the reaction rates.
-		if (reaction_rate_out != nullptr && this->get_timestep_number() > 0)
-		{
-		  reaction_rate_out->reaction_rates[i][melt_comp_idx] = 
-		    melt_comp_change / this->get_parameters().reaction_time_step;
+	    // Populate the reaction rates.
+	    if (reaction_rate_out != nullptr && this->get_timestep_number() > 0)
+	    {
+	      reaction_rate_out->reaction_rates[i][melt_comp_idx] = 
+		melt_comp_change / this->get_parameters().reaction_time_step;
 
-		  reaction_rate_out->reaction_rates[i][residue_comp_idx] = 
-		    residue_comp_change / this->get_parameters().reaction_time_step;
-		}
-	      }
+	      reaction_rate_out->reaction_rates[i][residue_comp_idx] = 
+		residue_comp_change / this->get_parameters().reaction_time_step;
+	    }
+	  }
 	}
 	
 	// Fill melt outputs if they exist.
