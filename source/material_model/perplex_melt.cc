@@ -87,10 +87,11 @@ namespace aspect
 	out.entropy_derivative_pressure[i] = 0.0;
 	out.entropy_derivative_temperature[i] = 0.0;
 
-	if (in.requests_property(MaterialProperties::reaction_terms)) 
-	{
+
 	  ReactionRateOutputs<dim> *reaction_rate_out =
 	    out.template get_additional_output<ReactionRateOutputs<dim>>();
+	if (in.requests_property(MaterialProperties::reaction_terms)) 
+	{
 
 	  // Start by zeroing the reaction terms. Otherwise the fields are
 	  // set to NaN causing exceptions.
@@ -101,75 +102,87 @@ namespace aspect
 	      reaction_rate_out->reaction_rates[i][c] = 0.0;
 	  }
 
-	  const auto& px = perplexcpp::Wrapper::get_instance();
-
-	  std::vector<double> bulk = this->get_bulk_composition(in, i);
-
-	  double pressure = in.pressure[i];
-	  double temperature = in.temperature[i] + 400;
-
-	  if (pressure < px.min_pressure)
-	    pressure = px.min_pressure;
-	  else if (pressure > px.max_pressure)
-	    pressure = px.max_pressure;
-
-	  if (temperature < px.min_temperature)
-	    temperature = px.min_temperature;
-	  if (temperature > px.max_temperature)
-	    temperature = px.max_temperature;
-
-	  const perplexcpp::MinimizeResult result =
-	    px.minimize(pressure, temperature, bulk);
-	  
-	  const unsigned int porosity_idx =
-	    this->introspection().compositional_index_for_name("porosity");
-	  
-	  const double old_porosity = std::max(in.composition[i][porosity_idx], 0.0);
-
-	  perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
-	  // Make sure that the melt amount is non-negative.
-	  const double porosity_change = 
-	    std::max(melt.volume_frac - old_porosity, -old_porosity);
-
-	  // Set the new porosity.
 	  if (reaction_rate_out != nullptr && this->get_timestep_number() > 0)
+	  {
+
+	    const auto& px = perplexcpp::Wrapper::get_instance();
+
+	    std::vector<double> bulk = this->get_bulk_composition(in, i);
+
+	    /* double pressure = in.pressure[i]; */
+	    double pressure = this->get_adiabatic_conditions().pressure(in.position[i]);
+	    double temperature = in.temperature[i];
+
+	    if (pressure < px.min_pressure)
+	      pressure = px.min_pressure;
+	    else if (pressure > px.max_pressure)
+	      pressure = px.max_pressure;
+
+	    if (temperature < px.min_temperature)
+	      temperature = px.min_temperature;
+	    if (temperature > px.max_temperature)
+	      temperature = px.max_temperature;
+
+	    const perplexcpp::MinimizeResult result =
+	      px.minimize(pressure, temperature, bulk);
+	    
+	    perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
+
+	    const unsigned int porosity_idx =
+	      this->introspection().compositional_index_for_name("porosity");
+
+	    const double initial_porosity = in.composition[i][porosity_idx];
+	    double porosity_change = melt.volume_frac - initial_porosity;
+
+	    if (initial_porosity + porosity_change < 0)
+	      porosity_change = -initial_porosity;
+
 	    reaction_rate_out->reaction_rates[i][porosity_idx] = 
 	      porosity_change / this->get_parameters().reaction_time_step;
 
-	  // Determine the composition changes and alter the reaction rates accordingly.
-	  for (unsigned int c = 0; c < px.n_composition_components; ++c) 
-	  {
-	    const std::string comp_name = px.composition_component_names[c];
-
-	    const unsigned int melt_comp_idx = 
-	      this->introspection().compositional_index_for_name("melt_" + comp_name);
-
-	    const unsigned int residue_comp_idx = 
-	      this->introspection().compositional_index_for_name("residue_" + comp_name);
-
-	    /* const double melt_comp_change = */ 
-	    /*   melt.composition_ratio[c] * melt.n_moles - in.composition[i][melt_comp_idx]; */
-	  const double old_melt = std::max(in.composition[i][melt_comp_idx], 0.0);
-	    const double melt_comp_change = 
-	      std::max(melt.composition_ratio[c] * melt.n_moles - old_melt, -old_melt);
-
-	    /* const double residue_comp_change = */ 
-	    /*   result.composition[c] - melt.composition_ratio[c] * melt.n_moles */
-	    /*   - in.composition[i][residue_comp_idx]; */
-	  const double old_residue = std::max(in.composition[i][residue_comp_idx], 0.0);
-	    const double residue_comp_change = 
-	      std::max(result.composition[c] -(melt_comp_change - old_melt) - old_residue, -old_residue);
-
-	    // Populate the reaction rates.
-	    if (reaction_rate_out != nullptr && this->get_timestep_number() > 0)
+	    // Determine the composition changes and alter the reaction rates accordingly.
+	    for (unsigned int c = 0; c < px.n_composition_components; ++c) 
 	    {
-	      reaction_rate_out->reaction_rates[i][melt_comp_idx] = 
-		melt_comp_change / this->get_parameters().reaction_time_step;
+	      const std::string cname = px.composition_component_names[c];
+
+	      const unsigned int cmelt_idx = 
+		this->introspection().compositional_index_for_name("melt_" + cname);
+
+	      const double cmelt_initial = in.composition[i][cmelt_idx];
+	      const double cmelt_final = melt.composition_ratio[c] * melt.n_moles;
+	      double cmelt_change = cmelt_final - cmelt_initial;
+
+	      if (cmelt_initial + cmelt_change < 0)
+		cmelt_change = -cmelt_initial;
+
+	      reaction_rate_out->reaction_rates[i][cmelt_idx] = 
+		cmelt_change / this->get_parameters().reaction_time_step;
+
+
+	      const unsigned int residue_comp_idx = 
+		this->introspection().compositional_index_for_name("residue_" + cname);
+
+	      const double cresidue_initial = in.composition[i][residue_comp_idx];
+	      const double cresidue_final = result.composition[c] - cmelt_final;
+	      double cresidue_change = cresidue_final - cresidue_initial;
+
+	      if (cresidue_initial + cresidue_change < 0)
+		cresidue_change = -cresidue_initial;
 
 	      reaction_rate_out->reaction_rates[i][residue_comp_idx] = 
-		residue_comp_change / this->get_parameters().reaction_time_step;
+		cresidue_change / this->get_parameters().reaction_time_step;
 	    }
 	  }
+	}
+	else
+	{
+              for (unsigned int c=0; c<in.composition[i].size(); ++c)
+                {
+                  out.reaction_terms[i][c] = 0.0;
+
+                  if (reaction_rate_out != nullptr)
+                    reaction_rate_out->reaction_rates[i][c] = 0.0;
+                }
 	}
 	
 	// Fill melt outputs if they exist.
@@ -206,6 +219,12 @@ namespace aspect
           Rheology::ConstantViscosity::declare_parameters(prm, 5e24);
 
 	  //meltstuff
+          prm.declare_entry ("Melt extraction depth", "1000.0",
+                             Patterns::Double (0.),
+                             "Depth above that melt will be extracted from the model, "
+                             "which is done by a negative reaction term proportional to the "
+                             "porosity field. "
+                             "Units: $m$.");
           prm.declare_entry ("Reference bulk viscosity", "1e22",
                              Patterns::Double (0.),
                              "The value of the constant bulk viscosity $\\xi_0$ of the solid matrix. "
@@ -281,6 +300,7 @@ namespace aspect
 	  this->melt_compressibility = prm.get_double ("Melt compressibility");
 	  this->alpha_phi = prm.get_double ("Exponential melt weakening factor");
 	  this->reference_rho_f = prm.get_double ("Reference melt density");
+          this->extraction_depth           = prm.get_double ("Melt extraction depth");
 	  this->thermal_bulk_viscosity_exponent = prm.get_double ("Thermal bulk viscosity exponent");
 	  this->thermal_viscosity_exponent = prm.get_double ("Thermal viscosity exponent");
         }

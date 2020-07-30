@@ -36,7 +36,9 @@ DEAL_II_INITIALIZE_CACHED_VARIABLES()
 add_library(
   perplexaspect 
   SHARED 
+  initial_composition/perplex_composition.cc
   material_model/perplex_melt.cc 
+  material_model/perplex_melt_simple.cc 
   particle/property/perplex_composition.cc
   postprocess/perplex_cache_statistics.cc
 )
