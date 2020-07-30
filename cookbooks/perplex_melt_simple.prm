@@ -19,7 +19,7 @@ subsection Solver parameters
   subsection Operator splitting parameters
     set Reaction time step                     = 5e2
 
-    set Reaction time steps per advection step = 5
+    set Reaction time steps per advection step = 10
   end
 
   subsection Stokes solver parameters
@@ -30,13 +30,10 @@ end
 subsection Material model
   set Model name = perplex melt
 
-  # subsection Perple_X melt
-  #   set Reference permeability = 1e-7
-  #   set Melt extraction depth = 0.0
-  #   set Freezing rate         = 0.002
-  #   set Melting time scale for operator splitting = 5e2
-  #   set Exponential melt weakening factor = 20
-  # end
+  subsection Perple_X melt
+    set Reference permeability = 1e-7
+    set Exponential melt weakening factor = 20
+  end
 end
 
 subsection Geometry model
@@ -84,7 +81,7 @@ subsection Initial temperature model
     set Age bottom boundary layer   = 1e5
     set Amplitude                   = 0
     subsection Function
-      set Function expression       = 0;0;0;0;0;0;0;0;0;0
+      set Function expression       = 0;0;0;0;0;0;0;0;0
     end
   end
 end
@@ -94,7 +91,7 @@ subsection Boundary temperature model
   set List of model names = box
 
   subsection Box
-    set Top temperature = 493
+    set Top temperature = 293
     set Bottom temperature = 2000
   end
 end
@@ -111,11 +108,11 @@ end
 # Here we add the extra compositional fields that must be tracked during the simulation.
 # The composition component names (e.g. SiO2) have been taken from the Perple_X .dat file.
 subsection Compositional fields
-  set Number of fields = 10
-  set Compositional field methods = melt field, field, \
+  set Number of fields = 9
+  set Compositional field methods = melt field, \
                                     melt field, melt field, melt field, melt field, \
                                     field, field, field, field
-  set Names of fields = porosity, peridotite, \
+  set Names of fields = porosity, \
                         melt_SiO2, melt_CaO, melt_MgO, melt_FeO, \
                         residue_SiO2, residue_CaO, residue_MgO, residue_FeO
 end
@@ -123,13 +120,8 @@ end
 # The residue composition is initially set to the bulk composition specified in the
 # .dat Perple_X file.
 subsection Initial composition model
-  set Model name = function
-  subsection Function
-    set Function expression       = 0; 0; \
-                                    0; 0; 0; 0; \
-                                    38.5; 2.82; 50.5; 5.88
-    set Variable names      = x,y
-  end
+  set List of model names = porosity, perplex composition
+  set List of model operators = replace if valid
 end
 
 subsection Boundary composition model
@@ -141,10 +133,10 @@ subsection Mesh refinement
   set Coarsening fraction                      = 0.5
   set Refinement fraction                      = 0.5
 
-  set Initial adaptive refinement              = 1
-  set Initial global refinement                = 2
+  set Initial adaptive refinement              = 0
+  set Initial global refinement                = 3
   set Strategy                                 = minimum refinement function, composition threshold
-  set Time steps between mesh refinement       = 10
+  set Time steps between mesh refinement       = 0
 
   subsection Minimum refinement function
     set Coordinate system   = cartesian
@@ -154,7 +146,7 @@ subsection Mesh refinement
 
   # The composition fields are also given a much lower threshold.
   subsection Composition threshold
-    set Compositional field thresholds = 1e-8, 1.0, \
+    set Compositional field thresholds = 1e-8, \
                                          1e-8, 1e-8, 1e-8, 1e-8, \
                                          1.0, 1.0, 1.0, 1.0
   end
