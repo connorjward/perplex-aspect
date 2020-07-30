@@ -95,6 +95,7 @@ namespace aspect
 	double thermal_bulk_viscosity_exponent;
 	double thermal_viscosity_exponent;
 	double xi_0;
+	double extraction_depth;
 
 
 	std::vector<double>

@@ -24,7 +24,6 @@
 #include <perplexaspect/material_model/perplex_melt.h>
 #include <aspect/initial_temperature/interface.h>
 #include <aspect/adiabatic_conditions/interface.h>
-/* #include <aspect/material_model/interface.h> */
 
 #include <perplexcpp/wrapper.h>
 
@@ -90,7 +89,8 @@ namespace aspect
 	  if (compositional_index == melt_idx)
 	    return melt.composition_ratio[c] * melt.n_moles;
 	  else
-	    return result.composition[c] - melt.composition_ratio[c] * melt.n_moles;
+	    return std::max(result.composition[c] - melt.composition_ratio[c] * melt.n_moles, 
+		            0.0);
         }
       }
       return 0.0;
