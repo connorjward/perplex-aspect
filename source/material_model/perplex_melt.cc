@@ -109,8 +109,8 @@ namespace aspect
 
 	    std::vector<double> bulk = this->get_bulk_composition(in, i);
 
-	    double pressure = in.pressure[i];
-	    /* double pressure = this->get_adiabatic_conditions().pressure(in.position[i]); */
+	    /* double pressure = in.pressure[i]; */
+	    double pressure = this->get_adiabatic_conditions().pressure(in.position[i]);
 	    double temperature = in.temperature[i];
 
 	    if (pressure < px.min_pressure)
@@ -130,18 +130,12 @@ namespace aspect
 
 	    const unsigned int porosity_idx =
 	      this->introspection().compositional_index_for_name("porosity");
-              const double old_porosity = in.composition[i][porosity_idx];
-	      double porosity_change = 
-	      melt.volume_frac - in.composition[i][porosity_idx];
 
-              // remove melt that gets close to the surface
-              if (this->get_geometry_model().depth(in.position[i]) < this->extraction_depth)
-                porosity_change = -old_porosity * (in.position[i](1) - (this->get_geometry_model().maximal_depth() - this->extraction_depth))/this->extraction_depth;
+	    const double initial_porosity = in.composition[i][porosity_idx];
+	    double porosity_change = melt.volume_frac - initial_porosity;
 
-              // do not allow negative porosity
-              porosity_change = std::max(porosity_change, -old_porosity);
-	    /* const double porosity_change = */
-	    /*   melt.volume_frac - in.composition[i][porosity_idx]; */
+	    if (initial_porosity + porosity_change < 0)
+	      porosity_change = -initial_porosity;
 
 	    reaction_rate_out->reaction_rates[i][porosity_idx] = 
 	      porosity_change / this->get_parameters().reaction_time_step;
@@ -154,16 +148,13 @@ namespace aspect
 	      const unsigned int cmelt_idx = 
 		this->introspection().compositional_index_for_name("melt_" + cname);
 
-	      /* const double cmelt_initial = std::max(in.composition[i][cmelt_idx], 0.0); */
 	      const double cmelt_initial = in.composition[i][cmelt_idx];
 	      const double cmelt_final = melt.composition_ratio[c] * melt.n_moles;
 	      double cmelt_change = cmelt_final - cmelt_initial;
 
-              if (this->get_geometry_model().depth(in.position[i]) < this->extraction_depth)
-                cmelt_change = -cmelt_initial * (in.position[i](1) - (this->get_geometry_model().maximal_depth() - this->extraction_depth))/this->extraction_depth;
+	      if (cmelt_initial + cmelt_change < 0)
+		cmelt_change = -cmelt_initial;
 
-              // do not allow negative porosity
-              cmelt_change = std::max(cmelt_change, -cmelt_initial);
 	      reaction_rate_out->reaction_rates[i][cmelt_idx] = 
 		cmelt_change / this->get_parameters().reaction_time_step;
 
@@ -171,22 +162,15 @@ namespace aspect
 	      const unsigned int residue_comp_idx = 
 		this->introspection().compositional_index_for_name("residue_" + cname);
 
+	      const double cresidue_initial = in.composition[i][residue_comp_idx];
+	      const double cresidue_final = result.composition[c] - cmelt_final;
+	      double cresidue_change = cresidue_final - cresidue_initial;
 
-	      double residue_comp_change = 
-		result.composition[c] - melt.composition_ratio[c] * melt.n_moles
-		- in.composition[i][residue_comp_idx];
-
-	      // Do not allow negative values?
-	      /* if (std::abs(melt_comp_change) < 1e-100) */
-		/* melt_comp_change = 0.0; */
-
-	      /* std::cout << "comp_name: " << comp_name << std::endl */
-		        /* << "melt_comp_change: " << melt_comp_change << std::endl */
-		        /* << "residue_comp_change: " << residue_comp_change << std::endl; */
-
+	      if (cresidue_initial + cresidue_change < 0)
+		cresidue_change = -cresidue_initial;
 
 	      reaction_rate_out->reaction_rates[i][residue_comp_idx] = 
-		residue_comp_change / this->get_parameters().reaction_time_step;
+		cresidue_change / this->get_parameters().reaction_time_step;
 	    }
 	  }
 	}

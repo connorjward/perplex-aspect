@@ -9,7 +9,9 @@ set Dimension                              = 2
 set Adiabatic surface temperature          = 1570
 
 set Nonlinear solver scheme                = iterated Advection and Stokes
-set Output directory                       = output-perplex_melt_simple
+set Output directory                       = output-perplex_melt
+set Max nonlinear iterations               = 20
+set Nonlinear solver tolerance             = 1e-5
 
 set Maximum time step = 5e5
 set End time                               = 8e6
@@ -18,18 +20,26 @@ set Use operator splitting                     = true
 
 subsection Solver parameters
   subsection Operator splitting parameters
-    set Reaction time step                     = 2e2
-
+    set Reaction time step                     = 1e4
     set Reaction time steps per advection step = 10
   end
 
+  subsection Newton solver parameters
+    set Use Newton residual scaling method = true
+  end
+
   subsection Stokes solver parameters
-    set GMRES solver restart length = 200
+    set Linear solver tolerance = 1e-8
+    set Number of cheap Stokes solver steps = 200
+    set Maximum number of expensive Stokes solver steps = 3000
+    set GMRES solver restart length = 500
+    set Use full A block as preconditioner = true
   end
 end
 
 subsection Material model
   set Model name = perplex melt
+  set Material averaging = arithmetic average
 
   subsection Perple_X melt
     set Melt extraction depth = 0.0
@@ -77,12 +87,26 @@ end
 #   end
 # end
 
+subsection Discretization
+  # We also choose relatively large values for the stabilization parameters:
+  # The model resolution is very coarse (in order for this model to run in a 
+  # short time), so we want to make sure that no temperature over- and 
+  # undershoots will develop. In a model with melting this would be 
+  # particularly problematic, as large amounts of melt could be generated
+  # by temperature spikes. 
+  # However, note that in an application model with a higher resolution, 
+  # we would choose much smaller values for the stabilization parameters. 
+  subsection Stabilization parameters
+    set beta  = 0.5
+    set cR    = 1
+  end
+end
 subsection Initial temperature model
   set Model name = adiabatic
   subsection Adiabatic
     set Age top boundary layer      = 1e8
     set Age bottom boundary layer   = 1e5
-    set Amplitude                   = 0
+    set Amplitude                   = 500
     subsection Function
       set Function expression       = 0;0;0;0;0;0;0;0;0
     end
@@ -91,11 +115,21 @@ end
 
 subsection Boundary temperature model
   set Fixed temperature boundary indicators = top, bottom
-  set List of model names = box
+  set List of model names = initial temperature
 
-  subsection Box
-    set Top temperature = 593
-    set Bottom temperature = 2200
+  subsection Initial temperature
+    set Minimal temperature = 593
+    set Maximal temperature = 2300
+end
+end
+subsection Boundary composition model
+  set Fixed composition boundary indicators = bottom
+  set List of model names = initial composition
+end
+subsection Boundary fluid pressure model
+  set Plugin name = density
+  subsection Density
+    set Density formulation = fluid density
   end
 end
 
@@ -123,11 +157,18 @@ end
 # The residue composition is initially set to the bulk composition specified in the
 # .dat Perple_X file.
 subsection Initial composition model
-  set List of model names = porosity, perplex composition
+  # set List of model names = porosity#, perplex composition
+  set List of model names = function
+
+  subsection Function
+    set Function expression = 0;0;0;0;0;38.5;2.88;50.5;5.88
+  end
+
 end
 
 subsection Boundary composition model
   set Fixed composition boundary indicators   = bottom
+  # set Allow fixed composition on outflow boundaries = true
   set List of model names = initial composition
 end
 
@@ -135,21 +176,15 @@ subsection Mesh refinement
   set Coarsening fraction                      = 0.5
   set Refinement fraction                      = 0.5
 
-  set Initial adaptive refinement              = 0
+  set Initial adaptive refinement              = 1
   set Initial global refinement                = 3
-  set Strategy                                 = minimum refinement function, composition threshold
-  set Time steps between mesh refinement       = 0
-
-  subsection Minimum refinement function
-    set Coordinate system   = cartesian
-    set Function expression = 4
-    set Variable names      = x,y
-  end
+  set Strategy                                 = composition threshold
+  set Time steps between mesh refinement       = 10
 
   # The composition fields are also given a much lower threshold.
   subsection Composition threshold
-    set Compositional field thresholds = 1e-8, \
-                                         1e-8, 1e-8, 1e-8, 1e-8, \
+    set Compositional field thresholds = 1e-3, \
+                                         1e-3, 1e-3, 1e-3, 1e-3, \
                                          1.0, 1.0, 1.0, 1.0
   end
 end
