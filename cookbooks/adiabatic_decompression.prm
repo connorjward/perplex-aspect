@@ -5,7 +5,6 @@ set Adiabatic surface temperature = 2000
 set Output directory = output-adiabatic_decompression
 set Use years in output instead of seconds = true
 
-set Maximum time step = 1e2
 set End time = 3e5
 
 subsection Geometry model
@@ -14,7 +13,7 @@ subsection Geometry model
   subsection Box
     set X extent      = 1e3
     set Y extent      = 3e5
-    set Y repetitions = 30
+    set Y repetitions = 50
   end
 end
 
@@ -43,23 +42,6 @@ subsection Initial temperature model
   end
 end
 
-subsection Compositional fields
-  set Number of fields		  = 4
-  set Names of fields             = SiO2, CaO, MgO, FeO
-  set Compositional field methods = particles, particles, particles, particles
-  set Mapped particle properties  = SiO2:bulk SiO2, CaO:bulk CaO, MgO:bulk MgO, FeO:bulk FeO
-end
-
-subsection Initial composition model
-  set Model name = function
-
-  subsection Function
-    set Function expression = 38.5; 2.82; 50.5; 5.88
-  end
-end
-
-# To guarantee a steady downward flow, we fix the velocity
-# at the top and bottom, and set it to free slip on the sides. 
 subsection Boundary velocity model
   set Prescribed velocity boundary indicators = top y:function, bottom y:function
   set Tangential velocity boundary indicators = left, right
@@ -74,20 +56,11 @@ subsection Heating model
 end
 
 subsection Material model
-  # set Material averaging = harmonic average
   set Model name = simple
 end
 
-subsection Discretization
-  set Use discontinuous composition discretization = true
-  # set Use locally conservative discretization = true
-end
-
 subsection Mesh refinement
-  set Initial adaptive refinement = 0
-  set Initial global refinement = 0
   set Time steps between mesh refinement = 0
-  set Strategy = particle density
 end
 
 subsection Perple_X configuration
@@ -98,14 +71,13 @@ subsection Perple_X configuration
 end
 
 subsection Postprocess
-  set List of postprocessors = particles, visualization
+  set List of postprocessors = particles
 
   subsection Particles
     set Allow cells without particles = true
     set Particle generator name = uniform box
     set List of particle properties = perplex composition
-    set Time between data output = 0
-    set Interpolation scheme = harmonic average
+    set Time between data output = 1e3
 
     subsection Generator
       subsection Uniform box
@@ -114,6 +86,7 @@ subsection Postprocess
     end
 
     subsection Perple_X composition
+      set Extract melt = true
       set List of phase properties = composition, molar amount, molar fraction, volume fraction
     end
   end

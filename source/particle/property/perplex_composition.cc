@@ -48,6 +48,9 @@ namespace aspect
       {
 	const auto& px = perplexcpp::Wrapper::get_instance();
 
+	for (double camount : px.initial_bulk_composition)
+	  properties.push_back(camount);
+
 	for (std::string pname : phase_names) 
 	{
 	  for (PhaseProperty pprop : phase_properties) 
@@ -62,15 +65,6 @@ namespace aspect
 		properties.push_back(0.0);
 	    }
 	  }
-	}
-
-	// Load the initial composition specified in the parameter file.
-	for (std::string cname : px.composition_component_names)
-	{
-	  const unsigned int idx = this->introspection().compositional_index_for_name(cname);
-	  properties.push_back(
-	    this->get_initial_composition_manager().initial_composition(position, idx)
-	  );
 	}
       }
 
@@ -101,7 +95,9 @@ namespace aspect
 	if (temperature > px.max_temperature)
 	  temperature = px.max_temperature;
 
-	const std::vector<double> composition = get_composition(solution);
+	std::vector<double> composition;
+	for (unsigned int c = 0; c < px.n_composition_components; c++)
+	  composition.push_back(particle_properties[data_position+c]);
 
 	const double n_moles = std::accumulate(composition.begin(), composition.end(), 0);
 
@@ -158,6 +154,11 @@ namespace aspect
 	const auto& px = perplexcpp::Wrapper::get_instance();
 
 	std::vector<std::pair<std::string,unsigned int>> prop_info;
+	for (std::string cname : px.composition_component_names)
+	  // E.g. 'bulk SiO2'.
+	  prop_info.push_back(std::make_pair("bulk " + cname, 1));
+
+
 	for (std::string pname : phase_names) 
 	{
 	  for (PhaseProperty pprop : phase_properties) 
@@ -175,10 +176,6 @@ namespace aspect
 	    }
 	  }
 	}
-
-	for (std::string cname : px.composition_component_names)
-	  // E.g. 'bulk SiO2'.
-	  prop_info.push_back(std::make_pair("bulk " + cname, 1));
 
 	return prop_info;
       }
@@ -429,37 +426,25 @@ namespace aspect
 
       template <int dim>
       std::vector<double>
-      PerplexComposition<dim>::get_composition(const Vector<double> &solution) const
-      { 
-	const auto& px = perplexcpp::Wrapper::get_instance();
-
-	// Retrieve the compositional fields from the solution.
-	std::vector<double> compositional_fields(this->introspection().n_compositional_fields);
-	solution.extract_subvector_to(this->introspection().component_indices.compositional_fields,
-				      compositional_fields);
-
-	// Load the composition in the correct order for Perple_X. Set any
-	// negative values to zero.
-	std::vector<double> composition;
-	for (std::string cname : px.composition_component_names) 
-	{
-	  const unsigned int idx = this->introspection().compositional_index_for_name(cname);
-	  composition.push_back(compositional_fields[idx] >= 0 
-				? compositional_fields[idx] : 0.0);
-	}
-	return composition;
-      }
-
-
-
-      template <int dim>
-      std::vector<double>
       PerplexComposition<dim>::
       get_properties(const perplexcpp::MinimizeResult &result) const
       {
 	const auto& px = perplexcpp::Wrapper::get_instance();
 
+	std::vector<double> residue_composition = result.composition;
+	if (this->extract_melt)
+	{
+	  const perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
+
+	  if (melt.volume_frac > this->melt_extraction_threshold)
+	    for (unsigned int c = 0; c < px.n_composition_components; c++)
+	      residue_composition[c] -= melt.composition_ratio[c] * melt.n_moles;	    
+	}
+
 	std::vector<double> props;
+	for (double camount : residue_composition) 
+	  props.push_back(camount);
+
 	for (std::string pname : this->phase_names) 
 	{
 	  const perplexcpp::Phase phase = perplexcpp::find_phase(result.phases, pname);
@@ -488,19 +473,6 @@ namespace aspect
 	  }
 	}
 
-	std::vector<double> residue_composition = result.composition;
-	if (this->extract_melt)
-	{
-	  const perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
-
-	  if (melt.volume_frac > this->melt_extraction_threshold)
-	    for (unsigned int c = 0; c < px.n_composition_components; c++)
-	      residue_composition[c] -= melt.composition_ratio[c] * melt.n_moles;	    
-	}
-
-	for (double camount : residue_composition) 
-	  props.push_back(camount);
-
 	return props;
       }
 
@@ -513,6 +485,8 @@ namespace aspect
 	const auto& px = perplexcpp::Wrapper::get_instance();
 
 	std::vector<double> props;
+	for (unsigned int c = 0; c < px.n_composition_components; c++)
+	  props.push_back(0.0);
 
 	for (std::string pname : this->phase_names) 
 	{
@@ -530,8 +504,6 @@ namespace aspect
 	  }
 	}
 
-	for (unsigned int c = 0; c < px.n_composition_components; c++)
-	  props.push_back(0.0);
 
 	return props;
       }
