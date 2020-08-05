@@ -198,12 +198,6 @@ namespace aspect
 
 
 	  /**
-	   * Flag indicating whether or not to report the bulk composition.
-	   */
-	  bool track_bulk_composition;
-
-
-	  /**
 	   * Flag indicating whether or not to extract melt.
 	   */
 	  bool extract_melt;

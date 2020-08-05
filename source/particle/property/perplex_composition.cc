@@ -34,10 +34,8 @@ namespace aspect
       void
       PerplexComposition<dim>::initialize()
       {
-	if (this->extract_melt)
-	  AssertThrow(this->track_bulk_composition,
-		      ExcMessage("In order to be able to extract melt from the "
-				 "simulation 'Track bulk composition' must be enabled."));
+	// Useful asserts can go here.
+	return;
       }
 
 
@@ -67,15 +65,12 @@ namespace aspect
 	}
 
 	// Load the initial composition specified in the parameter file.
-	if (track_bulk_composition)
+	for (std::string cname : px.composition_component_names)
 	{
-	  for (std::string cname : px.composition_component_names)
-	  {
-	    const unsigned int idx = this->introspection().compositional_index_for_name(cname);
-	    properties.push_back(
-	      this->get_initial_composition_manager().initial_composition(position, idx)
-	    );
-	  }
+	  const unsigned int idx = this->introspection().compositional_index_for_name(cname);
+	  properties.push_back(
+	    this->get_initial_composition_manager().initial_composition(position, idx)
+	  );
 	}
       }
 
@@ -181,10 +176,9 @@ namespace aspect
 	  }
 	}
 
-	if (track_bulk_composition)
-	  for (std::string cname : px.composition_component_names)
-	    // E.g. 'bulk SiO2'.
-	    prop_info.push_back(std::make_pair("bulk " + cname, 1));
+	for (std::string cname : px.composition_component_names)
+	  // E.g. 'bulk SiO2'.
+	  prop_info.push_back(std::make_pair("bulk " + cname, 1));
 
 	return prop_info;
       }
@@ -255,14 +249,6 @@ namespace aspect
 					    "molar fraction|volume fraction|"
 					    "weight fraction"),
 		"The phase properties to track during the simulation."
-	      );
-
-	      prm.declare_entry(
-		"Track bulk composition",
-		"false",
-		Patterns::Bool(),
-		"Whether to track the evolution of the bulk composition. In batch "
-		"melting this will be constant. Required for fractional melting."
 	      );
 
 	      prm.declare_entry(
@@ -428,7 +414,6 @@ namespace aspect
 	    {
 	      this->phase_names = parse_phase_names(prm);
 	      this->phase_properties = parse_phase_properties(prm);
-	      this->track_bulk_composition = prm.get_bool("Track bulk composition");
 	      this->extract_melt = prm.get_bool("Extract melt");
 	      this->melt_extraction_threshold = prm.get_double("Melt extraction threshold");
 	      this->min_amount_of_substance = prm.get_double("Minimum amount of substance");
@@ -513,9 +498,8 @@ namespace aspect
 	      residue_composition[c] -= melt.composition_ratio[c] * melt.n_moles;	    
 	}
 
-	if (this->track_bulk_composition) 
-	  for (double camount : residue_composition) 
-	    props.push_back(camount);
+	for (double camount : residue_composition) 
+	  props.push_back(camount);
 
 	return props;
       }
@@ -546,9 +530,8 @@ namespace aspect
 	  }
 	}
 
-	if (this->track_bulk_composition)
-	  for (unsigned int c = 0; c < px.n_composition_components; c++)
-	    props.push_back(0.0);
+	for (unsigned int c = 0; c < px.n_composition_components; c++)
+	  props.push_back(0.0);
 
 	return props;
       }
