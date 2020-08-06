@@ -43,7 +43,7 @@ namespace aspect
       template <int dim>
       void
       PerplexComposition<dim>::
-      initialize_one_particle_property(const Point<dim> &position,
+      initialize_one_particle_property(const Point<dim> &,
 				       std::vector<double> &properties) const 
       {
 	const auto& px = perplexcpp::Wrapper::get_instance();
@@ -438,7 +438,11 @@ namespace aspect
 
 	  if (melt.volume_frac > this->melt_extraction_threshold)
 	    for (unsigned int c = 0; c < px.n_composition_components; c++)
+	    {
 	      residue_composition[c] -= melt.composition_ratio[c] * melt.n_moles;	    
+	      if (residue_composition[c] < 0)
+		residue_composition[c] = 0;
+	    }
 	}
 
 	std::vector<double> props;
