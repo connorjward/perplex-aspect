@@ -4,7 +4,7 @@ set Dimension = 2
 set Adiabatic surface temperature = 2000
 set Output directory = output-adiabatic_decompression
 set Use years in output instead of seconds = true
-
+set Surface pressure = 1e9
 set End time = 3e5
 
 subsection Geometry model
@@ -30,7 +30,7 @@ subsection Boundary temperature model
   set Fixed temperature boundary indicators = bottom
 
   subsection Box
-    set Bottom temperature = 1800
+    set Bottom temperature = 1500
   end
 end
 
@@ -38,7 +38,7 @@ subsection Initial temperature model
   set Model name = function
 
   subsection Function
-    set Function expression = 1800 - y / 1000
+    set Function expression = 1500
   end
 end
 
@@ -64,24 +64,24 @@ subsection Mesh refinement
 end
 
 subsection Perple_X configuration
-  set Data directory = ../data/perplex/simple
-  set Problem file = simple.dat
+  set Data directory = ../data/perplex/holland-et-al-2018/klb-1-fast
+  set Problem file = khgp.dat
   set Cache capacity = 100
-  set Cache tolerance = 1e-4
+  set Cache tolerance = 1e-3
 end
 
 subsection Postprocess
-  set List of postprocessors = particles
+  set List of postprocessors = particles, visualization
 
   subsection Particles
     set Allow cells without particles = true
-    set Particle generator name = uniform box
+    set Particle generator name = ascii file
     set List of particle properties = perplex composition
     set Time between data output = 1e3
 
     subsection Generator
-      subsection Uniform box
-	set Maximum x = 1e3
+      subsection Ascii file
+	set Data directory = ../data/aspect/adiabatic_decompression/
       end
     end
 
