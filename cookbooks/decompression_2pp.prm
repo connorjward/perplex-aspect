@@ -1,0 +1,148 @@
+set Additional shared libraries = ./libperplexaspect.so
+set Adiabatic surface temperature = 2000
+set Dimension = 2
+set End time = 3e5
+set Output directory = output-decompression_2pp
+set Use operator splitting                     = true
+set Use years in output instead of seconds = true
+
+subsection Boundary composition model
+  set Fixed composition boundary indicators = bottom
+  set List of model names = initial composition
+end
+
+subsection Boundary fluid pressure model
+  set Plugin name = density
+  subsection Density
+    set Density formulation = fluid density
+  end
+end
+
+subsection Boundary temperature model
+  set List of model names = box
+  set Fixed temperature boundary indicators = bottom
+
+  subsection Box
+    set Bottom temperature = 1600
+  end
+end
+
+subsection Boundary velocity model
+  set Prescribed velocity boundary indicators = top y:function, bottom y:function
+  set Tangential velocity boundary indicators = left, right
+
+  subsection Function
+    set Function expression = 1; 1
+  end
+end
+
+subsection Compositional fields
+  set Number of fields = 10
+  set Compositional field methods = melt field, field, \
+                                    melt field, melt field, melt field, melt field, \
+                                    field, field, field, field
+  set Names of fields = porosity, peridotite, \
+                        melt_SiO2, melt_CaO, melt_MgO, melt_FeO, \
+                        residue_SiO2, residue_CaO, residue_MgO, residue_FeO
+end
+
+subsection Geometry model
+  set Model name = box
+
+  subsection Box
+    set X extent      = 1e3
+    set Y extent      = 3e5
+    set Y repetitions = 50
+  end
+end
+
+subsection Gravity model
+  set Model name = vertical
+
+  subsection Vertical
+    set Magnitude = 10.0
+  end
+end
+
+subsection Heating model
+  set List of model names = adiabatic heating
+end
+
+subsection Initial composition model
+  set List of model names = function, porosity
+
+  subsection Function
+    set Function expression = 0; 0; 0; 0; 0; 0; 38.5; 2.82; 50.5; 5.88
+  end
+end
+
+subsection Initial temperature model
+  set Model name = function
+
+  subsection Function
+    set Function expression = 1600 - 400 * y / 3e5
+  end
+end
+
+subsection Material model
+  set Model name = perplex melt simple
+
+  subsection Melt simple
+    set Reference permeability = 1e-7
+    set Melt extraction depth = 0.0
+    set Freezing rate         = 0.005
+    set Melting time scale for operator splitting = 2e2
+    set Exponential melt weakening factor = 20
+  end
+end
+
+subsection Melt settings
+  set Include melt transport = true
+end
+
+subsection Mesh refinement
+  set Initial global refinement          = 1
+  set Time steps between mesh refinement = 0
+end
+
+subsection Perple_X settings
+  # set Data directory = ../data/perplex/holland-et-al-2018/klb-1-fast
+  # set Problem file = khgp.dat
+  set Data directory = ../data/perplex/simple
+  set Problem filename = simple.dat
+  set Cache capacity = 100
+  set Cache tolerance = 1e-3
+end
+
+subsection Postprocess
+  set List of postprocessors = composition statistics, particles, visualization
+
+  subsection Particles
+    set Data output format          = ascii
+    set List of particle properties = composition, melt particle
+    set Particle generator name     = ascii file
+    set Time between data output    = 1e3
+
+    subsection Generator
+      subsection Ascii file
+	set Data directory = ../data/aspect/adiabatic_decompression/
+      end
+    end
+  end
+
+  subsection Visualization
+    set Time between graphical output = 1e3
+  end
+end
+
+subsection Solver parameters
+  subsection Operator splitting parameters
+    set Reaction time step                     = 2e2
+
+    set Reaction time steps per advection step = 10
+  end
+
+  subsection Stokes solver parameters
+    set GMRES solver restart length = 200
+  end
+end

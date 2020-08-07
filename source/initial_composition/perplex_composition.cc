@@ -41,11 +41,11 @@ namespace aspect
     initial_composition(const Point<dim> &position,
                         const unsigned int compositional_index) const
     {
-      /*AssertThrow(Plugins::plugin_type_matches
+      AssertThrow(Plugins::plugin_type_matches
                   <const MaterialModel::PerplexMelt<dim>>(this->get_material_model()),
                   ExcMessage("The used material model is not 'perplex melt', "
                              "This is incompatible with the `perplex composition' "
-                             "initial composition plugin, which needs to compute these melt fractions."));*/
+                             "initial composition plugin, which needs to compute these melt fractions."));
 
       const auto& px = Wrapper::get_instance();
 
