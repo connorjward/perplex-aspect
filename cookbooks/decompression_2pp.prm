@@ -80,7 +80,7 @@ subsection Initial temperature model
   set Model name = function
 
   subsection Function
-    set Function expression = 1600 - 400 * y / 3e5
+    set Function expression = 1600 - 300 * y / 3e5
   end
 end
 
@@ -106,10 +106,8 @@ subsection Mesh refinement
 end
 
 subsection Perple_X settings
-  # set Data directory = ../data/perplex/holland-et-al-2018/klb-1-fast
-  # set Problem file = khgp.dat
-  set Data directory = ../data/perplex/simple
-  set Problem filename = simple.dat
+  set Data directory = ../data/perplex/holland-et-al-2018/klb-1-fast
+  set Problem file = khgp.dat
   set Cache capacity = 100
   set Cache tolerance = 1e-3
 end

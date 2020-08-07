@@ -2,7 +2,7 @@ set Additional shared libraries = ./libperplexaspect.so
 set Adiabatic surface temperature = 2000
 set Dimension = 2
 set End time = 3e5
-set Output directory = output-decompression_frac
+set Output directory = output-decompression_batch
 set Use years in output instead of seconds = true
 
 subsection Boundary temperature model
@@ -86,9 +86,8 @@ subsection Postprocess
     end
 
     subsection Perple_X composition
-      set Extract melt              = true
+      set Extract melt              = false
       set List of phase properties  = composition, molar amount, molar fraction, volume fraction
-      set Melt extraction threshold = 0.03
     end
   end
 
