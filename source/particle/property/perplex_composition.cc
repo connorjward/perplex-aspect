@@ -21,6 +21,7 @@
 #include <perplexaspect/particle/property/perplex_composition.h>
 
 #include <aspect/initial_composition/interface.h>
+#include <perplexaspect/utilities.h>
 #include <perplexcpp/wrapper.h>
 
 
@@ -186,41 +187,7 @@ namespace aspect
       void
       PerplexComposition<dim>::declare_parameters(ParameterHandler &prm)
       {
-	prm.enter_subsection("Perple_X configuration");
-	{
-	  prm.declare_entry(
-	    "Data directory", 
-	    ".", 
-	    Patterns::DirectoryName(),
-	    "The location of the Perple_X data files."
-	  );
-
-	  prm.declare_entry(
-	    "Problem file", 
-	    "", 
-	    Patterns::FileName(),
-	    "The name of the PerpleX .dat file in use (within the specified "
-	    "directory).",
-	    true
-	  );
-
-	  prm.declare_entry(
-	    "Cache capacity",
-	    "0",
-	    Patterns::Integer(0),
-	    "The number of results held in the cache."
-	  );
-
-	  prm.declare_entry(
-	    "Cache tolerance",
-	    "0.0",
-	    Patterns::Double(0.0, 1.0),
-	    "The relative tolerance accepted by the cache. A result will only "
-	    "be returned if all of the input parameters (temperature, pressure "
-	    "and composition) vary by less than this amount."
-	  );
-	}
-	prm.leave_subsection();
+	PerplexUtils::declare_parameters(prm);
 
 	prm.enter_subsection("Postprocess");
 	{
@@ -283,22 +250,6 @@ namespace aspect
 
       namespace
       {
-	void
-	initialize_perplex(const ParameterHandler &prm)
-	{
-	  const std::string dirname = prm.get("Data directory");
-	  const std::string fname = prm.get("Problem file");
-	  const unsigned int cache_capacity = prm.get_integer("Cache capacity");
-	  const double cache_rtol = prm.get_double("Cache tolerance");
-
-	  AssertThrow(Utilities::fexists(dirname + "/" + fname),
-		      ExcMessage("The Perple_X problem file could not be found."));
-
-	  perplexcpp::Wrapper::initialize(fname, dirname, cache_capacity, cache_rtol);
-	}
-
-
-
 	std::vector<std::string>
 	parse_phase_names(const ParameterHandler &prm)
 	{
@@ -397,11 +348,7 @@ namespace aspect
       void
       PerplexComposition<dim>::parse_parameters(ParameterHandler &prm) 
       {
-	prm.enter_subsection("Perple_X configuration");
-	{
-	  initialize_perplex(prm);
-	}
-	prm.leave_subsection();
+	PerplexUtils::parse_parameters(prm);
 
 	prm.enter_subsection("Postprocess");
 	{
