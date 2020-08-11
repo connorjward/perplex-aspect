@@ -1,14 +1,14 @@
-set Additional shared libraries = ./libperplexaspect.so
-set Adiabatic surface temperature = 2000
-set Dimension = 2
-set End time = 3e5
-set Output directory = output-decompression_2pp
-set Use operator splitting                     = true
+set Additional shared libraries            = ./libperplexaspect.so
+set Adiabatic surface temperature          = 2000
+set Dimension                              = 2
+set End time                               = 1.5e5
+set Output directory                       = output-decompression_2pp
+set Use operator splitting                 = true
 set Use years in output instead of seconds = true
 
 subsection Boundary composition model
   set Fixed composition boundary indicators = bottom
-  set List of model names = initial composition
+  set List of model names                   = initial composition
 end
 
 subsection Boundary fluid pressure model
@@ -19,16 +19,16 @@ subsection Boundary fluid pressure model
 end
 
 subsection Boundary temperature model
-  set List of model names = box
+  set List of model names                   = box
   set Fixed temperature boundary indicators = bottom
 
   subsection Box
-    set Bottom temperature = 1600
+    set Bottom temperature = 1950
   end
 end
 
 subsection Boundary velocity model
-  set Prescribed velocity boundary indicators = top y:function, bottom y:function
+  set Prescribed velocity boundary indicators = bottom y:function, top y:function
   set Tangential velocity boundary indicators = left, right
 
   subsection Function
@@ -38,11 +38,9 @@ end
 
 subsection Compositional fields
   set Number of fields = 10
-  set Compositional field methods = melt field, field, \
-                                    melt field, melt field, melt field, melt field, \
-                                    field, field, field, field
-  set Names of fields = porosity, peridotite, \
-                        melt_SiO2, melt_CaO, melt_MgO, melt_FeO, \
+  set Compositional field methods = melt field, field, melt field, melt field, \
+                                    melt field, melt field, field, field, field, field
+  set Names of fields = porosity, peridotite, melt_SiO2, melt_CaO, melt_MgO, melt_FeO, \
                         residue_SiO2, residue_CaO, residue_MgO, residue_FeO
 end
 
@@ -51,7 +49,7 @@ subsection Geometry model
 
   subsection Box
     set X extent      = 1e3
-    set Y extent      = 3e5
+    set Y extent      = 1.5e5
     set Y repetitions = 50
   end
 end
@@ -69,18 +67,14 @@ subsection Heating model
 end
 
 subsection Initial composition model
-  set List of model names = function, porosity
-
-  subsection Function
-    set Function expression = 0; 0; 0; 0; 0; 0; 38.5; 2.82; 50.5; 5.88
-  end
+  set List of model names = porosity, perplex composition
 end
 
 subsection Initial temperature model
   set Model name = function
 
   subsection Function
-    set Function expression = 1600 - 300 * y / 3e5
+    set Function expression = 1950 - 300 * y / 1.5e5
   end
 end
 
@@ -106,10 +100,10 @@ subsection Mesh refinement
 end
 
 subsection Perple_X settings
-  set Data directory = ../data/perplex/holland-et-al-2018/klb-1-fast
-  set Problem file = khgp.dat
-  set Cache capacity = 100
-  set Cache tolerance = 1e-3
+  set Data directory   = ../data/perplex/simple
+  set Problem filename = simple.dat
+  set Cache capacity   = 1000
+  set Cache tolerance  = 1e-3
 end
 
 subsection Postprocess
@@ -123,7 +117,8 @@ subsection Postprocess
 
     subsection Generator
       subsection Ascii file
-	set Data directory = ../data/aspect/adiabatic_decompression/
+	set Data directory = ../data/particle/generator/ascii/
+        set Data file name = decompression.dat
       end
     end
   end
