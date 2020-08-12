@@ -33,31 +33,34 @@ namespace aspect
     {
       template <int dim>
       void
-      PerplexComposition<dim>::initialize()
-      {
-	// Useful asserts can go here.
-	return;
-      }
-
-
-
-      template <int dim>
-      void
       PerplexComposition<dim>::
       initialize_one_particle_property(const Point<dim> &,
 				       std::vector<double> &properties) const 
       {
 	const auto& px = perplexcpp::Wrapper::get_instance();
 
+	// Bulk composition.
 	for (double camount : px.initial_bulk_composition)
 	  properties.push_back(camount);
 
-	for (std::string pname : phase_names) 
-	{
-	  for (PhaseProperty pprop : phase_properties) 
-	  {
-	    switch (pprop)
-	    {
+	// Phase properties.
+	for (std::string pname : this->phase_names) {
+	  for (PhaseProperty pprop : this->phase_properties) {
+	    switch (pprop) {
+	      case PhaseProperty::composition:
+		for (unsigned int c = 0; c < px.n_composition_components; c++)
+		  properties.push_back(0.0);
+		break;
+	      default:
+		properties.push_back(0.0);
+	    }
+	  }
+	}
+
+	// Extracted melt properties.
+	if (this->extract_melt) {
+	  for (PhaseProperty pprop : this->phase_properties) {
+	    switch (pprop) {
 	      case PhaseProperty::composition:
 		for (unsigned int c = 0; c < px.n_composition_components; c++)
 		  properties.push_back(0.0);
@@ -68,7 +71,6 @@ namespace aspect
 	  }
 	}
       }
-
 
 
       template <int dim>
@@ -100,26 +102,18 @@ namespace aspect
 	for (unsigned int c = 0; c < px.n_composition_components; c++)
 	  composition.push_back(particle_properties[data_position+c]);
 
-	const double n_moles = std::accumulate(composition.begin(), composition.end(), 0);
+	ArrayView<double>::iterator iter = particle_properties.begin() + data_position;
 
-	std::vector<double> props;
-	if (n_moles > this->min_amount_of_substance)
-	{
+	const double n_moles = std::accumulate(composition.begin(), composition.end(), 0);
+	if (n_moles > this->min_amount_of_substance) {
 	  const perplexcpp::MinimizeResult result = 
 	    px.minimize(pressure, temperature, composition);
 
-	  props = get_properties(result);
+	  this->put_properties(result, iter);
+	} else {
+	  this->put_zero_properties(iter);
 	}
-	else
-	{
-	  props = get_zero_properties();
-	}
-
-	// Copy the props array into the solution.
-	for (unsigned int i = 0; i < props.size(); i++)
-	  particle_properties[data_position+i] = props[i];
       }
-
 
 
       template <int dim>
@@ -130,14 +124,12 @@ namespace aspect
       }
 
 
-
       template <int dim>
       UpdateFlags 
       PerplexComposition<dim>::get_needed_update_flags () const
       {
 	return update_values;
       }
-
 
 
       template <int dim>
@@ -154,33 +146,46 @@ namespace aspect
 
 	const auto& px = perplexcpp::Wrapper::get_instance();
 
-	std::vector<std::pair<std::string,unsigned int>> prop_info;
+	std::vector<std::pair<std::string,unsigned int>> info;
+
+	// Bulk composition (e.g. 'bulk composition SiO2'). 
 	for (std::string cname : px.composition_component_names)
-	  // E.g. 'bulk SiO2'.
-	  prop_info.push_back(std::make_pair("bulk " + cname, 1));
+	  info.push_back(std::make_pair("bulk composition " + cname, 1));
 
-
-	for (std::string pname : phase_names) 
-	{
-	  for (PhaseProperty pprop : phase_properties) 
-	  {
-	    switch (pprop)
-	    {
+	// Phase properties.
+	for (std::string pname : this->phase_names) {
+	  for (PhaseProperty pprop : this->phase_properties) {
+	    switch (pprop) {
 	      case PhaseProperty::composition:
+		// E.g. 'liquid composition SiO2'.
 		for (std::string cname : px.composition_component_names)
-		  // E.g. 'composition liquid SiO2'.
-		  prop_info.push_back(std::make_pair(pprop_map.at(pprop) + " " + pname + " " + cname, 1));
+		  info.push_back(std::make_pair(pname+" "+pprop_map.at(pprop)+" "+cname, 1));
 		break;
 	      default:
-		// E.g. 'volume fraction olivine'.
-		prop_info.push_back(std::make_pair(pprop_map.at(pprop) + " " + pname, 1));
+		// E.g. 'olivine volume fraction'.
+		info.push_back(std::make_pair(pname+" "+pprop_map.at(pprop), 1));
 	    }
 	  }
 	}
 
-	return prop_info;
-      }
+	// Extracted melt properties.
+	if (this->extract_melt) {
+	  for (PhaseProperty pprop : this->phase_properties) {
+	    switch (pprop) {
+	      case PhaseProperty::composition:
+		// E.g. 'extracted melt composition SiO2'.
+		for (std::string cname : px.composition_component_names)
+		  info.push_back(std::make_pair("extracted melt "+pprop_map.at(pprop)+" "+cname, 1));
+		break;
+	      default:
+		// E.g. 'extracted melt volume fraction'.
+		info.push_back(std::make_pair("extracted melt "+pprop_map.at(pprop), 1));
+	    }
+	  }
+	}
 
+	return info;
+      }
 
 
       template <int dim>
@@ -245,7 +250,6 @@ namespace aspect
 	}
 	prm.leave_subsection();
       }
-
 
 
       namespace
@@ -370,93 +374,159 @@ namespace aspect
       }
 
 
-
       template <int dim>
-      std::vector<double>
+      void
       PerplexComposition<dim>::
-      get_properties(const perplexcpp::MinimizeResult &result) const
+      put_properties(const perplexcpp::MinimizeResult &result, 
+	             ArrayView<double>::iterator &iter) const
       {
 	const auto& px = perplexcpp::Wrapper::get_instance();
 
 	std::vector<double> residue_composition = result.composition;
-	if (this->extract_melt)
-	{
-	  const perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
+	for (double camount : residue_composition) {
+	  *iter = camount;
+	  iter++;
+	}
+
+	for (std::string pname : this->phase_names) 
+	  this->put_phase_properties(result, pname, iter);
+
+	if (this->extract_melt) {
+	  const perplexcpp::Phase melt { perplexcpp::find_phase(result.phases, "liquid") };
+
+	  this->put_extracted_melt_properties(melt, iter);
 
 	  if (melt.volume_frac > this->melt_extraction_threshold)
-	    for (unsigned int c = 0; c < px.n_composition_components; c++)
-	    {
+	    for (unsigned int c = 0; c < px.n_composition_components; c++) {
 	      residue_composition[c] -= melt.composition_ratio[c] * melt.n_moles;	    
 	      if (residue_composition[c] < 0)
 		residue_composition[c] = 0;
 	    }
 	}
-
-	std::vector<double> props;
-	for (double camount : residue_composition) 
-	  props.push_back(camount);
-
-	for (std::string pname : this->phase_names) 
-	{
-	  const perplexcpp::Phase phase = perplexcpp::find_phase(result.phases, pname);
-
-	  for (PhaseProperty pprop : this->phase_properties) 
-	  {
-	    switch (pprop)
-	    {
-	      case PhaseProperty::composition:
-		for (double comp : phase.composition_ratio) 
-		  props.push_back(comp);
-		break;
-	      case PhaseProperty::n_moles:
-		props.push_back(phase.n_moles);
-		break;
-	      case PhaseProperty::molar_fraction:
-		props.push_back(phase.molar_frac);
-		break;
-	      case PhaseProperty::volume_fraction:
-		props.push_back(phase.volume_frac);
-		break;
-	      case PhaseProperty::weight_fraction:
-		props.push_back(phase.weight_frac);
-		break;
-	    }
-	  }
-	}
-
-	return props;
       }
 
 
-
       template <int dim>
-      std::vector<double>
-      PerplexComposition<dim>::get_zero_properties() const
+      void
+      PerplexComposition<dim>::
+      put_zero_properties(ArrayView<double>::iterator &iter) const
       {
 	const auto& px = perplexcpp::Wrapper::get_instance();
 
-	std::vector<double> props;
-	for (unsigned int c = 0; c < px.n_composition_components; c++)
-	  props.push_back(0.0);
+	// Bulk composition.
+	for (unsigned int c = 0; c < px.n_composition_components; c++) {
+	  *iter = 0.0;
+	  iter++;
+	}
 
-	for (std::string pname : this->phase_names) 
-	{
-	  for (PhaseProperty pprop : this->phase_properties)
-	  {
-	    switch (pprop)
-	    {
+	// Phase properties.
+	for (std::string pname : this->phase_names) {
+	  for (PhaseProperty pprop : this->phase_properties) {
+	    switch (pprop) {
 	      case PhaseProperty::composition:
-		for (unsigned int c = 0; c < px.n_composition_components; c++) 
-		  props.push_back(0.0);
+		for (unsigned int c = 0; c < px.n_composition_components; c++) {
+		  *iter = 0.0;
+		  iter++;
+		}
 		break;
 	      default:
-		props.push_back(0.0);
+		*iter = 0.0;
+		iter++;
 	    }
 	  }
 	}
 
+	// Extracted melt properties.
+	if (this->extract_melt) {
+	  for (PhaseProperty pprop : this->phase_properties) {
+	    switch (pprop) {
+	      case PhaseProperty::composition:
+		for (unsigned int c = 0; c < px.n_composition_components; c++) {
+		  *iter = 0.0;
+		  iter++;
+		}
+		break;
+	      default:
+		*iter = 0.0;
+		iter++;
+	    }
+	  }
+	}
+      }
 
-	return props;
+
+      template <int dim>
+      void 
+      PerplexComposition<dim>::
+      put_extracted_melt_properties(const perplexcpp::Phase &melt,
+				    ArrayView<double>::iterator &it) const
+      {
+	for (PhaseProperty pprop : this->phase_properties) 
+	{
+	  switch (pprop)
+	  {
+	    case PhaseProperty::composition:
+	      for (double camount : melt.composition_ratio) {
+		*it += camount;
+		it++;
+	      }
+	      break;
+	    case PhaseProperty::n_moles:
+	      *it += melt.n_moles;
+	      it++;
+	      break;
+	    case PhaseProperty::molar_fraction:
+	      *it += melt.molar_frac;
+	      it++;
+	      break;
+	    case PhaseProperty::volume_fraction:
+	      *it += melt.volume_frac;
+	      it++;
+	      break;
+	    case PhaseProperty::weight_fraction:
+	      *it += melt.weight_frac;
+	      it++;
+	      break;
+	  }
+	}
+      }
+
+
+      template <int dim>
+      void 
+      PerplexComposition<dim>::
+      put_phase_properties(const perplexcpp::MinimizeResult &result,
+			   const std::string &phase_name,
+			   ArrayView<double>::iterator &it) const
+      {
+	const perplexcpp::Phase phase { perplexcpp::find_phase(result.phases, phase_name) };
+
+	for (PhaseProperty pprop : this->phase_properties) {
+	  switch (pprop) {
+	    case PhaseProperty::composition:
+	      for (double camount : phase.composition_ratio) {
+		*it = camount;
+		it++;
+	      }
+	      break;
+	    case PhaseProperty::n_moles:
+	      *it = phase.n_moles;
+	      it++;
+	      break;
+	    case PhaseProperty::molar_fraction:
+	      *it = phase.molar_frac;
+	      it++;
+	      break;
+	    case PhaseProperty::volume_fraction:
+	      *it = phase.volume_frac;
+	      it++;
+	      break;
+	    case PhaseProperty::weight_fraction:
+	      *it = phase.weight_frac;
+	      it++;
+	      break;
+	  }
+	}
       }
     }
   }

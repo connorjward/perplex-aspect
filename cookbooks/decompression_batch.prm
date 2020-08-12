@@ -1,12 +1,12 @@
-set Additional shared libraries = ./libperplexaspect.so
-set Adiabatic surface temperature = 2000
-set Dimension = 2
-set End time = 1.5e5
-set Output directory = output-decompression_batch
+set Additional shared libraries            = ./libperplexaspect.so
+set Adiabatic surface temperature          = 2000
+set Dimension                              = 2
+set End time                               = 1.5e5
+set Output directory                       = output-decompression_batch
 set Use years in output instead of seconds = true
 
 subsection Boundary temperature model
-  set List of model names = box
+  set List of model names                   = box
   set Fixed temperature boundary indicators = bottom
 
   subsection Box

@@ -42,7 +42,6 @@ namespace aspect
       };
 
 
-
       /**
        * A class that calculates phase and system properties using the thermodynamical 
        * code Perple_X.
@@ -230,16 +229,34 @@ namespace aspect
 	   * Retrieve the particle properties from the MinimizeResult in the
 	   * correct order.
 	   */
-	  std::vector<double>
-	  get_properties(const perplexcpp::MinimizeResult &result) const;
+	  void
+	  put_properties(const perplexcpp::MinimizeResult &result, 
+	                 ArrayView<double>::iterator &iter) const;
 
 
 	  /**
 	   * Return a zero array the same size as the required particle 
 	   * properties.
 	   */
-	  std::vector<double>
-	  get_zero_properties() const;
+	  void
+	  put_zero_properties(ArrayView<double>::iterator &iter) const;
+
+
+	  /**
+	   * TODO
+	   */
+	  void
+	  put_extracted_melt_properties(const perplexcpp::Phase &melt,
+				        ArrayView<double>::iterator &iter) const;
+
+
+	  /**
+	   * TODO
+	   */
+	  void
+	  put_phase_properties(const perplexcpp::MinimizeResult &result,
+			       const std::string &phase_name,
+			       ArrayView<double>::iterator &it) const;
       };
     }
   }

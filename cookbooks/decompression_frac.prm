@@ -87,7 +87,7 @@ subsection Postprocess
     subsection Perple_X composition
       set Extract melt              = true
       set List of phase properties  = composition, molar amount, molar fraction, volume fraction
-      set Melt extraction threshold = 0.03
+      set Melt extraction threshold = 0.06
     end
   end
 

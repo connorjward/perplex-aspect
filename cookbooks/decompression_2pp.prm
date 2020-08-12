@@ -110,7 +110,7 @@ subsection Postprocess
   set List of postprocessors = composition statistics, particles, visualization
 
   subsection Particles
-    set Data output format          = ascii
+    set Data output format          = vtu
     set List of particle properties = composition, melt particle
     set Particle generator name     = ascii file
     set Time between data output    = 1e3
