@@ -68,7 +68,7 @@ subsection Initial temperature model
   set Model name = function
 
   subsection Function
-    set Function constants  = T0=1950, dT=300, dT1=50, dT2=50, h=150000, r=10000
+    set Function constants  = T0=1750, dT=300, dT1=30, dT2=30, h=150000, r=10000
     set Function expression = \
       T0 - dT*y/h \
       + if((x-40000)*(x-40000) + y*y < r*r, dT1, 0) \
@@ -85,6 +85,8 @@ subsection Material model
     set Freezing rate         = 0.005
     set Melting time scale for operator splitting = 2e2
     set Exponential melt weakening factor = 20
+    set Reference bulk viscosity = 1e20
+    set Thermal viscosity exponent = 4
   end
 end
 
@@ -93,15 +95,7 @@ subsection Melt settings
 end
 
 subsection Mesh refinement
-  set Coarsening fraction         = 0.05
-  set Initial adaptive refinement = 2
-  set Initial global refinement   = 4
-  set Refinement fraction         = 0.8
-  set Strategy                    = minimum refinement function
-
-  subsection Minimum refinement function
-    set Function expression = 4
-  end
+  set Initial global refinement   = 3
 end
 
 subsection Perple_X settings
@@ -116,13 +110,8 @@ subsection Postprocess
 
   subsection Particles
     set Data output format            = vtu
-    set List of particle properties   = perplex composition, pT path
+    set List of particle properties   = composition, pT path
     set Time between data output      = 1e3
-
-    subsection Perple_X composition
-      set Extract melt              = false
-      set List of phase properties  = composition, molar amount, molar fraction, volume fraction
-    end
   end
 
   subsection Visualization

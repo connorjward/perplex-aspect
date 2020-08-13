@@ -1,6 +1,5 @@
 set Additional shared libraries            = ./libperplexaspect.so
 set Adiabatic surface temperature          = 2000
-set Adiabatic surface temperature          = 0
 set Dimension                              = 2
 set End time                               = 3e6
 set Maximum time step                      = 1e5
@@ -23,11 +22,11 @@ subsection Compositional fields
 
   set Compositional field methods = particles, particles, particles, particles, particles
   set Mapped particle properties  = \
-    melt_amount: volume fraction liquid , \
-    melt_SiO2: composition liquid SiO2, \
-    melt_CaO: composition liquid CaO, \
-    melt_MgO: composition liquid MgO, \
-    melt_FeO: composition liquid FeO
+    melt_amount: liquid volume fraction, \
+    melt_SiO2: liquid composition SiO2, \
+    melt_CaO: liquid composition CaO, \
+    melt_MgO: liquid composition MgO, \
+    melt_FeO: liquid composition FeO
 end
 
 subsection Geometry model
@@ -57,7 +56,7 @@ subsection Initial temperature model
   set Model name = function
 
   subsection Function
-    set Function constants  = T0=1950, dT=300, dT1=50, dT2=50, h=150000, r=10000
+    set Function constants  = T0=1950, dT=300, dT1=30, dT2=30, h=150000, r=10000
     set Function expression = \
       T0 - dT*y/h \
       + if((x-40000)*(x-40000) + y*y < r*r, dT1, 0) \
@@ -75,15 +74,7 @@ subsection Material model
 end
 
 subsection Mesh refinement
-  set Coarsening fraction         = 0.05
-  set Initial adaptive refinement = 2
-  set Initial global refinement   = 4
-  set Refinement fraction         = 0.8
-  set Strategy                    = minimum refinement function
-
-  subsection Minimum refinement function
-    set Function expression = 4
-  end
+  set Initial global refinement   = 3
 end
 
 subsection Perple_X settings
@@ -94,7 +85,7 @@ subsection Perple_X settings
 end
 
 subsection Postprocess
-  set List of postprocessors = particles, visualization
+  set List of postprocessors = perplex cache statistics, particles, visualization
 
   subsection Particles
     set Data output format            = vtu

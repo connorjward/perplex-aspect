@@ -72,7 +72,7 @@ subsection Initial temperature model
   set Model name = function
 
   subsection Function
-    set Function constants  = H=100000, dT=300, T0=1950
+    set Function constants  = H=100000, dT=300, T0=1750
     set Function expression = T0 - dT * y / H
   end
 end
