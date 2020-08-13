@@ -2,6 +2,7 @@ set Additional shared libraries            = ./libperplexaspect.so
 set Adiabatic surface temperature          = 2000
 set Dimension                              = 2
 set End time                               = 100000
+set Surface pressure                       = 1e9
 set Output directory                       = output-decompression_2pp
 set Use operator splitting                 = true
 set Use years in output instead of seconds = true
@@ -78,7 +79,7 @@ subsection Initial temperature model
   set Model name = function
 
   subsection Function
-    set Function constants  = H=100000, dT=300, T0=1750
+    set Function constants  = H=100000, dT=300, T0=1850
     set Function expression = T0 - dT * y / H
   end
 end
