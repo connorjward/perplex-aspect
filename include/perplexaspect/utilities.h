@@ -23,6 +23,7 @@
 
 
 #include <deal.II/base/parameter_handler.h>
+#include <perplexcpp/base.h>
 
 
 namespace aspect
@@ -44,6 +45,30 @@ namespace aspect
      */
     void
     parse_parameters(ParameterHandler &prm);
+
+
+    /**
+     * Given the porosity (melt volume fraction) return the melt composition
+     * scaled to match it.
+     */
+    void
+    put_melt_composition(const perplexcpp::MinimizeResult &result,
+	                 const double porosity,
+	                 std::vector<double> &melt_composition);
+
+
+    /**
+     * Restrict the pressure to lie within the bounds accepted by Perple_X.
+     */
+    double
+    limit_pressure(const double pressure);
+
+
+    /**
+     * Restrict the temperature to lie within the bounds accepted by Perple_X.
+     */
+    double
+    limit_temperature(const double temperature);
   }
 }
 

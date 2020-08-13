@@ -21,10 +21,10 @@
 
 #include <perplexaspect/initial_composition/perplex_composition.h>
 
-#include <perplexaspect/material_model/perplex_melt.h>
 #include <aspect/initial_temperature/interface.h>
 #include <aspect/adiabatic_conditions/interface.h>
-
+#include <perplexaspect/material_model/perplex_melt.h>
+#include <perplexaspect/utilities.h>
 #include <perplexcpp/wrapper.h>
 
 
@@ -41,29 +41,35 @@ namespace aspect
     initial_composition(const Point<dim> &position,
                         const unsigned int compositional_index) const
     {
+      AssertThrow(Plugins::plugin_type_matches
+	          <const MaterialModel::MeltFractionModel<dim>>(this->get_material_model()),
+	          ExcMessage("The material model is not derived from the 'MeltFractionModel' class, "
+	                     "and therefore does not support computing equilibrium melt fractions. "
+	                     "This is incompatible with the `perplex composition' "
+	                     "initial composition plugin, which needs to compute these melt fractions."));
+
       const auto& px = Wrapper::get_instance();
 
-      for (unsigned int c = 0; c < px.n_composition_components; c++)
-      {
+      for (unsigned int c = 0; c < px.n_composition_components; c++) {
 	const std::string cname = px.composition_component_names[c];
 
-	AssertThrow(this->introspection().compositional_name_exists("melt_" + cname),
+	AssertThrow(this->introspection().compositional_name_exists("melt_"+cname),
 		    ExcMessage("The initial composition plugin `perplex composition' did not find a "
-			       "compositional field called `melt_" + cname + "' to initialize. Please add a "
+			       "compositional field called `melt_"+cname+"' to initialize. Please add a "
 			       "compositional field with this name."));
 
-	AssertThrow(this->introspection().compositional_name_exists("residue_" + cname),
+	AssertThrow(this->introspection().compositional_name_exists("residue_"+cname),
 		    ExcMessage("The initial composition plugin `perplex composition' did not find a "
-			       "compositional field called `residue_" + cname + "' to initialize. Please add a "
+			       "compositional field called `residue_"+cname+"' to initialize. Please add a "
 			       "compositional field with this name."));
 
 	const unsigned int melt_idx = 
-	  this->introspection().compositional_index_for_name("melt_" + cname);
+	  this->introspection().compositional_index_for_name("melt_"+cname);
 	const unsigned int residue_idx = 
-	  this->introspection().compositional_index_for_name("residue_" + cname);
+	  this->introspection().compositional_index_for_name("residue_"+cname);
 
-	if (compositional_index == melt_idx || compositional_index == residue_idx)
-        {
+
+	if (compositional_index == melt_idx || compositional_index == residue_idx) {
           double pressure = this->get_adiabatic_conditions().pressure(position);
           double temperature = this->get_initial_temperature_manager().initial_temperature(position);
 
@@ -80,11 +86,20 @@ namespace aspect
 	  const MinimizeResult result { px.minimize(pressure, temperature) };
 	  const Phase melt = find_phase(result.phases, "liquid");
 
+	  // Get the composition of the melt.
+	  std::vector<double> melt_composition(px.n_composition_components);
+	  {
+	    const unsigned int porosity_idx = 
+	      this->introspection().compositional_index_for_name("porosity");
+	    const double porosity = 
+	      this->get_initial_composition_manager().initial_composition(position, porosity_idx);
+	    PerplexUtils::put_melt_composition(result, porosity, melt_composition);
+	  }
+
 	  if (compositional_index == melt_idx)
-	    return melt.composition_ratio[c] * melt.n_moles;
+	    return melt_composition[c];
 	  else
-	    return std::max(result.composition[c] - melt.composition_ratio[c] * melt.n_moles, 
-		            0.0);
+	    return std::max(result.composition[c] - melt_composition[c], 0.0);
         }
       }
       return 0.0;
