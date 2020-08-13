@@ -53,14 +53,6 @@ namespace aspect
 
           /**
            * Initialization function. This function is called once at the
-           * beginning of the program after parse_parameters is run.
-           */
-	  void
-	  initialize() override;
-
-
-          /**
-           * Initialization function. This function is called once at the
            * creation of every particle for every property to initialize its
            * value.
            *

@@ -59,16 +59,12 @@ namespace aspect
 
 	// Extracted melt properties.
 	if (this->extract_melt) {
-	  for (PhaseProperty pprop : this->phase_properties) {
-	    switch (pprop) {
-	      case PhaseProperty::composition:
-		for (unsigned int c = 0; c < px.n_composition_components; c++)
-		  properties.push_back(0.0);
-		break;
-	      default:
-		properties.push_back(0.0);
-	    }
-	  }
+	  // Melt amount.
+	  properties.push_back(0.0);
+
+	  // Melt composition.
+	  for (unsigned int c = 0; c < px.n_composition_components; c++)
+	    properties.push_back(0.0);
 	}
       }
 
@@ -170,18 +166,12 @@ namespace aspect
 
 	// Extracted melt properties.
 	if (this->extract_melt) {
-	  for (PhaseProperty pprop : this->phase_properties) {
-	    switch (pprop) {
-	      case PhaseProperty::composition:
-		// E.g. 'extracted melt composition SiO2'.
-		for (std::string cname : px.composition_component_names)
-		  info.push_back(std::make_pair("extracted melt "+pprop_map.at(pprop)+" "+cname, 1));
-		break;
-	      default:
-		// E.g. 'extracted melt volume fraction'.
-		info.push_back(std::make_pair("extracted melt "+pprop_map.at(pprop), 1));
-	    }
-	  }
+	  // Melt amount.
+	  info.push_back(std::make_pair("extracted melt n moles", 1));
+
+	  // Melt composition (e.g. 'extracted melt composition SiO2').
+	  for (std::string cname : px.composition_component_names)
+	    info.push_back(std::make_pair("extracted melt composition "+cname, 1));
 	}
 
 	return info;
@@ -382,7 +372,16 @@ namespace aspect
       {
 	const auto& px = perplexcpp::Wrapper::get_instance();
 
+	const perplexcpp::Phase melt { perplexcpp::find_phase(result.phases, "liquid") };
+
 	std::vector<double> residue_composition = result.composition;
+	if (this->extract_melt && melt.volume_frac > this->melt_extraction_threshold)
+	  for (unsigned int c = 0; c < px.n_composition_components; c++) {
+	    residue_composition[c] -= melt.composition_ratio[c] * melt.n_moles;	    
+	    if (residue_composition[c] < 0)
+	      residue_composition[c] = 0;
+	  }
+
 	for (double camount : residue_composition) {
 	  *iter = camount;
 	  iter++;
@@ -391,18 +390,8 @@ namespace aspect
 	for (std::string pname : this->phase_names) 
 	  this->put_phase_properties(result, pname, iter);
 
-	if (this->extract_melt) {
-	  const perplexcpp::Phase melt { perplexcpp::find_phase(result.phases, "liquid") };
-
+	if (this->extract_melt && melt.volume_frac > this->melt_extraction_threshold)
 	  this->put_extracted_melt_properties(melt, iter);
-
-	  if (melt.volume_frac > this->melt_extraction_threshold)
-	    for (unsigned int c = 0; c < px.n_composition_components; c++) {
-	      residue_composition[c] -= melt.composition_ratio[c] * melt.n_moles;	    
-	      if (residue_composition[c] < 0)
-		residue_composition[c] = 0;
-	    }
-	}
       }
 
 
@@ -438,18 +427,14 @@ namespace aspect
 
 	// Extracted melt properties.
 	if (this->extract_melt) {
-	  for (PhaseProperty pprop : this->phase_properties) {
-	    switch (pprop) {
-	      case PhaseProperty::composition:
-		for (unsigned int c = 0; c < px.n_composition_components; c++) {
-		  *iter = 0.0;
-		  iter++;
-		}
-		break;
-	      default:
-		*iter = 0.0;
-		iter++;
-	    }
+	  // Melt amount.
+	  *iter = 0.0;
+	  iter++;
+
+	  // Melt composition.
+	  for (unsigned int c = 0; c < px.n_composition_components; c++) {
+	    *iter = 0.0;
+	    iter++;
 	  }
 	}
       }
@@ -459,35 +444,24 @@ namespace aspect
       void 
       PerplexComposition<dim>::
       put_extracted_melt_properties(const perplexcpp::Phase &melt,
-				    ArrayView<double>::iterator &it) const
+				    ArrayView<double>::iterator &iter) const
       {
-	for (PhaseProperty pprop : this->phase_properties) 
-	{
-	  switch (pprop)
-	  {
-	    case PhaseProperty::composition:
-	      for (double camount : melt.composition_ratio) {
-		*it += camount;
-		it++;
-	      }
-	      break;
-	    case PhaseProperty::n_moles:
-	      *it += melt.n_moles;
-	      it++;
-	      break;
-	    case PhaseProperty::molar_fraction:
-	      *it += melt.molar_frac;
-	      it++;
-	      break;
-	    case PhaseProperty::volume_fraction:
-	      *it += melt.volume_frac;
-	      it++;
-	      break;
-	    case PhaseProperty::weight_fraction:
-	      *it += melt.weight_frac;
-	      it++;
-	      break;
-	  }
+	// Melt amount.
+	const double old_melt_amount = *iter;
+	const double new_melt_amount = melt.n_moles;
+
+	*iter = old_melt_amount + new_melt_amount;
+	iter++;
+
+	// Put the new melt composition. Note that this needs to be rescaled because
+	// the composition represents the molar ratio and not total amount.
+	for (double new_camount : melt.composition_ratio) {
+	  const double old_camount = *iter;
+
+	  *iter =
+	    (old_melt_amount*old_camount + new_melt_amount*new_camount) 
+	    / (old_melt_amount + new_melt_amount);
+	  iter++;
 	}
       }
 
