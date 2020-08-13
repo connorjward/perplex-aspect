@@ -46,6 +46,15 @@ namespace aspect
         double 
 	initial_composition(const Point<dim> &position,
                             const unsigned int compositional_index) const override;
+
+
+      private:
+
+	/**
+	 * Calculate the porosity (volume fraction of melt) using the material model.
+	 */
+	double
+	calc_porosity(const Point<dim> position) const;
     };
   }
 }

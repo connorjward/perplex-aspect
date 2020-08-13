@@ -70,31 +70,19 @@ namespace aspect
 
 
 	if (compositional_index == melt_idx || compositional_index == residue_idx) {
-          double pressure = this->get_adiabatic_conditions().pressure(position);
-          double temperature = this->get_initial_temperature_manager().initial_temperature(position);
-
-	  if (pressure < px.min_pressure)
-	    pressure = px.min_pressure;
-	  if (pressure > px.max_pressure)
-	    pressure = px.max_pressure;
-	  if (temperature < px.min_temperature)
-	    temperature = px.min_temperature;
-	  if (temperature > px.max_temperature)
-	    temperature = px.max_temperature;
+          const double pressure = 
+	    PerplexUtils::limit_pressure(this->get_adiabatic_conditions().pressure(position));
+          const double temperature = 
+	    PerplexUtils::
+	    limit_temperature(this->get_initial_temperature_manager().initial_temperature(position));
 
 	  // Use the bulk composition from the file.
 	  const MinimizeResult result { px.minimize(pressure, temperature) };
-	  const Phase melt = find_phase(result.phases, "liquid");
-
+	  
 	  // Get the composition of the melt.
+	  const double porosity = this->calc_porosity(position);
 	  std::vector<double> melt_composition(px.n_composition_components);
-	  {
-	    const unsigned int porosity_idx = 
-	      this->introspection().compositional_index_for_name("porosity");
-	    const double porosity = 
-	      this->get_initial_composition_manager().initial_composition(position, porosity_idx);
-	    PerplexUtils::put_melt_composition(result, porosity, melt_composition);
-	  }
+	  PerplexUtils::put_melt_composition(result, porosity, melt_composition);
 
 	  if (compositional_index == melt_idx)
 	    return melt_composition[c];
@@ -103,6 +91,33 @@ namespace aspect
         }
       }
       return 0.0;
+    }
+
+
+    template <int dim>
+    double
+    PerplexComposition<dim>::
+    calc_porosity(const Point<dim> position) const
+    {
+      MaterialModel::MaterialModelInputs<dim> in(1, this->n_compositional_fields());
+
+      in.position[0] = position;
+      in.temperature[0] = this->get_initial_temperature_manager().initial_temperature(position);
+      in.pressure[0] = this->get_adiabatic_conditions().pressure(position);
+      in.pressure_gradient[0] = 0.0;
+      in.velocity[0] = 0.0;
+
+      for (unsigned int i = 0; i < this->n_compositional_fields(); ++i)
+	in.composition[0][i] = 0.0;
+      
+      in.strain_rate[0] = SymmetricTensor<2,dim>();
+
+      std::vector<double> melt_fraction(1);
+      
+      Plugins::get_plugin_as_type<const MaterialModel::MeltFractionModel<dim>>
+	(this->get_material_model()).melt_fractions(in, melt_fraction);
+
+      return melt_fraction[0];
     }
   }
 }
