@@ -1,7 +1,8 @@
 set Additional shared libraries            = ./libperplexaspect.so
 set Adiabatic surface temperature          = 2000
 set Dimension                              = 2
-set End time                               = 1.5e5
+set End time                               = 100000
+set Surface pressure                       = 1e9
 set Output directory                       = output-decompression_2pp
 set Use operator splitting                 = true
 set Use years in output instead of seconds = true
@@ -13,18 +14,15 @@ end
 
 subsection Boundary fluid pressure model
   set Plugin name = density
+
   subsection Density
     set Density formulation = fluid density
   end
 end
 
 subsection Boundary temperature model
-  set List of model names                   = box
+  set List of model names                   = initial temperature
   set Fixed temperature boundary indicators = bottom
-
-  subsection Box
-    set Bottom temperature = 1950
-  end
 end
 
 subsection Boundary velocity model
@@ -48,9 +46,9 @@ subsection Geometry model
   set Model name = box
 
   subsection Box
-    set X extent      = 1e3
-    set Y extent      = 1.5e5
-    set Y repetitions = 50
+    set X extent      = 1000
+    set Y extent      = 100000
+    set Y repetitions = 100
   end
 end
 
@@ -74,7 +72,8 @@ subsection Initial temperature model
   set Model name = function
 
   subsection Function
-    set Function expression = 1950 - 300 * y / 1.5e5
+    set Function constants  = H=100000, dT=300, T0=1950
+    set Function expression = T0 - dT * y / H
   end
 end
 
@@ -111,7 +110,7 @@ subsection Postprocess
 
   subsection Particles
     set Data output format          = vtu
-    set List of particle properties = composition, melt particle
+    set List of particle properties = composition, melt particle, pT path
     set Particle generator name     = ascii file
     set Time between data output    = 1e3
 

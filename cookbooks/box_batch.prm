@@ -57,7 +57,7 @@ subsection Initial temperature model
   set Model name = function
 
   subsection Function
-    set Function constants  = T0=1950, dT0=300, dT1=50, dT2=50, h=150000, r=10000
+    set Function constants  = T0=1950, dT=300, dT1=50, dT2=50, h=150000, r=10000
     set Function expression = \
       T0 - dT*y/h \
       + if((x-40000)*(x-40000) + y*y < r*r, dT1, 0) \
