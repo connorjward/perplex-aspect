@@ -2,7 +2,6 @@ set Additional shared libraries            = ./libperplexaspect.so
 set Adiabatic surface temperature          = 2000
 set Dimension                              = 2
 set End time                               = 100000
-set Surface pressure                       = 1e9
 set Output directory                       = output-decompression_2pp
 set Use operator splitting                 = true
 set Use years in output instead of seconds = true
@@ -40,6 +39,13 @@ subsection Compositional fields
                                     melt field, melt field, field, field, field, field
   set Names of fields = porosity, peridotite, melt_SiO2, melt_CaO, melt_MgO, melt_FeO, \
                         residue_SiO2, residue_CaO, residue_MgO, residue_FeO
+end
+
+subsection Discretization
+  subsection Stabilization parameters
+    set beta = 0.5
+    set cR   = 1
+  end
 end
 
 subsection Geometry model
@@ -94,8 +100,13 @@ subsection Melt settings
 end
 
 subsection Mesh refinement
-  set Initial global refinement          = 1
-  set Time steps between mesh refinement = 0
+  set Initial adaptive refinement = 1
+  set Initial global refinement   = 1
+  set Strategy                    = minimum refinement function
+
+  subsection Minimum refinement function
+    set Function expression = 1
+  end
 end
 
 subsection Perple_X settings

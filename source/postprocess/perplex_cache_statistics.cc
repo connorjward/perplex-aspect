@@ -29,7 +29,7 @@ namespace aspect
     std::pair<std::string,std::string>
     PerplexCacheStatistics<dim>::execute(TableHandler &statistics)
     {
-      const perplexcpp::ResultCache &cache = perplexcpp::Wrapper::get_instance().get_cache();
+      perplexcpp::ResultCache &cache = perplexcpp::Wrapper::get_instance().get_cache();
 
       AssertThrow(cache.capacity > 0, 
 	          ExcMessage("You are trying to record the cache statistics "
@@ -41,6 +41,9 @@ namespace aspect
       const unsigned int total_misses = 
 	Utilities::MPI::sum(cache.get_n_misses(), this->get_mpi_communicator());
       const double hit_rate = (double) total_hits / (total_hits + total_misses);
+
+      // Reset cache counters.
+      cache.reset_counters();
 
       statistics.add_value("Cache hits", total_hits);
       statistics.add_value("Cache misses", total_misses);
