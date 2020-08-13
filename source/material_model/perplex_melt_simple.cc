@@ -46,8 +46,11 @@ namespace aspect
       {
 	for (unsigned int q = 0; q < in.n_evaluation_points(); q++)
 	{
-	  double pressure = PerplexUtils::limit_pressure(in.pressure[q]);
-	  double temperature = PerplexUtils::limit_temperature(in.temperature[q]);
+	  const double pressure = PerplexUtils::limit_pressure(in.pressure[q]);
+
+	  // 200K is added to make sure that Perple_X reports melt being present 
+	  // when the ASPECT parametrisation reports that there is.
+	  const double temperature = PerplexUtils::limit_temperature(in.temperature[q]) + 200;
 
 	  std::vector<double> composition(px.n_composition_components);
 	  this->load_perplex_composition_from_fields(in.composition[q], composition);
