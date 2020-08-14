@@ -30,6 +30,32 @@ namespace aspect
   { 
     template <int dim>
     void
+    PerplexMeltSimple<dim>::
+    melt_fractions(const MaterialModelInputs<dim> &in, 
+	           std::vector<double> &melt_fractions) const
+    {
+      const auto& px = perplexcpp::Wrapper::get_instance();
+
+      for (unsigned int q = 0; q < in.n_evaluation_points(); q++) {
+	const double pressure = PerplexUtils::limit_pressure(in.pressure[q]);
+	const double temperature = PerplexUtils::limit_temperature(in.temperature[q]);
+
+	std::vector<double> composition(px.n_composition_components);
+	this->load_perplex_composition_from_fields(in.composition[q], composition);
+
+	const perplexcpp::MinimizeResult result = 
+	  px.minimize(pressure, temperature, composition);
+
+	const perplexcpp::Phase melt = 
+	  perplexcpp::find_phase(result.phases, "liquid");
+
+	melt_fractions[q] = melt.volume_frac;
+      }
+    }
+
+
+    template <int dim>
+    void
     PerplexMeltSimple<dim>::evaluate(const MaterialModelInputs<dim> &in,
 	                             MaterialModelOutputs<dim> &out) const
     {
@@ -44,13 +70,9 @@ namespace aspect
 	  this->get_timestep_number() > 0 &&
 	  in.requests_property(MaterialProperties::reaction_terms))
       {
-	for (unsigned int q = 0; q < in.n_evaluation_points(); q++)
-	{
+	for (unsigned int q = 0; q < in.n_evaluation_points(); q++) {
 	  const double pressure = PerplexUtils::limit_pressure(in.pressure[q]);
-
-	  // 200K is added to make sure that Perple_X reports melt being present 
-	  // when the ASPECT parametrisation reports that there is.
-	  const double temperature = PerplexUtils::limit_temperature(in.temperature[q] + 200);
+	  const double temperature = PerplexUtils::limit_temperature(in.temperature[q]);
 
 	  std::vector<double> composition(px.n_composition_components);
 	  this->load_perplex_composition_from_fields(in.composition[q], composition);
@@ -58,19 +80,7 @@ namespace aspect
 	  const perplexcpp::MinimizeResult result = 
 	    px.minimize(pressure, temperature, composition);
 
-	  std::vector<double> melt_composition(px.n_composition_components);
-	  {
-	    const unsigned int porosity_idx = 
-	      this->introspection().compositional_index_for_name("porosity");
-	    const double porosity =
-	      std::max(in.composition[q][porosity_idx], 0.0);
-	    PerplexUtils::put_melt_composition(result, porosity, melt_composition);
-	  }
-
-	  this->update_reaction_rates(in.composition[q], 
-	                              result.composition, 
-				      melt_composition, 
-				      reaction_rate_out->reaction_rates[q]);
+	  this->put_reaction_rates(in.composition[q], result, reaction_rate_out->reaction_rates[q]);
 	}
       }
     }
@@ -125,28 +135,37 @@ namespace aspect
     template <int dim>
     void
     PerplexMeltSimple<dim>::
-    update_reaction_rates(const std::vector<double> &initial_composition,
-	                  const std::vector<double> &final_composition,
-			  const std::vector<double> &melt_composition,
-	                  std::vector<double> &reaction_rates) const
+    put_reaction_rates(const std::vector<double> &initial_composition,
+	               const perplexcpp::MinimizeResult &result,
+	               std::vector<double> &reaction_rates) const
     {
       const auto &px = perplexcpp::Wrapper::get_instance();
 
-      for (unsigned int c = 0; c < px.n_composition_components; c++) 
-      {
+      const perplexcpp::Phase melt =
+	perplexcpp::find_phase(result.phases, "liquid");
+
+      // Store porosity.
+      const unsigned int porosity_idx = 
+	this->introspection().compositional_index_for_name("porosity");
+      reaction_rates[porosity_idx] = 
+	(melt.volume_frac - initial_composition[porosity_idx]) 
+	/ this->get_parameters().reaction_time_step / year_in_seconds;
+
+      // Store composition.
+      for (unsigned int c = 0; c < px.n_composition_components; c++) {
 	const std::string cname = px.composition_component_names[c];
 	const unsigned int cmelt_idx = 
-	  this->introspection().compositional_index_for_name("melt_" + cname);
+	  this->introspection().compositional_index_for_name("melt_"+cname);
 	const unsigned int cres_idx = 
-	  this->introspection().compositional_index_for_name("residue_" + cname);
+	  this->introspection().compositional_index_for_name("residue_"+cname);
 
 	reaction_rates[cmelt_idx] = 
-	  (melt_composition[c] - initial_composition[cmelt_idx]) 
-	  / this->get_parameters().reaction_time_step;
+	  (melt.composition_ratio[c]*melt.n_moles - initial_composition[cmelt_idx]) 
+	  / this->get_parameters().reaction_time_step / year_in_seconds;
 
 	reaction_rates[cres_idx] = 
-	  (final_composition[c] - melt_composition[c] - initial_composition[cres_idx])
-	  / this->get_parameters().reaction_time_step;
+	  (result.composition[c] - melt.composition_ratio[c]*melt.n_moles - initial_composition[cres_idx])
+	  / this->get_parameters().reaction_time_step / year_in_seconds;
       }
     }
   }

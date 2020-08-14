@@ -21,304 +21,128 @@
 #include <perplexaspect/material_model/perplex_melt.h>
 
 #include <aspect/adiabatic_conditions/interface.h>
-#include <aspect/material_model/equation_of_state/interface.h>
+#include <aspect/gravity_model/interface.h>
+#include <perplexaspect/utilities.h>
+#include <perplexcpp/wrapper.h>
 
 
 namespace aspect
 {
   namespace MaterialModel
-  {
+  { 
     template <int dim>
-    void
-    PerplexMelt<dim>::initialize()
+    double
+    PerplexMelt<dim>::reference_darcy_coefficient() const
     {
-      AssertThrow(this->include_melt_transport(),
-	          ExcMessage("Material model 'Perple_X melt' only works if melt "
-		             "transport is enabled."));
-      AssertThrow(this->introspection().compositional_name_exists("porosity"),
-		  ExcMessage("Material model 'Perple_X melt' only works if "
-		             "there is a compositional field called 'porosity'."));
-      AssertThrow(this->get_parameters().use_operator_splitting,
-	          ExcMessage("Material model 'Perple_X melt' only works if "
-		             "operator splitting is enabled."));
-      AssertThrow(perplexcpp::Wrapper::get_instance().get_cache().capacity > 0,
-	          ExcMessage("The result cache for the Perple_X wrapper should "
-		             "be greater than zero or every calculation will be "
-			     "done twice."));
+      return this->permeability * std::pow(0.01,3.0) / this->fluid_viscosity;
     }
-
 
 
     template <int dim>
     bool
     PerplexMelt<dim>::is_compressible() const
     {
-      return this->equation_of_state.is_compressible();
+      return this->base_model->is_compressible();
     }
-
 
 
     template <int dim>
     double
     PerplexMelt<dim>::reference_viscosity() const
     {
-      return this->constant_rheology.compute_viscosity();
+      return this->base_model->reference_viscosity();
     }
 
+
+    template <int dim>
+    void
+    PerplexMelt<dim>::
+    melt_fractions(const MaterialModelInputs<dim> &in, 
+	           std::vector<double> &melt_fractions) const
+    {
+      const auto& px = perplexcpp::Wrapper::get_instance();
+
+      for (unsigned int q = 0; q < in.n_evaluation_points(); q++) {
+	const double pressure = PerplexUtils::limit_pressure(in.pressure[q]);
+	const double temperature = PerplexUtils::limit_temperature(in.temperature[q]);
+
+	std::vector<double> composition(px.n_composition_components);
+	this->load_perplex_composition_from_fields(in.composition[q], composition);
+
+	const perplexcpp::MinimizeResult result = 
+	  px.minimize(pressure, temperature, composition);
+
+	const perplexcpp::Phase melt = 
+	  perplexcpp::find_phase(result.phases, "liquid");
+
+	melt_fractions[q] = melt.volume_frac;
+      }
+    }
 
 
     template <int dim>
     void
     PerplexMelt<dim>::evaluate(const MaterialModelInputs<dim> &in,
-                               MaterialModelOutputs<dim> &out) const
+	                             MaterialModelOutputs<dim> &out) const
     {
-      EquationOfStateOutputs<dim> eos_outputs(1);
+      this->base_model->evaluate(in, out);
 
-      for (unsigned int i = 0; i < in.n_evaluation_points(); ++i)
+      const auto& px = perplexcpp::Wrapper::get_instance();
+
+      ReactionRateOutputs<dim> *reaction_rate_out = 
+	out.template get_additional_output<ReactionRateOutputs<dim>>();
+
+      if (reaction_rate_out != nullptr &&
+	  this->get_timestep_number() > 0 &&
+	  in.requests_property(MaterialProperties::reaction_terms))
       {
-	equation_of_state.evaluate(in, i, eos_outputs);
+	for (unsigned int q = 0; q < in.n_evaluation_points(); q++) {
+	  const double pressure = PerplexUtils::limit_pressure(in.pressure[q]);
+	  const double temperature = PerplexUtils::limit_temperature(in.temperature[q]);
 
-	out.viscosities[i] = constant_rheology.compute_viscosity();
-	out.densities[i] = eos_outputs.densities[0];
-	out.thermal_expansion_coefficients[i] = eos_outputs.thermal_expansion_coefficients[0];
-	out.specific_heat[i] = eos_outputs.specific_heat_capacities[0];
-	out.thermal_conductivities[i] = k_value;
-	out.compressibilities[i] = eos_outputs.compressibilities[0];
-	out.entropy_derivative_pressure[i] = 0.0;
-	out.entropy_derivative_temperature[i] = 0.0;
+	  std::vector<double> composition(px.n_composition_components);
+	  this->load_perplex_composition_from_fields(in.composition[q], composition);
 
+	  const perplexcpp::MinimizeResult result = 
+	    px.minimize(pressure, temperature, composition);
 
-	  ReactionRateOutputs<dim> *reaction_rate_out =
-	    out.template get_additional_output<ReactionRateOutputs<dim>>();
-	if (in.requests_property(MaterialProperties::reaction_terms)) 
-	{
-
-	  // Start by zeroing the reaction terms. Otherwise the fields are
-	  // set to NaN causing exceptions.
-	  for (unsigned int c=0; c<in.composition[i].size(); ++c)
-	  {
-	    out.reaction_terms[i][c] = 0.0;
-	    if (reaction_rate_out != nullptr)
-	      reaction_rate_out->reaction_rates[i][c] = 0.0;
-	  }
-
-	  if (reaction_rate_out != nullptr && this->get_timestep_number() > 0)
-	  {
-
-	    const auto& px = perplexcpp::Wrapper::get_instance();
-
-	    std::vector<double> bulk = this->get_bulk_composition(in, i);
-
-	    /* double pressure = in.pressure[i]; */
-	    double pressure = this->get_adiabatic_conditions().pressure(in.position[i]);
-	    double temperature = in.temperature[i];
-
-	    if (pressure < px.min_pressure)
-	      pressure = px.min_pressure;
-	    else if (pressure > px.max_pressure)
-	      pressure = px.max_pressure;
-
-	    if (temperature < px.min_temperature)
-	      temperature = px.min_temperature;
-	    if (temperature > px.max_temperature)
-	      temperature = px.max_temperature;
-
-	    const perplexcpp::MinimizeResult result =
-	      px.minimize(pressure, temperature, bulk);
-	    
-	    perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
-
-	    const unsigned int porosity_idx =
-	      this->introspection().compositional_index_for_name("porosity");
-
-	    const double initial_porosity = in.composition[i][porosity_idx];
-	    double porosity_change = melt.volume_frac - initial_porosity;
-
-	    if (initial_porosity + porosity_change < 0)
-	      porosity_change = -initial_porosity;
-
-	    reaction_rate_out->reaction_rates[i][porosity_idx] = 
-	      porosity_change / this->get_parameters().reaction_time_step;
-
-	    // Determine the composition changes and alter the reaction rates accordingly.
-	    for (unsigned int c = 0; c < px.n_composition_components; ++c) 
-	    {
-	      const std::string cname = px.composition_component_names[c];
-
-	      const unsigned int cmelt_idx = 
-		this->introspection().compositional_index_for_name("melt_" + cname);
-
-	      const double cmelt_initial = in.composition[i][cmelt_idx];
-	      const double cmelt_final = melt.composition_ratio[c] * melt.n_moles;
-	      double cmelt_change = cmelt_final - cmelt_initial;
-
-	      if (cmelt_initial + cmelt_change < 0)
-		cmelt_change = -cmelt_initial;
-
-	      reaction_rate_out->reaction_rates[i][cmelt_idx] = 
-		cmelt_change / this->get_parameters().reaction_time_step;
-
-
-	      const unsigned int residue_comp_idx = 
-		this->introspection().compositional_index_for_name("residue_" + cname);
-
-	      const double cresidue_initial = in.composition[i][residue_comp_idx];
-	      const double cresidue_final = result.composition[c] - cmelt_final;
-	      double cresidue_change = cresidue_final - cresidue_initial;
-
-	      if (cresidue_initial + cresidue_change < 0)
-		cresidue_change = -cresidue_initial;
-
-	      reaction_rate_out->reaction_rates[i][residue_comp_idx] = 
-		cresidue_change / this->get_parameters().reaction_time_step;
-	    }
-	  }
+	  this->put_reaction_rates(in.composition[q], result, reaction_rate_out->reaction_rates[q]);
 	}
-	else
-	{
-              for (unsigned int c=0; c<in.composition[i].size(); ++c)
-                {
-                  out.reaction_terms[i][c] = 0.0;
-
-                  if (reaction_rate_out != nullptr)
-                    reaction_rate_out->reaction_rates[i][c] = 0.0;
-                }
-	}
-	
-	// Fill melt outputs if they exist.
-	MeltOutputs<dim> *melt_out = 
-	  out.template get_additional_output<MeltOutputs<dim>>();
-
-	if (melt_out != nullptr)
-	  this->fill_melt_outputs(in, melt_out);
       }
-    }
 
+      // Fill melt outputs if they exist.
+      MeltOutputs<dim> *melt_out = 
+	out.template get_additional_output<MeltOutputs<dim>>();
+
+      if (melt_out != nullptr)
+	this->fill_melt_outputs(in, melt_out);
+    }
 
 
     template <int dim>
     void
-    PerplexMelt<dim>::declare_parameters (ParameterHandler &prm)
+    PerplexMelt<dim>::declare_parameters(ParameterHandler &prm)
     {
-      prm.enter_subsection("Material model");
-      {
-        prm.enter_subsection("Perple_X melt");
-        {
-          EquationOfState::LinearizedIncompressible<dim>::declare_parameters(prm);
-
-          prm.declare_entry ("Reference temperature", "293.",
-                             Patterns::Double (0.),
-                             "The reference temperature $T_0$. The reference temperature is used "
-                             "in the density formula. Units: $\\si{K}$.");
-          
-	  prm.declare_entry ("Thermal conductivity", "4.7",
-                             Patterns::Double (0.),
-                             "The value of the thermal conductivity $k$. "
-                             "Units: $W/m/K$.");
-
-          Rheology::ConstantViscosity::declare_parameters(prm, 5e24);
-
-	  //meltstuff
-          prm.declare_entry ("Melt extraction depth", "1000.0",
-                             Patterns::Double (0.),
-                             "Depth above that melt will be extracted from the model, "
-                             "which is done by a negative reaction term proportional to the "
-                             "porosity field. "
-                             "Units: $m$.");
-          prm.declare_entry ("Reference bulk viscosity", "1e22",
-                             Patterns::Double (0.),
-                             "The value of the constant bulk viscosity $\\xi_0$ of the solid matrix. "
-                             "This viscosity may be modified by both temperature and porosity "
-                             "dependencies. Units: $Pa \\, s$.");
-          prm.declare_entry ("Reference melt viscosity", "10.",
-                             Patterns::Double (0.),
-                             "The value of the constant melt viscosity $\\eta_f$. "
-			     "Units: $Pa \\, s$.");
-
-          prm.declare_entry ("Reference permeability", "1e-8",
-                             Patterns::Double(),
-                             "Reference permeability of the solid host rock."
-                             "Units: $m^2$.");
-
-          prm.declare_entry ("Exponential melt weakening factor", "27.",
-                             Patterns::Double (0.),
-                             "The porosity dependence of the viscosity. Units: dimensionless.");
-          prm.declare_entry ("Thermal viscosity exponent", "0.0",
-                             Patterns::Double (0.),
-                             "The temperature dependence of the shear viscosity. Dimensionless exponent. "
-                             "See the general documentation "
-                             "of this model for a formula that states the dependence of the "
-                             "viscosity on this factor, which is called $\\beta$ there.");
-          prm.declare_entry ("Thermal bulk viscosity exponent", "0.0",
-                             Patterns::Double (0.),
-                             "The temperature dependence of the bulk viscosity. Dimensionless exponent. "
-                             "See the general documentation "
-                             "of this model for a formula that states the dependence of the "
-                             "viscosity on this factor, which is called $\\beta$ there.");
-          prm.declare_entry ("Thermal expansion coefficient", "2e-5",
-                             Patterns::Double (0.),
-                             "The value of the thermal expansion coefficient $\\beta$. "
-                             "Units: $1/K$.");
-          prm.declare_entry ("Reference permeability", "1e-8",
-                             Patterns::Double(),
-                             "Reference permeability of the solid host rock."
-                             "Units: $m^2$.");
-          prm.declare_entry ("Melt compressibility", "0.0",
-                             Patterns::Double (0.),
-                             "The value of the compressibility of the melt. "
-                             "Units: $1/Pa$.");
-          prm.declare_entry ("Reference melt density", "2500.",
-                             Patterns::Double (0.),
-                             "Reference density of the melt/fluid$\\rho_{f,0}$. Units: $kg/m^3$.");
-        }
-        prm.leave_subsection();
-      }
-      prm.leave_subsection();
+      PerplexUtils::declare_parameters(prm);
     }
-
 
 
     template <int dim>
     void
     PerplexMelt<dim>::parse_parameters(ParameterHandler &prm)
     {
-      prm.enter_subsection("Material model");
-      {
-        prm.enter_subsection("Perple_X melt");
-        {
-          equation_of_state.parse_parameters (prm);
+      /* base_model.reset(create_material_model<dim>(prm.get("Base model"))); */
+      base_model.reset(create_material_model<dim>("simple"));
+      if (Plugins::plugin_type_matches<SimulatorAccess<dim>>(*base_model))
+	Plugins::
+	  get_plugin_as_type<SimulatorAccess<dim>>(*base_model)
+	  .initialize_simulator(this->get_simulator());
 
-          this->reference_T                = prm.get_double ("Reference temperature");
-          this->k_value                    = prm.get_double ("Thermal conductivity");
+      PerplexUtils::parse_parameters(prm);
 
-          constant_rheology.parse_parameters(prm);
-
-	  this->xi_0 = prm.get_double ("Reference bulk viscosity");
-          this->eta_f                      = prm.get_double ("Reference melt viscosity");
-          this->reference_permeability     = prm.get_double ("Reference permeability");
-	  this->thermal_expansivity        = prm.get_double ("Thermal expansion coefficient");
-	  this->melt_compressibility = prm.get_double ("Melt compressibility");
-	  this->alpha_phi = prm.get_double ("Exponential melt weakening factor");
-	  this->reference_rho_f = prm.get_double ("Reference melt density");
-          this->extraction_depth           = prm.get_double ("Melt extraction depth");
-	  this->thermal_bulk_viscosity_exponent = prm.get_double ("Thermal bulk viscosity exponent");
-	  this->thermal_viscosity_exponent = prm.get_double ("Thermal viscosity exponent");
-        }
-        prm.leave_subsection();
-      }
-      prm.leave_subsection();
-
-      // Declare dependencies on solution variables.
-      this->model_dependence.viscosity = NonlinearDependence::none;
-      this->model_dependence.density = NonlinearDependence::temperature;
-      this->model_dependence.compressibility = NonlinearDependence::none;
-      this->model_dependence.specific_heat = NonlinearDependence::none;
-      this->model_dependence.thermal_conductivity = NonlinearDependence::none;
-
-      // !!!
-      perplexcpp::Wrapper::initialize("simple.dat", "../data/perplex/simple", 100, 1e-3);
+      this->base_model->parse_parameters(prm);
+      this->model_dependence = this->base_model->get_model_dependence();
     }
-
 
 
     template <int dim>
@@ -326,154 +150,159 @@ namespace aspect
     PerplexMelt<dim>::
     create_additional_named_outputs(MaterialModelOutputs<dim> &out) const
     {
-      if (out.template get_additional_output<ReactionRateOutputs<dim> >() == nullptr)
-	out.additional_outputs.push_back(
-	  std_cxx14::
-	  make_unique<ReactionRateOutputs<dim>>(out.n_evaluation_points(), 
-	                                        this->n_compositional_fields())
-	);
+      if (this->get_parameters().use_operator_splitting && out.template get_additional_output<ReactionRateOutputs<dim> >() == nullptr)
+        {
+          const unsigned int n_points = out.n_evaluation_points();
+          out.additional_outputs.push_back(
+            std_cxx14::make_unique<MaterialModel::ReactionRateOutputs<dim>> (n_points, this->n_compositional_fields()));
+        }
     }
 
 
-
     template <int dim>
-    void 
+    void
     PerplexMelt<dim>::
-    melt_fractions(const MaterialModelInputs<dim> &in,
-		   std::vector<double> &melt_fractions) const
+    load_perplex_composition_from_fields(const std::vector<double> &aspect_composition,
+	                                 std::vector<double> &perplex_composition) const
     {
       const auto& px = perplexcpp::Wrapper::get_instance();
 
-      for (unsigned int i = 0; i < in.n_evaluation_points(); i++)
-      {
-	std::vector<double> bulk = this->get_bulk_composition(in, i);
+      Assert(perplex_composition.size() == px.n_composition_components,
+	     ExcInternalError("The composition is the wrong size."));
 
-	double pressure = in.pressure[i];
-	double temperature = in.temperature[i] + 400;
+      for (unsigned int c = 0; c < px.n_composition_components; c++) {
+	const std::string cname = px.composition_component_names[c];
 
-	if (pressure < px.min_pressure)
-	  pressure = px.min_pressure;
-	else if (pressure > px.max_pressure)
-	  pressure = px.max_pressure;
+	const unsigned int cmelt_idx = 
+	  this->introspection().compositional_index_for_name("melt_" + cname);
+	const unsigned int cres_idx = 
+	  this->introspection().compositional_index_for_name("residue_" + cname);
 
-	if (temperature < px.min_temperature)
-	  temperature = px.min_temperature;
-	if (temperature > px.max_temperature)
-	  temperature = px.max_temperature;
-
-	const perplexcpp::MinimizeResult result =
-	  px.minimize(pressure, temperature, bulk);
-
-	const perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
-
-	melt_fractions[i] = melt.volume_frac;
+	perplex_composition[c] =
+	  std::max(aspect_composition[cmelt_idx], 0.0)
+	  + std::max(aspect_composition[cres_idx], 0.0);
       }
     }
 
 
-
     template <int dim>
-    double
-    PerplexMelt<dim>::reference_darcy_coefficient() const
+    void
+    PerplexMelt<dim>::
+    put_reaction_rates(const std::vector<double> &initial_composition,
+	               const perplexcpp::MinimizeResult &result,
+	               std::vector<double> &reaction_rates) const
     {
-      // The same as melt_simple.cc and melt_global.cc.
-      return this->reference_permeability * std::pow(0.01,3.0) / this->eta_f;
+      const auto &px = perplexcpp::Wrapper::get_instance();
+
+      const perplexcpp::Phase melt =
+	perplexcpp::find_phase(result.phases, "liquid");
+
+      // Store porosity.
+      const unsigned int porosity_idx = 
+	this->introspection().compositional_index_for_name("porosity");
+      reaction_rates[porosity_idx] = 
+	(melt.volume_frac - initial_composition[porosity_idx]) 
+	/ this->get_parameters().reaction_time_step;
+
+      // Store composition.
+      for (unsigned int c = 0; c < px.n_composition_components; c++) {
+	const std::string cname = px.composition_component_names[c];
+	const unsigned int cmelt_idx = 
+	  this->introspection().compositional_index_for_name("melt_"+cname);
+	const unsigned int cres_idx = 
+	  this->introspection().compositional_index_for_name("residue_"+cname);
+
+	reaction_rates[cmelt_idx] = 
+	  (melt.composition_ratio[c]*melt.n_moles - initial_composition[cmelt_idx]) 
+	  / this->get_parameters().reaction_time_step;
+
+	reaction_rates[cres_idx] = 
+	  (result.composition[c] - melt.composition_ratio[c]*melt.n_moles - initial_composition[cres_idx])
+	  / this->get_parameters().reaction_time_step;
+      }
     }
 
 
-
-    // Note: This function is semantically identical to the relevant part of
-    // evaluate() in melt_global.cc.
     template <int dim>
     void
     PerplexMelt<dim>::
     fill_melt_outputs(const MaterialModelInputs<dim> &in, 
 	              MeltOutputs<dim> *melt_out) const
     {
+      /* for (unsigned int q = 0; q < in.n_evaluation_points(); q++) { */
+	/* melt_out->fluid_viscosities[q] = this->fluid_viscosity; */
+	/* melt_out->permeabilities[q] = this->permeability; */
+	/* melt_out->fluid_density_gradients[q] = Tensor<1,dim>(); */
+	/* melt_out->fluid_densities[q] = this->fluid_density; */
+	/* melt_out->compaction_viscosities[q] = this->compaction_viscosity; */
+      /* } */
+
+
+      double reference_permeability = 1e-8;
+      double eta_f = 10;
+      double reference_rho_f = 2500;
+      double thermal_expansivity = 2e-5;
+      double xi_0 = 1e22;
+      double melt_bulk_modulus_derivative = 0.0;
+      double reference_T = 293;
+      double melt_compressibility = 0.0;
+      double thermal_bulk_viscosity_exponent = 0.0;
+
+
+
       const unsigned int porosity_idx = this->introspection().compositional_index_for_name("porosity");
 
       for (unsigned int i=0; i<in.n_evaluation_points(); ++i)
       {
 	double porosity = std::max(in.composition[i][porosity_idx],0.0);
 
-	melt_out->fluid_viscosities[i] = this->eta_f;
-	melt_out->permeabilities[i] = 
-	  this->reference_permeability * std::pow(porosity,3) * std::pow(1.0-porosity,2);
-	melt_out->fluid_density_gradients[i] = Tensor<1,dim>();
+	melt_out->fluid_viscosities[i] = eta_f;
+	melt_out->permeabilities[i] = reference_permeability * std::pow(porosity,3) * std::pow(1.0-porosity,2);
 
-	// temperature dependence of density is 1 - alpha * (T - T(adiabatic))
+	// first, calculate temperature dependence of density
 	double temperature_dependence = 1.0;
 	if (this->include_adiabatic_heating ())
-	  temperature_dependence -= 
-	    (in.temperature[i] - this->get_adiabatic_conditions().temperature(in.position[i])) 
-	    * this->thermal_expansivity;
+	{
+	  // temperature dependence is 1 - alpha * (T - T(adiabatic))
+	  temperature_dependence -= (in.temperature[i] - this->get_adiabatic_conditions().temperature(in.position[i]))
+	    * thermal_expansivity;
+	}
 	else
-	  temperature_dependence -= 
-	    (in.temperature[i] - reference_T) * thermal_expansivity;
+	  temperature_dependence -= (in.temperature[i] - reference_T) * thermal_expansivity;
 
-	melt_out->fluid_densities[i] = 
-	  reference_rho_f * temperature_dependence
-	  * std::exp(melt_compressibility * (in.pressure[i] - this->get_surface_pressure()));
+	// the fluid compressibility includes two parts, a constant compressibility, and a pressure-dependent one
+	// this is a simplified formulation, experimental data are often fit to the Birch-Murnaghan equation of state
+	const double fluid_compressibility = melt_compressibility / (1.0 + in.pressure[i] * melt_bulk_modulus_derivative * melt_compressibility);
 
-	melt_out->compaction_viscosities[i] = this->xi_0 * exp(-this->alpha_phi * porosity);
+	melt_out->fluid_densities[i] = reference_rho_f * std::exp(fluid_compressibility * (in.pressure[i] - this->get_surface_pressure()))
+	  * temperature_dependence;
+
+	melt_out->fluid_density_gradients[i] = melt_out->fluid_densities[i] * melt_out->fluid_densities[i]
+	  * fluid_compressibility
+	  * this->get_gravity_model().gravity_vector(in.position[i]);
+
+	const double phi_0 = 0.05;
+	porosity = std::max(std::min(porosity,0.995),1e-4);
+	melt_out->compaction_viscosities[i] = xi_0 * phi_0 / porosity;
 
 	double visc_temperature_dependence = 1.0;
 	if (this->include_adiabatic_heating ())
 	{
-	  const double delta_temp = 
-	    in.temperature[i]-this->get_adiabatic_conditions().temperature(in.position[i]);
-	  visc_temperature_dependence = 
-	    std::max(std::min(std::exp(-thermal_bulk_viscosity_exponent*delta_temp 
-		                       / this->get_adiabatic_conditions().temperature(in.position[i])),
-		  1e4),
-		1e-4);
+	  const double delta_temp = in.temperature[i]-this->get_adiabatic_conditions().temperature(in.position[i]);
+	  visc_temperature_dependence = std::max(std::min(std::exp(-thermal_bulk_viscosity_exponent*delta_temp/this->get_adiabatic_conditions().temperature(in.position[i])),1e4),1e-4);
 	}
-	else if (thermal_viscosity_exponent != 0.0)
+	else
 	{
 	  const double delta_temp = in.temperature[i]-reference_T;
-	  visc_temperature_dependence = std::max(std::min(std::exp(-thermal_bulk_viscosity_exponent*delta_temp/reference_T),1e4),1e-4);
+	  const double T_dependence = (thermal_bulk_viscosity_exponent == 0.0
+	      ?
+	      0.0
+	      :
+	      thermal_bulk_viscosity_exponent*delta_temp/reference_T);
+	  visc_temperature_dependence = std::max(std::min(std::exp(-T_dependence),1e4),1e-4);
 	}
 	melt_out->compaction_viscosities[i] *= visc_temperature_dependence;
       }
-    }
-
-
-
-    template <int dim>
-    std::vector<double>
-    PerplexMelt<dim>::
-    get_composition(const std::vector<double>& comp_fields, 
-	            const std::string& name) const
-    { 
-      std::vector<double> composition;
-      for (std::string comp_name : 
-	   perplexcpp::Wrapper::get_instance().composition_component_names) 
-      {
-	const unsigned int idx = 
-	  this->introspection().compositional_index_for_name(name + "_" + comp_name);
-
-	composition.emplace_back(comp_fields[idx]);
-      }
-      return composition;
-    }
-
-
-
-    template <int dim>
-    std::vector<double>
-    PerplexMelt<dim>::
-    get_bulk_composition(const MaterialModelInputs<dim> &in,
-	                 const unsigned int q) const
-    {
-      const auto& px = perplexcpp::Wrapper::get_instance();
-
-      std::vector<double> melt = this->get_composition(in.composition[q], "melt");
-      std::vector<double> residue = this->get_composition(in.composition[q], "residue");
-
-      std::vector<double> bulk;
-      for (unsigned int c = 0; c < px.n_composition_components; c++)
-	bulk.push_back(melt[c] + residue[c]);
-      return bulk;
     }
   }
 }
@@ -484,16 +313,10 @@ namespace aspect
 {
   namespace MaterialModel
   {
-    ASPECT_REGISTER_MATERIAL_MODEL(PerplexMelt,
-                                   "perplex melt",
-                                   "A material model that has constant values "
-                                   "except for density, which depends linearly on temperature: "
-                                   "\\begin{align}"
-                                   "  \\rho(p,T) &= \\left(1-\\alpha (T-T_0)\\right)\\rho_0."
-                                   "\\end{align}"
-                                   "\n\n"
-                                   "\\note{This material model fills the role the ``simple'' material "
-                                   "model was originally intended to fill, before the latter acquired "
-                                   "all sorts of complicated temperature and compositional dependencies.}")
+    ASPECT_REGISTER_MATERIAL_MODEL(
+      PerplexMelt,
+      "perplex melt",
+      "Description here."
+    )
   }
 }

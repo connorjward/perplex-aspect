@@ -23,7 +23,7 @@
 
 #include <aspect/initial_temperature/interface.h>
 #include <aspect/adiabatic_conditions/interface.h>
-#include <perplexaspect/material_model/perplex_melt.h>
+#include <perplexaspect/material_model/perplex_melt_simple.h>
 #include <perplexaspect/utilities.h>
 #include <perplexcpp/wrapper.h>
 
@@ -42,11 +42,8 @@ namespace aspect
                         const unsigned int compositional_index) const
     {
       AssertThrow(Plugins::plugin_type_matches
-	          <const MaterialModel::MeltFractionModel<dim>>(this->get_material_model()),
-	          ExcMessage("The material model is not derived from the 'MeltFractionModel' class, "
-	                     "and therefore does not support computing equilibrium melt fractions. "
-	                     "This is incompatible with the `perplex composition' "
-	                     "initial composition plugin, which needs to compute these melt fractions."));
+	          <const MaterialModel::PerplexMeltSimple<dim>>(this->get_material_model()),
+	          ExcMessage("The material model is not `perplex melt'."));
 
       const auto& px = Wrapper::get_instance();
 
@@ -77,50 +74,21 @@ namespace aspect
 	    limit_temperature(this->get_initial_temperature_manager().initial_temperature(position));
 
 	  // Use the bulk composition from the file.
-	  const MinimizeResult result { px.minimize(pressure, temperature) };
-	  
-	  // Get the composition of the melt.
-	  const double porosity = this->calc_porosity(position);
-	  std::vector<double> melt_composition(px.n_composition_components);
-	  PerplexUtils::put_melt_composition(result, porosity, melt_composition);
+	  const MinimizeResult result = px.minimize(pressure, temperature);
+
+	  const Phase melt = find_phase(result.phases, "liquid");
 
 	  if (compositional_index == melt_idx)
-	    return melt_composition[c];
+	    return melt.composition_ratio[c] * melt.n_moles;
 	  else
-	    return std::max(result.composition[c] - melt_composition[c], 0.0);
+	    return std::max(result.composition[c] - melt.composition_ratio[c]*melt.n_moles, 0.0);
         }
       }
       return 0.0;
     }
-
-
-    template <int dim>
-    double
-    PerplexComposition<dim>::
-    calc_porosity(const Point<dim> position) const
-    {
-      MaterialModel::MaterialModelInputs<dim> in(1, this->n_compositional_fields());
-
-      in.position[0] = position;
-      in.temperature[0] = this->get_initial_temperature_manager().initial_temperature(position);
-      in.pressure[0] = this->get_adiabatic_conditions().pressure(position);
-      in.pressure_gradient[0] = 0.0;
-      in.velocity[0] = 0.0;
-
-      for (unsigned int i = 0; i < this->n_compositional_fields(); ++i)
-	in.composition[0][i] = 0.0;
-      
-      in.strain_rate[0] = SymmetricTensor<2,dim>();
-
-      std::vector<double> melt_fraction(1);
-      
-      Plugins::get_plugin_as_type<const MaterialModel::MeltFractionModel<dim>>
-	(this->get_material_model()).melt_fractions(in, melt_fraction);
-
-      return melt_fraction[0];
-    }
   }
 }
+
 
 // Explicit instantiations.
 namespace aspect

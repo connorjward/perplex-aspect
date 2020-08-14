@@ -4,7 +4,6 @@ set Dimension                              = 2
 set End time                               = 3e6
 set Maximum time step                      = 1e5
 set Output directory                       = output-box_2pp
-set Surface pressure			   = 1e9
 set Use operator splitting                 = true
 set Use years in output instead of seconds = true
 
@@ -68,7 +67,7 @@ subsection Initial temperature model
   set Model name = function
 
   subsection Function
-    set Function constants  = T0=1750, dT=300, dT1=30, dT2=30, h=150000, r=10000
+    set Function constants  = T0=1800, dT=1600, dT1=50, dT2=50, h=150000, r=10000
     set Function expression = \
       T0 - dT*y/h \
       + if((x-40000)*(x-40000) + y*y < r*r, dT1, 0) \
@@ -80,13 +79,18 @@ subsection Material model
   set Model name = perplex melt simple
 
   subsection Melt simple
+    set Depletion solidus change = 0
     set Reference permeability = 1e-7
     set Melt extraction depth = 0.0
-    set Freezing rate         = 0.005
+    set Freezing rate         = 0.000
     set Melting time scale for operator splitting = 2e2
-    set Exponential melt weakening factor = 20
-    set Reference bulk viscosity = 1e20
+    set Exponential melt weakening factor = 0
+    set Reference bulk viscosity = 1e18
+    set Reference shear viscosity = 1e18
     set Thermal viscosity exponent = 4
+    set Thermal bulk viscosity exponent = 4
+    set Peridotite melting entropy change = 0
+    # set Mass fraction cpx = 0
   end
 end
 
@@ -95,7 +99,7 @@ subsection Melt settings
 end
 
 subsection Mesh refinement
-  set Initial global refinement   = 3
+  set Initial global refinement = 3
 end
 
 subsection Perple_X settings
@@ -106,13 +110,13 @@ subsection Perple_X settings
 end
 
 subsection Postprocess
-  set List of postprocessors = perplex cache statistics, particles, visualization
+  set List of postprocessors = composition statistics, melt statistics, perplex cache statistics, visualization
 
-  subsection Particles
-    set Data output format            = vtu
-    set List of particle properties   = composition, pT path
-    set Time between data output      = 1e3
-  end
+  # subsection Particles
+  #   set Data output format            = vtu
+  #   set List of particle properties   = composition, pT path
+  #   set Time between data output      = 1e3
+  # end
 
   subsection Visualization
     set Time between graphical output = 1e3

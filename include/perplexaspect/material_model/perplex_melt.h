@@ -22,100 +22,89 @@
 #define _perplexaspect_material_model_perplex_melt_h
 
 
-#include <aspect/material_model/interface.h>
-#include <aspect/material_model/rheology/constant_viscosity.h>
-#include <aspect/material_model/equation_of_state/linearized_incompressible.h>
-#include <aspect/melt.h>
-#include <aspect/simulator_access.h>
-#include<perplexcpp/wrapper.h>
+#include <aspect/material_model/melt_simple.h>
+#include <aspect/material_model/simple.h>
+#include <perplexcpp/base.h>
 
 
 namespace aspect
 {
   namespace MaterialModel
   {
+    /**
+     * TODO
+     */
     template <int dim>
-    class PerplexMelt : public MeltInterface<dim>, 
-                        public MeltFractionModel<dim>,
-	                public ::aspect::SimulatorAccess<dim>
+    class PerplexMelt : public MeltFractionModel<dim>, 
+                        public MeltInterface<dim>, 
+			public ::aspect::SimulatorAccess<dim>
     {
       public:
 
-	void 
-	initialize() override;
+	double
+	reference_darcy_coefficient() const override;
 
 
-	bool 
+	bool
 	is_compressible() const override;
 
 
-        double 
+	double 
 	reference_viscosity() const override;
 
 
-	void 
-	evaluate(const MaterialModelInputs<dim> &in,
-                 MaterialModelOutputs<dim> &out) const override;
-
-
-	static
 	void
-	declare_parameters(ParameterHandler &prm);
+	melt_fractions(const MaterialModelInputs<dim> &in, 
+	               std::vector<double> &melt_fractions) const override;
 
 
-	void
-	parse_parameters(ParameterHandler &prm) override;
+        void evaluate(const MaterialModelInputs<dim> &in,
+                      MaterialModelOutputs<dim> &out) const override;
+
+
+        static
+        void
+        declare_parameters(ParameterHandler &prm);
+
+
+        void
+        parse_parameters(ParameterHandler &prm) override;
+
 
 	void
 	create_additional_named_outputs(MaterialModelOutputs<dim> &out) const override;
 
-	void 
-	melt_fractions(const MaterialModelInputs<dim> &in,
-                       std::vector<double> &melt_fractions) const override;
-
-
-        double 
-	reference_darcy_coefficient() const override;
-
 
       private:
 
-        double reference_T;
-        double k_value;
-        Rheology::ConstantViscosity constant_rheology;
-        EquationOfState::LinearizedIncompressible<dim> equation_of_state;
+	std::unique_ptr<Interface<dim>> base_model;
 
-	// melt stuff
-	double eta_f;
-	double reference_permeability;
-	double thermal_expansivity;
-	double melt_compressibility;
-	double alpha_phi;
-	double reference_rho_f;
-	double thermal_bulk_viscosity_exponent;
-	double thermal_viscosity_exponent;
-	double xi_0;
-	double extraction_depth;
+	double fluid_viscosity = 10;
+	double permeability = 1e-8;
+	double fluid_density = 2500;
+	double compaction_viscosity = 1e22;
 
 
-	std::vector<double>
-	get_bulk_composition(const MaterialModelInputs<dim> &in,
-	                     const unsigned int q) const;
+	void
+	get_melt_composition(const std::vector<double> &initial_composition,
+	                     const perplexcpp::MinimizeResult &result,
+	                     std::vector<double> &melt_composition) const;
 
-	std::vector<double>
-    get_composition(const std::vector<double>& comp_fields, 
-	            const std::string& name) const;
 
-	std::vector<double>
-	calc_melt_composition(const double porosity, 
-	                      const perplexcpp::MinimizeResult &result) const;
+	void
+	load_perplex_composition_from_fields(const std::vector<double> &aspect_composition,
+					     std::vector<double> &perplex_composition) const;
+
+
+	void
+	put_reaction_rates(const std::vector<double> &initial_composition,
+			   const perplexcpp::MinimizeResult &result,
+			   std::vector<double> &reaction_terms) const;
 
 
 	void
 	fill_melt_outputs(const MaterialModelInputs<dim> &in, 
-			  MeltOutputs<dim> *melt_out) const;
-
-
+	                  MeltOutputs<dim> *melt_out) const;
     };
   }
 }

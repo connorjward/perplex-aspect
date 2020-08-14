@@ -54,7 +54,7 @@ subsection Geometry model
   subsection Box
     set X extent      = 1000
     set Y extent      = 100000
-    set Y repetitions = 100
+    set Y repetitions = 50
   end
 end
 

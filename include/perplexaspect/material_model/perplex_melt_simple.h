@@ -38,6 +38,11 @@ namespace aspect
     {
       public:
 
+	void
+	melt_fractions(const MaterialModelInputs<dim> &in, 
+	           std::vector<double> &melt_fractions) const override;
+
+
         void evaluate(const MaterialModelInputs<dim> &in,
                       MaterialModelOutputs<dim> &out) const override;
 
@@ -64,10 +69,9 @@ namespace aspect
 
 
 	void
-	update_reaction_rates(const std::vector<double> &initial_composition,
-			      const std::vector<double> &final_composition,
-			      const std::vector<double> &melt_composition,
-			      std::vector<double> &reaction_rates) const;
+	put_reaction_rates(const std::vector<double> &initial_composition,
+	               const perplexcpp::MinimizeResult &result,
+	               std::vector<double> &reaction_rates) const;
     };
   }
 }
