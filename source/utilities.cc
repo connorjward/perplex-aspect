@@ -102,8 +102,7 @@ namespace aspect
       const perplexcpp::Phase melt = perplexcpp::find_phase(result.phases, "liquid");
 
       // If no melt is present return a vector of zeros.
-      if (porosity < 1e-8 || melt.n_moles < 1e-8)
-      {
+      if (porosity < 1e-8 || melt.n_moles < 1e-8) {
 	for (unsigned int c = 0; c < px.n_composition_components; c++)
 	  melt_composition[c] = 0.0;
 	return;

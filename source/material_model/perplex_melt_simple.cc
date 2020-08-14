@@ -50,12 +50,13 @@ namespace aspect
 
 	  // 200K is added to make sure that Perple_X reports melt being present 
 	  // when the ASPECT parametrisation reports that there is.
-	  const double temperature = PerplexUtils::limit_temperature(in.temperature[q]) + 200;
+	  const double temperature = PerplexUtils::limit_temperature(in.temperature[q] + 200);
 
 	  std::vector<double> composition(px.n_composition_components);
 	  this->load_perplex_composition_from_fields(in.composition[q], composition);
 
-	  const auto result = px.minimize(pressure, temperature, composition);
+	  const perplexcpp::MinimizeResult result = 
+	    px.minimize(pressure, temperature, composition);
 
 	  std::vector<double> melt_composition(px.n_composition_components);
 	  {
@@ -114,8 +115,9 @@ namespace aspect
 	const unsigned int cres_idx = 
 	  this->introspection().compositional_index_for_name("residue_" + cname);
 
-	perplex_composition[c] = 
-	  aspect_composition[cmelt_idx] + aspect_composition[cres_idx];
+	perplex_composition[c] =
+	  std::max(aspect_composition[cmelt_idx], 0.0)
+	  + std::max(aspect_composition[cres_idx], 0.0);
       }
     }
 
