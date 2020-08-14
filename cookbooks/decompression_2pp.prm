@@ -1,8 +1,7 @@
 set Additional shared libraries            = ./libperplexaspect.so
 set Adiabatic surface temperature          = 2000
 set Dimension                              = 2
-set End time                               = 100000
-set Surface pressure                       = 1e9
+set End time                               = 80000
 set Output directory                       = output-decompression_2pp
 set Use operator splitting                 = true
 set Use years in output instead of seconds = true
@@ -79,7 +78,7 @@ subsection Initial temperature model
   set Model name = function
 
   subsection Function
-    set Function constants  = H=100000, dT=300, T0=1850
+    set Function constants  = H=100000, dT=1200, T0=1600
     set Function expression = T0 - dT * y / H
   end
 end
@@ -93,6 +92,9 @@ subsection Material model
     set Freezing rate         = 0.005
     set Melting time scale for operator splitting = 2e2
     set Exponential melt weakening factor = 20
+
+    set Reference bulk viscosity = 1e20
+    set Thermal viscosity exponent = 4
   end
 end
 
@@ -101,13 +103,8 @@ subsection Melt settings
 end
 
 subsection Mesh refinement
-  set Initial adaptive refinement = 1
   set Initial global refinement   = 1
-  set Strategy                    = minimum refinement function
-
-  subsection Minimum refinement function
-    set Function expression = 1
-  end
+  set Time steps between mesh refinement = 0
 end
 
 subsection Perple_X settings
@@ -118,7 +115,8 @@ subsection Perple_X settings
 end
 
 subsection Postprocess
-  set List of postprocessors = composition statistics, particles, visualization
+  set List of postprocessors = composition statistics, perplex cache statistics, \
+                               particles, visualization
 
   subsection Particles
     set Data output format          = vtu
