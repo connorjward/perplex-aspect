@@ -3,7 +3,6 @@ set Adiabatic surface temperature          = 2000
 set Dimension                              = 2
 set End time                               = 100000
 set Output directory                       = output-decompression_frac
-set Surface pressure                       = 1e9
 set Use years in output instead of seconds = true
 
 subsection Boundary temperature model
@@ -25,8 +24,8 @@ subsection Geometry model
 
   subsection Box
     set X extent      = 1000
-    set Y extent      = 100000
-    set Y repetitions = 100
+    set Y extent      = 120000
+    set Y repetitions = 60
   end
 end
 
@@ -46,16 +45,24 @@ subsection Initial temperature model
   set Model name = function
 
   subsection Function
-    set Function constants  = H=100000, dT=300, T0=1950
-    set Function expression = T0 - dT * y / H
+    set Function constants  = h=120000, T_bottom=1873, T_top=293
+    set Function expression = T_bottom - (T_bottom-T_top) * y / h
   end
 end
 
 subsection Material model
-  set Model name = simple
+  set Model name = melt simple
+
+  subsection Melt simple
+    set Reference bulk viscosity = 1e18
+    set Reference shear viscosity = 1e18
+    set Thermal viscosity exponent = 4
+    set Thermal bulk viscosity exponent = 4
+  end
 end
 
 subsection Mesh refinement
+  set Initial adaptive refinement        = 0
   set Initial global refinement          = 1
   set Time steps between mesh refinement = 0
 end
