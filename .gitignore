@@ -1,13 +1,17 @@
-# build files
+# Build files
 /build/
 aspect
 *.so
 
-# temporary files
+# Temporary files
 /tags
 *.swp
 
 # Output files
+original.prm
+parameters.json
+parameters.prm
+parameters.tex
 output-*/
 *.err
 *.out

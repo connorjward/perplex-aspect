@@ -1,0 +1,31 @@
+# 1: Time step number
+# 2: Time (years)
+# 3: Time step size (years)
+# 4: Number of mesh cells
+# 5: Number of Stokes degrees of freedom
+# 6: Number of temperature degrees of freedom
+# 7: Number of degrees of freedom for all compositions
+# 8: Number of nonlinear iterations
+# 9: Iterations for temperature solver
+# 10: Iterations for composition solver 1
+# 11: Iterations for composition solver 2
+# 12: Iterations for composition solver 3
+# 13: Iterations for composition solver 4
+# 14: Iterations for composition solver 5
+# 15: Iterations for composition solver 6
+# 16: Iterations for composition solver 7
+# 17: Iterations for composition solver 8
+# 18: Iterations for composition solver 9
+# 19: Iterations for composition solver 10
+# 20: Iterations for Stokes solver
+# 21: Velocity iterations in Stokes preconditioner
+# 22: Schur complement iterations in Stokes preconditioner
+# 23: Minimal cells per process
+# 24: Maximal cells per process
+# 25: Average cells per process
+# 26: Cache hits
+# 27: Cache misses
+# 28: Cache hit rate
+# 29: Visualization file name
+0 0.000000000000e+00 0.000000000000e+00 48 515 225 2250  2  0 0  0 0 0 0 0 0 0 0 0 15  19 124 48 48 48.0000  53386 946 0.983 output-perplex_fields/solution/solution-00000 
+1 1.000000000000e+05 1.000000000000e+05 48 515 225 2250 10 61 0 89 0 0 0 0 0 0 0 0 84 104 725 48 48 48.0000 235984   8 1.000 output-perplex_fields/solution/solution-00001 

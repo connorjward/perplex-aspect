@@ -1,0 +1,120 @@
+#################### General settings #################### 
+
+set Additional shared libraries            = ./libperplexaspect.so
+set Adiabatic surface temperature          = 2000
+set Dimension                              = 2
+set End time                               = 1e5
+set Maximum time step                      = 1e5
+set Output directory                       = perplex_particles
+set Use years in output instead of seconds = true
+
+
+#################### Boundary conditions #################### 
+
+subsection Boundary temperature model
+  set Fixed temperature boundary indicators = bottom
+  set List of model names                   = initial temperature
+end
+
+subsection Boundary velocity model
+  set Tangential velocity boundary indicators = top, bottom, left, right
+end
+
+
+#################### Model geometry ####################
+
+subsection Geometry model
+  set Model name = box
+
+  subsection Box
+    set X extent      = 300000
+    set X repetitions = 3
+    set Y extent      = 120000
+  end
+end
+
+
+#################### Initial conditions ####################
+
+subsection Initial temperature model
+  set Model name = function
+
+  subsection Function
+    set Function constants  = h=120000, T_bottom=1773, T_top=293, dT=30, r=10000
+    set Function expression = \
+      T_bottom - (T_bottom-T_top) * y / h \
+      + if((x-40000)*(x-40000) + y*y < r*r, dT, 0) \
+      + if((x-220000)*(x-220000) + y*y < r*r, dT, 0)
+  end
+end
+
+
+#################### Gravity and material properties ####################
+
+subsection Gravity model
+  set Model name = vertical
+
+  subsection Vertical
+    set Magnitude = 10.0
+  end
+end
+
+subsection Material model
+  set Model name = melt simple
+
+  subsection Melt simple
+    set Reference bulk viscosity        = 1e18
+    set Reference shear viscosity       = 1e18
+    set Thermal viscosity exponent      = 4
+    set Thermal bulk viscosity exponent = 4
+  end
+end
+
+
+#################### Mesh refinement ####################
+
+subsection Mesh refinement
+  set Initial adaptive refinement        = 0
+  set Initial global refinement          = 3
+  set Time steps between mesh refinement = 0
+end
+
+subsection Heating model
+  set List of model names = adiabatic heating
+end
+
+
+#################### Perple_X settings ####################
+
+subsection Perple_X settings
+  set Data directory   = ../data/perplex/simple
+  set Problem filename = simple.dat
+  set Cache capacity   = 1000
+  set Cache tolerance  = 0.0001
+end
+
+
+#################### Postprocessing ####################
+
+subsection Postprocess
+  set List of postprocessors = \
+    load balance statistics, perplex cache statistics, particles, visualization
+
+  subsection Particles
+    set Number of particles           = 2000
+    set Allow cells without particles = true
+    set Data output format            = ascii
+    set List of particle properties   = perplex composition
+    set Time between data output      = 1e3
+
+    subsection Perple_X composition
+      set List of phase properties  = composition
+    end
+  end
+
+  subsection Visualization
+    set Output format                 = gnuplot
+    set Time between graphical output = 1e3
+  end
+end
+

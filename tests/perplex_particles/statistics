@@ -1,0 +1,27 @@
+# 1: Time step number
+# 2: Time (years)
+# 3: Time step size (years)
+# 4: Number of mesh cells
+# 5: Number of Stokes degrees of freedom
+# 6: Number of temperature degrees of freedom
+# 7: Iterations for temperature solver
+# 8: Iterations for Stokes solver
+# 9: Velocity iterations in Stokes preconditioner
+# 10: Schur complement iterations in Stokes preconditioner
+# 11: Minimal cells per process
+# 12: Maximal cells per process
+# 13: Average cells per process
+# 14: Minimal particles per process
+# 15: Maximal particles per process
+# 16: Average particles per process
+# 17: Minimal local particle to cell ratio
+# 18: Maximal local particle to cell ratio
+# 19: Average local particle to cell ratio
+# 20: Cache hits
+# 21: Cache misses
+# 22: Cache hit rate
+# 23: Number of advected particles
+# 24: Particle file name
+# 25: Visualization file name
+0 0.000000000000e+00 0.000000000000e+00 192 1891 833 0 16 18 34 192 192 192.0000 2000 2000 2000.0000 10.4167 10.4167 10.4167 142 1858 0.071 2000 output-perplex_particles/particles/particles-00000 output-perplex_particles/solution/solution-00000 
+1 1.000000000000e+05 1.000000000000e+05 192 1891 833 6 19 21 42 192 192 192.0000 2000 2000 2000.0000 10.4167 10.4167 10.4167 121 1879 0.060 2000 output-perplex_particles/particles/particles-00001 output-perplex_particles/solution/solution-00001 
