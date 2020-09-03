@@ -5,7 +5,7 @@ set Adiabatic surface temperature          = 2000
 set Dimension                              = 2
 set End time                               = 1e5
 set Maximum time step                      = 1e5
-set Output directory                       = perplex_particles
+set Output directory                       = output-perplex_particles
 set Use years in output instead of seconds = true
 
 
