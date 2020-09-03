@@ -1,11 +1,10 @@
 # PerpleX-ASPECT
 
-An [ASPECT](https://aspect.geodynamics.org/) plugin that analyses phase compositions using [Perple_X](http://www.perplex.ethz.ch/).
-The compositions may be tracked in two ways: using particles and using compositional fields*.
+A set of [ASPECT](https://aspect.geodynamics.org/) plugins that analyse phase composition information using [Perple_X](http://www.perplex.ethz.ch/).
+The compositions may be tracked in two ways: using particles and using compositional fields.
 
-This repository contains the source code for interfacing with ASPECT. The Perple_X interface code can be found [here](https://github.com/cward97/perplex-cpp) (and it is built as part of this project).
-
-\*The compositional field approach is extremely slow and should not be used for actual simulations.
+This repository contains the source code for interfacing with ASPECT and is built as a shared library.
+The Perple_X interface code can be found [here](https://github.com/cward97/perplex-cpp) (and it is built as part of this project).
 
 ## Prerequisites
 
@@ -30,10 +29,13 @@ Compile the code with CMake (an out of source build as shown below is recommende
 	$ cd build
 	$ cmake -DAspect_DIR=/path/to/aspect/ ..
 	$ make -j<N>
+
+Note that the same compilers that installed ASPECT and its dependencies must be used here.
 	
 ## Running instructions
 
-The code produces a shared library `libperplexaspect.so` that can be dynamically linked to when running ASPECT. To enable linking, just add the following line to the ASPECT input parameter file:
+The code produces a shared library `libperplexaspect.so` that can be dynamically linked to when running ASPECT. 
+To enable linking, just add the following line to the ASPECT input parameter file:
 
 	...
 	set Additional shared libraries = /path/to/libperplexaspect.so
@@ -53,8 +55,8 @@ Example parameter files may be found in the `cookbooks` directory. The most stra
 
 ## Testing
 
-The tests used in ASPECT are simply used to verify that the output of a simulation remains unchanged.
-The tests provided in this repository take this approach and so a test consists of a parameter file and a set of output files whose output may be compared.
+The tests used in ASPECT are simply used to verify that the output of a simulation does not change.
+Each test used here consists of a parameter file and a set of output files whose output may be compared to future runs of the simulation.
 
 Similarly to the cookbooks, the tests can be run as follows:
 
@@ -66,8 +68,9 @@ Similarly to the cookbooks, the tests can be run as follows:
 ## Project layout
 
 	cookbooks/		example parameter files
+	data/aspect		ASPECT data files
 	data/perplex		Perple_X data files
-	external/perplex-cpp	git submodule containing the Perple_X wrapper code	
+	external/perplex-cpp	Perple_X wrapper (git submodule)	
 	include/		header files
 	source/			source code
 	tests/			test parameter files
