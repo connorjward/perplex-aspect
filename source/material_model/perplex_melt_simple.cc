@@ -149,7 +149,7 @@ namespace aspect
 	this->introspection().compositional_index_for_name("porosity");
       reaction_rates[porosity_idx] = 
 	(melt.volume_frac - initial_composition[porosity_idx]) 
-	/ this->get_parameters().reaction_time_step / year_in_seconds;
+	/ this->get_parameters().reaction_time_step;
 
       // Store composition.
       for (unsigned int c = 0; c < px.n_composition_components; c++) {
@@ -161,11 +161,11 @@ namespace aspect
 
 	reaction_rates[cmelt_idx] = 
 	  (melt.composition_ratio[c]*melt.n_moles - initial_composition[cmelt_idx]) 
-	  / this->get_parameters().reaction_time_step / year_in_seconds;
+	  / this->get_parameters().reaction_time_step;
 
 	reaction_rates[cres_idx] = 
 	  (result.composition[c] - melt.composition_ratio[c]*melt.n_moles - initial_composition[cres_idx])
-	  / this->get_parameters().reaction_time_step / year_in_seconds;
+	  / this->get_parameters().reaction_time_step;
       }
     }
   }

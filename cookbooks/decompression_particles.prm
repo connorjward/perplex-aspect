@@ -1,9 +1,14 @@
+#################### General settings #################### 
+
 set Additional shared libraries            = ./libperplexaspect.so
 set Adiabatic surface temperature          = 2000
 set Dimension                              = 2
 set End time                               = 100000
-set Output directory                       = output-decompression_frac
+set Output directory                       = output-decompression_particles
 set Use years in output instead of seconds = true
+
+
+#################### Boundary conditions #################### 
 
 subsection Boundary temperature model
   set List of model names                   = initial temperature
@@ -19,27 +24,21 @@ subsection Boundary velocity model
   end
 end
 
+
+#################### Model geometry ####################
+
 subsection Geometry model
   set Model name = box
 
   subsection Box
     set X extent      = 1000
     set Y extent      = 120000
-    set Y repetitions = 60
+    set Y repetitions = 50
   end
 end
 
-subsection Gravity model
-  set Model name = vertical
 
-  subsection Vertical
-    set Magnitude = 10.0
-  end
-end
-
-subsection Heating model
-  set List of model names = adiabatic heating
-end
+#################### Initial conditions ####################
 
 subsection Initial temperature model
   set Model name = function
@@ -47,6 +46,17 @@ subsection Initial temperature model
   subsection Function
     set Function constants  = h=120000, T_bottom=1873, T_top=293
     set Function expression = T_bottom - (T_bottom-T_top) * y / h
+  end
+end
+
+
+#################### Gravity and material properties ####################
+
+subsection Gravity model
+  set Model name = vertical
+
+  subsection Vertical
+    set Magnitude = 10.0
   end
 end
 
@@ -61,43 +71,52 @@ subsection Material model
   end
 end
 
+
+#################### Mesh refinement ####################
+
 subsection Mesh refinement
   set Initial adaptive refinement        = 0
   set Initial global refinement          = 1
   set Time steps between mesh refinement = 0
 end
 
+subsection Heating model
+  set List of model names = adiabatic heating
+end
+
+
+#################### Perple_X settings ####################
+
 subsection Perple_X settings
   set Data directory   = ../data/perplex/simple
   set Problem filename = simple.dat
 end
 
+
+#################### Postprocessing ####################
+
 subsection Postprocess
-  set List of postprocessors = particles, visualization
+  set List of postprocessors = particles
 
   subsection Particles
     set Allow cells without particles = true
     set Data output format            = vtu
-    set List of particle properties   = perplex composition, pT path
+    set List of particle properties   = perplex composition
     set Particle generator name       = ascii file
     set Time between data output      = 1e3
 
     subsection Generator
       subsection Ascii file
-	set Data directory = ../data/particle/generator/ascii/
+	set Data directory = ../data/aspect/particle/generator/ascii/
 	set Data file name = decompression.dat
       end
     end
 
     subsection Perple_X composition
       set Extract melt              = true
-      set List of phase properties  = composition, molar amount, molar fraction, volume fraction
+      set List of phase properties  = composition, volume fraction
       set Melt extraction threshold = 0.03
     end
-  end
-
-  subsection Visualization
-    set Time between graphical output = 1e3
   end
 end
 
