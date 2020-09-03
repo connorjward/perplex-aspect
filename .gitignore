@@ -1,6 +1,7 @@
 # Build files
 /build/
-aspect
+/cookbooks/aspect
+/tests/aspect
 *.so
 
 # Temporary files
