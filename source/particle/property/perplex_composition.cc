@@ -80,19 +80,14 @@ namespace aspect
       {
 	const auto& px = perplexcpp::Wrapper::get_instance();
 
-	double pressure = solution[this->introspection().component_indices.pressure];
-	double temperature = solution[this->introspection().component_indices.temperature];
-
 	// Adjust the pressure and temperature to lie within the bounds
 	// permitted by Perple_X.
-	if (pressure < px.min_pressure)
-	  pressure = px.min_pressure;
-	else if (pressure > px.max_pressure)
-	  pressure = px.max_pressure;
-	if (temperature < px.min_temperature)
-	  temperature = px.min_temperature;
-	if (temperature > px.max_temperature)
-	  temperature = px.max_temperature;
+	const double pressure = 
+	  PerplexUtils::
+	  limit_pressure(solution[this->introspection().component_indices.pressure]);
+	const double temperature = 
+	  PerplexUtils::
+	  limit_temperature(solution[this->introspection().component_indices.temperature]);
 
 	std::vector<double> composition;
 	for (unsigned int c = 0; c < px.n_composition_components; c++)
@@ -515,11 +510,12 @@ namespace aspect
   {
     namespace Property
     {
-      ASPECT_REGISTER_PARTICLE_PROPERTY(PerplexComposition,
-                                        "perplex composition",
-                                        "A plugin that calls MEEMUM from Perple_X in "
-					"order to track properties such as phase "
-					"compositions and amounts.")
+      ASPECT_REGISTER_PARTICLE_PROPERTY(
+	PerplexComposition,
+	"perplex composition",
+	"A plugin that calls MEEMUM from Perple_X in order to track properties "
+	"such as phase compositions and amounts."
+      )
     }
   }
 }

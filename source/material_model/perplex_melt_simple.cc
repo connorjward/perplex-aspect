@@ -121,9 +121,9 @@ namespace aspect
 	const std::string cname = px.composition_component_names[c];
 
 	const unsigned int cmelt_idx = 
-	  this->introspection().compositional_index_for_name("melt_" + cname);
+	  this->introspection().compositional_index_for_name("melt_"+cname);
 	const unsigned int cres_idx = 
-	  this->introspection().compositional_index_for_name("residue_" + cname);
+	  this->introspection().compositional_index_for_name("residue_"+cname);
 
 	perplex_composition[c] =
 	  std::max(aspect_composition[cmelt_idx], 0.0)
@@ -179,7 +179,7 @@ namespace aspect
     ASPECT_REGISTER_MATERIAL_MODEL(
       PerplexMeltSimple,
       "perplex melt simple",
-      "Description here."
+      "Material model applying Perple_X compositional information to the `melt simple' one."
     )
   }
 }

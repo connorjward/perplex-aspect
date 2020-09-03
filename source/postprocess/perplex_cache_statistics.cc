@@ -63,7 +63,6 @@ namespace aspect
 }
 
 
-
 // Explicit instantiations.
 namespace aspect
 {

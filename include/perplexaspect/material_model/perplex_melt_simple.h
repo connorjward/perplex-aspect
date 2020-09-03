@@ -31,7 +31,8 @@ namespace aspect
   namespace MaterialModel
   {
     /**
-     * TODO
+     * Material model that tracks Perple_X chemical composition information.
+     * It inherits from the `melt simple' material model.
      */
     template <int dim>
     class PerplexMeltSimple : public MeltSimple<dim>
@@ -57,17 +58,18 @@ namespace aspect
 
       private:
 
-	void
-	get_melt_composition(const std::vector<double> &initial_composition,
-	                     const perplexcpp::MinimizeResult &result,
-	                     std::vector<double> &melt_composition) const;
-
-
+	/**
+	 * Determine the Perple_X composition from the compositional fields in 
+	 * the correct order.
+	 */
 	void
 	load_perplex_composition_from_fields(const std::vector<double> &aspect_composition,
 					     std::vector<double> &perplex_composition) const;
 
 
+	/**
+	 * Update the reaction rate outputs with porosity and composition information.
+	 */
 	void
 	put_reaction_rates(const std::vector<double> &initial_composition,
 	               const perplexcpp::MinimizeResult &result,

@@ -43,7 +43,7 @@ namespace aspect
     {
       AssertThrow(Plugins::plugin_type_matches
 	          <const MaterialModel::PerplexMeltSimple<dim>>(this->get_material_model()),
-	          ExcMessage("The material model is not `perplex melt'."));
+	          ExcMessage("The material model is not `perplex melt simple'."));
 
       const auto& px = Wrapper::get_instance();
 
@@ -98,7 +98,7 @@ namespace aspect
     ASPECT_REGISTER_INITIAL_COMPOSITION_MODEL(
       PerplexComposition,
       "perplex composition",
-      "???"
+      "Initial composition plugin for the `perplex melt simple' material model."
     )
   }
 }

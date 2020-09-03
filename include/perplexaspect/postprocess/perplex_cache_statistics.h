@@ -21,6 +21,7 @@
 #ifndef _perplexaspect_postprocess_perplex_cache_statistics_h
 #define _perplexaspect_postprocess_perplex_cache_statistics_h
 
+
 #include <aspect/postprocess/interface.h>
 #include <aspect/simulator_access.h>
 
@@ -31,7 +32,6 @@ namespace aspect
 {
   namespace Postprocess
   {
-
     /**
      * A postprocessor that compute some statistics about the Perple_X cache usage.
      */

@@ -34,27 +34,17 @@ namespace aspect
 
 
     /**
-     * TODO
+     * Declare the parameters taken through input files.
      */
     void
     declare_parameters(ParameterHandler &prm);
 
 
     /**
-     * TODO
+     * Read the parameters from the parameter file. 
      */
     void
     parse_parameters(ParameterHandler &prm);
-
-
-    /**
-     * Given the porosity (melt volume fraction) return the melt composition
-     * scaled to match it.
-     */
-    void
-    put_melt_composition(const perplexcpp::MinimizeResult &result,
-	                 const double porosity,
-	                 std::vector<double> &melt_composition);
 
 
     /**
