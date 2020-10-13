@@ -1,3 +1,5 @@
+*Note: This repository is now archived and read-only. If you wish to contribute to this project please consider forking it.*
+
 # PerpleX-ASPECT
 
 A set of [ASPECT](https://aspect.geodynamics.org/) plugins that analyse phase composition information using [Perple_X](http://www.perplex.ethz.ch/).
